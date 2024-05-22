@@ -1,0 +1,59 @@
+version: "3"
+
+networks:
+  basic:
+
+services:
+  db:
+    image: mysql:5.7
+    networks:
+      - basic
+    ports:
+      - ${DB_PORT}:3306
+    volumes:
+      - ./db/conf/my.cnf:/etc/mysql/conf.d/mysql.cnf
+      - ./db/initdb:/docker-entrypoint-initdb.d
+      - ./db/data:/var/lib/mysql
+    environment:
+      TZ: Asia/Tokyo
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+
+  api:
+    image: node:18.17.0
+    networks:
+      - basic
+    depends_on:
+      - db
+    ports:
+      - ${API_SERVER_PORT}:3000
+    volumes:
+      - ./server:/server
+    tty: true
+    working_dir: /server
+    environment:
+      TZ: Asia/Tokyo
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DOMAIN: "db"
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      BLOCKCHAIN_API: ${BLOCKCHAIN_API}
+      ERC1155_ADDRESS: ${ERC1155_ADDRESS}
+      GASHA_ADDRESS: ${GASHA_ADDRESS}
+      NEYNAR_API_KEY: ${NEYNAR_API_KEY}
+      ZORA_API_ENDPOINT: ${ZORA_API_ENDPOINT}
+      ZORA_API_KEY: ${ZORA_API_KEY}
+      CLIENT_URL: ${CLIENT_URL}
+      ADMIN_PRIVATE_KEY: ${ADMIN_PRIVATE_KEY}
+      CHAIN_ID: ${CHAIN_ID}
+      UPDATE_SCORE_INTERVAL_MINUTES: ${UPDATE_SCORE_INTERVAL_MINUTES}
+      SYNDICATE_PROJECT_ID: ${SYNDICATE_PROJECT_ID}
+      SYNDICATE_API_KEY: ${SYNDICATE_API_KEY}
+      WIH_ADDRESS: ${WIH_ADDRESS}
+      FORWARDER_ADDRESS: ${FORWARDER_ADDRESS}
+      WIH_SIGN_SECKEY: ${WIH_SIGN_SECKEY}
+    command: yarn start:dev
