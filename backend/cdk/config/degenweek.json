@@ -1,0 +1,27 @@
+{
+  "stage": "degenweek",
+  "serviceName": "Card",
+  "aws": {
+    "accountId": "726394863183",
+    "region": "ap-northeast-1"
+  },
+  "clientURL": "https://theball.fun",
+  "dbSecretSuffix": "BXkitV",
+  "blockchainApi": "https://rpc.degen.tips",
+  "neynarApiKey": "25E7274A-3A98-4FC8-BAE8-125B4C6999E2",
+  "contractAddress": {
+    "gasha": "0x59542Ab5e70f2fF2F569f7A5d24fb438910A175d",
+    "erc1155": "0xaF2Cf066380A3E512fa63bDD37cEbEE1bF49b014",
+    "wih": "0x92Be35A41b54b0CabD613b92C667FF44c9B63D9C",
+    "forwarder": "0x0013252a5DC5cD5F95a5B4d05e14C10fb19b2b04"
+  },
+  "adminPrivateKey": "0x089155af3dde8bff168fea503f1df441330b18e1b4706d3a6b75286a9a41ae96",
+  "chainId": "666666666",
+  "updateScoreIntervalMinutes": "6000000",
+  "unitPrice": "0",
+  "wihSignSeckey": "0xabc123",
+  "syndicate": {
+    "projectId": "3dea3dbd-83bc-4625-97aa-28161dc27aa4",
+    "apiKey": "0zXOhfKdn0xvW7vDBWCQ"
+  }
+}

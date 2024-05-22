@@ -1,0 +1,4 @@
+DROP DATABASE IF EXISTS `gasha`;
+CREATE DATABASE `gasha`;
+
+USE `gasha`;
