@@ -33,7 +33,7 @@ export async function GET(
 
   // オーバーレイ画像のリサイズと透明背景の維持
   const overlayImageBuffer = await sharp(overlayBuffer)
-    .rotate(5, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) // 透明背景を維持して回転
+    .rotate(5.5, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) // 透明背景を維持して回転
     .resize({
       width: overlayMaxWidth,
       height: overlayMaxHeight,
@@ -54,7 +54,7 @@ export async function GET(
 
   // 上、左に寄せる量をピクセル単位で指定（例：10ピクセル左に寄せる）
   const topOffset = 12;
-  const leftOffset = 8;
+  const leftOffset = 7;
 
   // 透明背景を追加して中央に配置するためにオーバーレイ画像の位置を調整
   const extendedOverlayImageBuffer = await sharp({
