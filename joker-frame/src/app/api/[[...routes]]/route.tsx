@@ -21,7 +21,7 @@ const app = new Frog({
   imageAspectRatio: "1:1",
 });
 
-const name = "Joker Frame";
+const name = "Joker Frame local";
 const actionPath = "/joker-frame-action";
 const framePath = "/joker-frame";
 
@@ -50,6 +50,8 @@ app.frame("/", (c) => {
 });
 
 app.frame(framePath + "/:hash", async (c) => {
+  console.time("frame total time");
+
   const { req } = c;
   const hash = req.param("hash");
 
@@ -70,7 +72,11 @@ app.frame(framePath + "/:hash", async (c) => {
     });
   }
 
+  console.time("getEncodedImageUrlFromHash");
   const encodedImageUrl = await getEncodedImageUrlFromHash(hash);
+  console.time("getEncodedImageUrlFromHash");
+
+  console.timeEnd("frame total time");
 
   return c.res({
     image: `/image/${encodedImageUrl}`,
@@ -133,12 +139,17 @@ app.frame(framePath + "/share/:hash", async (c) => {
 app.castAction(
   actionPath,
   async (c) => {
+    console.time("cast action total time");
+
+    console.time("Fetch cast data");
+
     const { actionData } = c;
 
     //  get cast hash
     const castHash = actionData?.castId.hash;
 
     //  fetch cast data
+
     const url =
       "https://api.neynar.com/v2/farcaster/cast?type=hash&identifier=" +
       castHash;
@@ -162,7 +173,9 @@ app.castAction(
         message: "Media URL Not Found",
       });
     }
+    console.timeEnd("Fetch cast data");
 
+    console.time("Check format and get ogp image");
     let imageUrl;
     // check format
     const headResponse = await fetch(mediaUrl, { method: "HEAD" });
@@ -180,9 +193,17 @@ app.castAction(
         message: "Invalid Cast Data",
       });
     }
+    console.timeEnd("Check format and get ogp image");
+
+    console.time("Write Database");
 
     // save image to db
     await setHashAndImageUrl(castHash, imageUrl);
+
+    console.timeEnd("Write Database");
+
+    console.timeEnd("cast action total time");
+
     return c.res({
       type: "frame",
       path: framePath + "/" + castHash,
