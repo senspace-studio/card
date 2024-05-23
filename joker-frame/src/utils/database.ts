@@ -28,11 +28,6 @@ const connectToDatabase = async () => {
   return new Promise<mysql.Connection>(async (resolve, reject) => {
     sshClient
       .on("ready", async () => {
-        console.log("SSH Client :: ready");
-
-        console.log(dbConfig.host);
-        console.log(dbConfig.port);
-
         sshClient.forwardOut(
           "127.0.0.1", // ローカルアドレス
           0, // ローカルポート
@@ -82,9 +77,7 @@ export const getEncodedImageUrlFromHash = async (hash: string) => {
 
 export const setHashAndImageUrl = async (hash: string, imageUrl: string) => {
   const query = "INSERT IGNORE INTO image (hash, image) VALUES (?, ?)";
-  console.log("A");
   const connection = await connectToDatabase();
-  console.log("B");
   await connection.execute(query, [hash, imageUrl]);
   connection.end();
 };
