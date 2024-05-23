@@ -1,10 +1,12 @@
 /** @jsxImportSource frog/jsx */
 import { Button, Frog, TextInput } from "frog";
 import { handle } from "frog/next";
-import { getEncodedUrl } from "@/utils/getEncodedUrl";
-import mysql from "mysql2/promise";
-import { JSDOM } from "jsdom";
+import {
+  getEncodedImageUrlFromHash,
+  setHashAndImageUrl,
+} from "@/utils/database";
 
+import { JSDOM } from "jsdom";
 // TODO - replace url after cast
 const ROOT_CAST_URL = "https://warpcast.com/senspace/0xf9b9a4e5";
 
@@ -22,18 +24,6 @@ const app = new Frog({
 const name = "Joker Frame";
 const actionPath = "/joker-frame-action";
 const framePath = "/joker-frame";
-
-const getEncodedImageUrlFromHash = async (hash: string) => {
-  const query = "SELECT image FROM image WHERE hash = ?";
-  const connection = await mysql.createConnection(process.env.DATABASE_URL!);
-  const [rows, fields] = (await connection.execute(query, [
-    hash,
-  ])) as mysql.RowDataPacket[][];
-  await connection.end();
-  const imageUrl = rows[0]?.image;
-  const encodedImageUrl = getEncodedUrl(imageUrl!);
-  return encodedImageUrl;
-};
 
 // Add Cast Action Frame
 app.frame("/", (c) => {
@@ -164,9 +154,14 @@ app.castAction(
 
     // get image url
     const media = data.cast.embeds;
-    const mediaUrl = media[0].url;
+    const mediaUrl = media[0]?.url;
 
-    console.log(data.cast.embeds);
+    if (!mediaUrl) {
+      return c.res({
+        type: "message",
+        message: "Media URL Not Found",
+      });
+    }
 
     let imageUrl;
     // check format
@@ -176,21 +171,7 @@ app.castAction(
       imageUrl = mediaUrl;
     } else {
       // if not image, get fc:frame:image or og:image
-      const response = await fetch(mediaUrl);
-      const html = await response.text();
-      const dom = new JSDOM(html);
-
-      const ogImage = dom.window.document.querySelector(
-        'meta[property="og:image"]'
-      ) as HTMLMetaElement;
-      const fcFrameImage = dom.window.document.querySelector(
-        'meta[property="fc:frame:image"]'
-      ) as HTMLMetaElement;
-
-      imageUrl =
-        fcFrameImage?.getAttribute("content") ||
-        ogImage?.getAttribute("content") ||
-        null;
+      imageUrl = await getImageUrl(mediaUrl);
     }
 
     if (!imageUrl) {
@@ -201,11 +182,7 @@ app.castAction(
     }
 
     // save image to db
-    const query = "INSERT IGNORE INTO image (hash, image) VALUES (?, ?)";
-    const connection = await mysql.createConnection(process.env.DATABASE_URL!);
-    await connection.execute(query, [castHash, imageUrl]);
-    connection.end();
-
+    await setHashAndImageUrl(castHash, imageUrl);
     return c.res({
       type: "frame",
       path: framePath + "/" + castHash,
@@ -213,6 +190,44 @@ app.castAction(
   },
   { name, icon: "paintbrush", description: "Create a Your Joker Card" }
 );
+const getImageUrl = async (mediaUrl: string): Promise<string | null> => {
+  let imageUrl: string | null = null;
+
+  // // Playwrightでページをロードしてメタタグを取得
+
+  const html = await fetch(mediaUrl).then((res) => res.text());
+  const dom = new JSDOM(html);
+  const meta = dom.window.document.querySelectorAll("meta");
+
+  let frameImage = "";
+  let ogImage = "";
+  let twitterImage = "";
+
+  meta.forEach((tag) => {
+    const property = tag.getAttribute("property");
+    const name = tag.getAttribute("name");
+    const content = tag.getAttribute("content");
+
+    // property、name、itempropのいずれかが目的の属性である場合にcontentを取得
+    if (
+      property === "fc:frame:image" ||
+      name === "fc:frame:image" ||
+      name === "twitter:image"
+    ) {
+      frameImage = content || "";
+    }
+    if (property === "og:image" || name === "og:image") {
+      ogImage = content || "";
+    }
+    if (name === "twitter:image") {
+      twitterImage = content || "";
+    }
+  });
+
+  imageUrl = frameImage || ogImage || twitterImage || null;
+
+  return imageUrl;
+};
 
 export const GET = handle(app);
 export const POST = handle(app);
