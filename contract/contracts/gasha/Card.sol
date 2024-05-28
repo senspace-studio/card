@@ -2,28 +2,34 @@
 
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155URIStorageUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "../interfaces/IGashaItem.sol";
+import '@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155URIStorageUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '../interfaces/ICard.sol';
 
-contract GashaItem is
-    IGashaItem,
-    ERC1155URIStorageUpgradeable,
-    OwnableUpgradeable
-{
+contract Card is ICard, ERC1155URIStorageUpgradeable, OwnableUpgradeable {
     uint256 public nextTokenId;
 
     mapping(address => bool) private minters;
 
+    mapping(address => bool) private burners;
+
     modifier onlyMinter() {
-        require(minters[msg.sender], "GashaItem: only minter");
+        require(minters[msg.sender], 'Card: only minter');
+        _;
+    }
+
+    modifier onlyBurnerOrSelf(address account) {
+        require(
+            burners[msg.sender] || account == msg.sender,
+            'Card: only bunner'
+        );
         _;
     }
 
     function initialize(address _initialOwner) public initializer {
         __ERC1155URIStorage_init();
         __Ownable_init(_initialOwner);
-        nextTokenId ++;
+        nextTokenId++;
     }
 
     function mint(
@@ -31,12 +37,24 @@ contract GashaItem is
         uint256 tokenId,
         uint256 amount
     ) public onlyMinter {
-        require(nextTokenId >= tokenId, "GashaItem: invalid tokenId");
-        _mint(to, tokenId, amount, "");
+        require(nextTokenId >= tokenId, 'Card: invalid tokenId');
+        _mint(to, tokenId, amount, '');
+    }
+
+    function burn(
+        address account,
+        uint256 tokenId,
+        uint256 amount
+    ) public onlyBurnerOrSelf(account) {
+        _burn(account, tokenId, amount);
     }
 
     function setMinter(address minter, bool enabled) public onlyOwner {
         minters[minter] = enabled;
+    }
+
+    function setBurner(address burner, bool enabled) public onlyOwner {
+        burners[burner] = enabled;
     }
 
     function setupNewToken(

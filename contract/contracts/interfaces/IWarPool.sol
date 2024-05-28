@@ -5,9 +5,10 @@ pragma solidity ^0.8.20;
 interface IWarPool {
     enum DepositStatus {
         NotExist,
-        Active,
+        DepositedByMaker,
+        DepositedByChallenger,
         PayoutForWinner,
-        ReturnedForExpiredGame,
+        ReturnedToBoth,
         WithdrawnByAdmin
     }
 
@@ -19,6 +20,22 @@ interface IWarPool {
         uint256 betAmount;
         DepositStatus status;
     }
+
+    event Deposit(
+        bytes8 indexed gameId,
+        address indexed player,
+        DepositStatus status
+    );
+
+    event PayoutForWinner(
+        bytes8 indexed gameId,
+        address indexed winner,
+        address indexed loser
+    );
+
+    event ReturnToBoth(bytes8 indexed gameId);
+
+    event WithdrawByAdmin(bytes8 indexed gameId);
 
     function gameDeposits(
         bytes8
@@ -45,6 +62,11 @@ interface IWarPool {
     function payoutForWinner(
         bytes8 gameId,
         uint256 rewardRate,
-        address winner
+        address winner,
+        address loser
     ) external;
+
+    function returnToBoth(bytes8 gameId) external;
+
+    function withdrawByAdmin(bytes8 gameId) external;
 }

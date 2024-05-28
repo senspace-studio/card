@@ -54,7 +54,7 @@ interface IGasha {
     // *** Functions Section ****
     // ***********************
 
-    function spin(uint256 quantity, address to) external payable;
+    function spin(uint256 quantity) external payable;
 
     function dropByOwner(
         address to,

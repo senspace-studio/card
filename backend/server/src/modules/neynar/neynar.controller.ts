@@ -7,7 +7,7 @@ export class NeynarController {
   private readonly logger = new Logger(NeynarController.name);
   constructor(private readonly neynarService: NeynarService) {}
 
-  @Post('/verify')
+  @Post('/frame/validate')
   async getHoldingTokens(@Body('messageBytes') messageBytes: string) {
     this.logger.log(this.getHoldingTokens.name);
     return await this.neynarService.validateRequest(messageBytes);

@@ -1,13 +1,13 @@
-import { ethers, upgrades } from "hardhat"
-import { GashaItem } from "../../typechain-types"
+import { ethers, upgrades } from 'hardhat';
+import { Card } from '../../typechain-types';
 
-export const deployGashaItemContract = async (initialOwner: string) => {
-  const nftFactory = await ethers.getContractFactory("GashaItem")
+export const deployCardContract = async (initialOwner: string) => {
+  const nftFactory = await ethers.getContractFactory('Card');
 
   const nft = (await upgrades.deployProxy(nftFactory, [initialOwner], {
-    initializer: "initialize",
-  })) as any as GashaItem
-  await nft.waitForDeployment()
+    initializer: 'initialize',
+  })) as any as Card;
+  await nft.waitForDeployment();
 
-  return nft
-}
+  return nft;
+};

@@ -30,15 +30,11 @@ export class OgpController {
     this.logger.log(this.getSquareOgp.name);
 
     const mintResult: SpinResult = JSON.parse(score);
-    const { result, totalPoint } = this.pointsService.calcHat(
-      mintResult.ids,
-      mintResult.quantities,
-    );
 
     const file = await this.ogpService.generateSquareOgp(
-      totalPoint,
+      123,
       mintResult.minter,
-      result,
+      [],
     );
     res.set({ 'Content-Type': 'image/png' });
     res.send(file);
@@ -55,15 +51,11 @@ export class OgpController {
       params.address,
       14,
     );
-    const { result, totalPoint } = this.pointsService.calcHat(
-      ids,
-      balanceOfAll,
-    );
 
     const file = await this.ogpService.generateSquareOgp(
-      totalPoint,
+      10,
       params.address,
-      result,
+      [],
     );
     res.set({ 'Content-Type': 'image/png' });
     res.send(file);
@@ -74,15 +66,8 @@ export class OgpController {
     this.logger.log(this.getToralPoint.name);
 
     const mintResult: SpinResult = JSON.parse(score);
-    const { totalPoint } = this.pointsService.calcHat(
-      mintResult.ids,
-      mintResult.quantities,
-    );
 
-    const file = await this.ogpService.getTotalPoint(
-      mintResult.minter,
-      totalPoint,
-    );
+    const file = await this.ogpService.getTotalPoint(mintResult.minter, 100);
     res.set({ 'Content-Type': 'image/png' });
     res.send(file);
   }
