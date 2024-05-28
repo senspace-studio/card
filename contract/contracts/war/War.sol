@@ -4,8 +4,10 @@ pragma solidity ^0.8.20;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
 import '../interfaces/IWar.sol';
 import '../interfaces/IWarPool.sol';
+import '../interfaces/ICard.sol';
 import '../lib/SignatureVerifier.sol';
 import 'hardhat/console.sol';
 
@@ -13,31 +15,16 @@ contract War is
     IWar,
     OwnableUpgradeable,
     PausableUpgradeable,
+    ReentrancyGuardUpgradeable,
     SignatureVerifier
 {
     address dealerAddress;
 
     IWarPool warPool;
 
+    ICard card;
+
     mapping(bytes8 => Game) public games;
-
-    enum GameStatus {
-        NotExist,
-        Created,
-        Challenged,
-        Revealed,
-        Expired
-    }
-
-    struct Game {
-        address maker;
-        address challenger;
-        address winner;
-        uint256 makerCard;
-        uint256 challengerCard;
-        bytes dealerSignature;
-        uint64 createdAt;
-    }
 
     modifier onlyDealer() {
         require(
@@ -71,6 +58,7 @@ contract War is
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
+        __ReentrancyGuard_init();
         dealerAddress = _dealerAddress;
     }
 
@@ -79,7 +67,7 @@ contract War is
         uint256 betAmount,
         bool isNativeToken,
         bytes memory signature
-    ) external payable {
+    ) external payable whenNotPaused nonReentrant {
         bytes8 gameId = bytes8(
             keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
         );
@@ -112,8 +100,8 @@ contract War is
 
     function challengeGame(
         bytes8 gameId,
-        uint256 card
-    ) external payable onlyCreatedGame(gameId) {
+        uint256 cardTokenId
+    ) external payable whenNotPaused nonReentrant onlyCreatedGame(gameId) {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');
 
@@ -125,14 +113,20 @@ contract War is
             uint256 betAmount,
             IWarPool.DepositStatus status
         ) = warPool.gameDeposits(gameId);
+
         require(
-            status == IWarPool.DepositStatus.Active && challenger == address(0),
+            status == IWarPool.DepositStatus.DepositedByMaker &&
+                challenger == address(0),
             'War: invalid game status'
         );
         require(
             isNativeToken ? msg.value == betAmount : true,
             'War: invalid bet amount'
         );
+
+        game.challenger = msg.sender;
+        game.challengerCard = cardTokenId;
+
         warPool.deposit{value: isNativeToken ? msg.value : 0}(
             gameId,
             msg.sender,
@@ -141,9 +135,6 @@ contract War is
             betAmount
         );
 
-        game.challenger = msg.sender;
-        game.challengerCard = card;
-
         emit GameChallenged(msg.sender, gameId);
     }
 
@@ -151,7 +142,7 @@ contract War is
         bytes8 gameId,
         uint256 makerCard,
         uint256 nonce
-    ) external onlyChallengedGame(gameId) {
+    ) external whenNotPaused nonReentrant onlyChallengedGame(gameId) {
         Game storage game = games[gameId];
         require(game.maker != address(0), 'War: game not found');
 
@@ -165,29 +156,53 @@ contract War is
             'War: invalid signature'
         );
 
-        address winner = makerCard > game.challengerCard
-            ? game.maker
-            : makerCard == game.challengerCard
-            ? address(0)
-            : game.challenger;
-        uint256 winnerCard = makerCard > game.challengerCard
-            ? makerCard
-            : game.challengerCard;
+        bool makerHasCard = _hasCard(game.maker, makerCard);
+        bool challengerHasCard = _hasCard(game.challenger, game.challengerCard);
 
-        // ToDo: check maker and challenger still have card in his hand
+        address winner;
+        uint256 rewardRate;
 
-        if (winner == address(0)) {
-            // ToDo: draw game
+        if (!makerHasCard && !challengerHasCard) {
+            game.makerCard = makerCard;
+            warPool.withdrawByAdmin(gameId);
             return;
+        } else if (!makerHasCard) {
+            winner = game.challenger;
+            rewardRate = 100;
+            card.burn(game.challenger, game.challengerCard, 1);
+        } else if (!challengerHasCard) {
+            winner = game.maker;
+            rewardRate = 100;
+            card.burn(game.maker, makerCard, 1);
         } else {
-            uint256 rewardRate = _calcRewardRate(winnerCard);
-            warPool.payoutForWinner(gameId, rewardRate, winner);
+            winner = makerCard > game.challengerCard
+                ? game.maker
+                : makerCard == game.challengerCard
+                ? address(0)
+                : game.challenger;
+            uint256 winnerCard = makerCard > game.challengerCard
+                ? makerCard
+                : game.challengerCard;
+
+            if (winner == address(0)) {
+                warPool.returnToBoth(gameId);
+                return;
+            } else {
+                address loser = winner == game.maker
+                    ? game.challenger
+                    : game.maker;
+                rewardRate = _calcRewardRate(winnerCard);
+                warPool.payoutForWinner(gameId, rewardRate, winner, loser);
+            }
+
+            card.burn(game.maker, makerCard, 1);
+            card.burn(game.challenger, game.challengerCard, 1);
         }
 
         game.winner = winner;
         game.makerCard = makerCard;
 
-        // ToDo: burn cards
+        emit GameRevealed(gameId);
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
@@ -228,11 +243,24 @@ contract War is
         }
     }
 
+    function _hasCard(
+        address owner,
+        uint256 tokenId
+    ) internal view returns (bool) {
+        uint256 balance = card.balanceOf(owner, tokenId);
+
+        return balance > 0;
+    }
+
     function setDealerAddress(address _dealerAddress) external onlyOwner {
         dealerAddress = _dealerAddress;
     }
 
     function setWarPoolAddress(address _warPool) external onlyOwner {
         warPool = IWarPool(_warPool);
+    }
+
+    function setCardAddress(address _card) external onlyOwner {
+        card = ICard(_card);
     }
 }
