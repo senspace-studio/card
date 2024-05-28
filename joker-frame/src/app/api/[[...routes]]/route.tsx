@@ -74,7 +74,7 @@ app.frame(framePath + "/:hash", async (c) => {
 
   console.time("getEncodedImageUrlFromHash");
   const encodedImageUrl = await getEncodedImageUrlFromHash(hash);
-  console.time("getEncodedImageUrlFromHash");
+  console.timeEnd("getEncodedImageUrlFromHash");
 
   console.timeEnd("frame total time");
 
