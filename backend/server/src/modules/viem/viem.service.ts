@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import {
-  ADMIN_PRIVATE_KEY,
   BLOCKCHAIN_API,
   CHAIN_ID,
   ERC1155_ADDRESS,
   GASHA_ADDRESS,
-  UNIT_PRICE,
-  WIH_ADDRESS,
 } from 'src/utils/env';
 import {
   http,
@@ -57,7 +54,7 @@ export class ViemService {
   }
 
   private get adminAccount() {
-    return privateKeyToAccount(ADMIN_PRIVATE_KEY as Address);
+    return privateKeyToAccount('0x1' as Address);
   }
 
   private get ensResolverClient() {
@@ -158,7 +155,7 @@ export class ViemService {
         account: this.adminAccount,
         functionName: 'dropByOwner',
         args: [address, [BigInt(tokenId)], [BigInt(1)]],
-        value: parseEther(UNIT_PRICE),
+        value: parseEther('0'),
       });
 
       await this.walletClient.writeContract(request);
@@ -180,16 +177,5 @@ export class ViemService {
     });
 
     return { balanceOfAll: res.map((n) => Number(n)), ids };
-  }
-
-  async balanceOfERC404NFT(address: Address) {
-    const res = await this.client.readContract({
-      address: WIH_ADDRESS as Address,
-      abi: HatABI,
-      functionName: 'erc721BalanceOf',
-      args: [address],
-    });
-
-    return res;
   }
 }
