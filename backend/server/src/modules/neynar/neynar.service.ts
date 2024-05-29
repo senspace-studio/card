@@ -35,26 +35,4 @@ export class NeynarService {
     }
     return false;
   }
-
-  async isUserRecasted(fid: number) {
-    this.logger.log('isUserRecasted', fid);
-    const recasts = await this.client.fetchUserReactions(
-      fid,
-      ReactionsType.Recasts,
-      {
-        limit: 100,
-      },
-    );
-    for (const recast of recasts.reactions) {
-      if (
-        recast.cast?.embeds
-          .map((embed: any) => embed.url)
-          .some((url: string) =>
-            url?.includes('https://theball.fun/frames/allowlist'),
-          )
-      )
-        return true;
-    }
-    return false;
-  }
 }
