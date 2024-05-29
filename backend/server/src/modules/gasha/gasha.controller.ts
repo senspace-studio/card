@@ -1,7 +1,8 @@
 import { Controller, Get, Logger, Post } from '@nestjs/common';
 import { NeynarService } from '../neynar/neynar.service';
 import { ViemService } from '../viem/viem.service';
-import tweClient from 'src/lib/thirdwebEngine';
+import tweClient from 'src/lib/thirdweb-engine';
+import { WAR_CONTRACT_ADDRESS } from 'src/utils/env';
 
 @Controller('gasha')
 export class GashaController {
@@ -15,18 +16,22 @@ export class GashaController {
   async test() {
     this.logger.log(this.test.name);
 
-    const { data } = await tweClient.GET(
-      '/contract/{chain}/{contractAddress}/read',
+    const { data } = await tweClient.POST(
+      '/contract/{chain}/{contractAddress}/events/get',
       {
         params: {
-          query: {
-            functionName: 'seriesItems',
-          },
           path: {
-            chain: '666666666',
-            contractAddress: '0x409467ad8Ca45eA5626747c6538AbCACb7e0A292',
+            chain: 'degen-chain',
+            contractAddress: '0xAc49FAdA594056Bf878704753A04D812D450FBfa',
           },
         },
+        body: {
+          eventName: 'GameRevealed',
+          // Filterが効かないので調査必要
+          filters: {
+            gameId: '0xb701f8373853bdd2',
+          },
+        } as never,
       },
     );
 

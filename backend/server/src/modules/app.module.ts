@@ -19,6 +19,7 @@ import { CronModule } from './cron/cron.module';
 import { OgpModule } from './ogp/ogp.module';
 import { ScorecardEntity } from 'src/entities/scorecard';
 import { GashaModule } from './gasha/gasha.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { GashaModule } from './gasha/gasha.module';
     CronModule,
     OgpModule,
     GashaModule,
+    WebhookModule,
   ],
   controllers: [AppController],
   providers: [AppService],

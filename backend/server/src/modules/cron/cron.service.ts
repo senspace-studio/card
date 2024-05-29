@@ -2,7 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PointsService } from '../points/points.service';
 import { ViemService } from '../viem/viem.service';
 import { Interval } from '@nestjs/schedule';
-import { RUN_CRON, UPDATE_SCORE_INTERVAL_MINUTES } from 'src/utils/env';
+import {
+  RUN_CRON,
+  UPDATE_SCORE_INTERVAL_MINUTES,
+  WAR_CONTRACT_ADDRESS,
+} from 'src/utils/env';
+import tweClient from 'src/lib/thirdweb-engine';
 
 @Injectable()
 export class CronService {
@@ -19,6 +24,24 @@ export class CronService {
       return;
     }
 
+    const { data } = await tweClient.POST(
+      '/contract/{chain}/{contractAddress}/events/get',
+      {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            contractAddress: WAR_CONTRACT_ADDRESS,
+          },
+        },
+        body: {
+          eventName: 'GameRevealed',
+          // Filterが効かないので調査必要
+          filters: {
+            gameId: '0xb701f8373853bdd2',
+          },
+        } as never,
+      },
+    );
     // ToDo: update score
   }
 }
