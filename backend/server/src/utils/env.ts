@@ -18,3 +18,4 @@ export const THIRDWEB_ENGINE_ENDPOINT =
   process.env.THIRDWEB_ENGINE_ENDPOINT || 'http://localhost:3005';
 export const THIRDWEB_ENGINE_ACCESS_TOKEN =
   process.env.THIRDWEB_ENGINE_ACCESS_TOKEN || '';
+export const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';

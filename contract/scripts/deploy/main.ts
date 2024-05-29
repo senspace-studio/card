@@ -106,6 +106,11 @@ const main = async () => {
   await new Promise((r) => setTimeout(r, 3000));
   tx = await warPoolContract.setWarAddress(await warContract.getAddress());
   await tx.wait();
+  await new Promise((r) => setTimeout(r, 3000));
+  tx = await gashaItemERC1155Contract.setBurner(
+    await warContract.getAddress(),
+    true,
+  );
 
   console.log(
     'ZoraCreator1155 deployed to:',

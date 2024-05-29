@@ -82,7 +82,7 @@ describe('War', () => {
     await Gasha.connect(maker).spin(50, { value: parseEther(`${50 * 100}`) });
 
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(1), BigInt(2)]),
+      encodePacked(['uint256', 'uint256'], [BigInt(8), BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -91,10 +91,10 @@ describe('War', () => {
 
     const tx = await War.connect(maker).createGame(
       zeroAddress,
-      parseEther('100'),
+      0,
       true,
       signature,
-      { value: parseEther('100') },
+      { value: 0 },
     );
     const receipt = await tx.wait();
     const logs = receipt?.logs as EventLog[];
@@ -114,7 +114,7 @@ describe('War', () => {
 
     await expect(
       War.connect(challenger).challengeGame(gameId, 5, {
-        value: parseEther('100'),
+        value: 0,
       }),
     ).emit(War, 'GameChallenged');
 
@@ -123,11 +123,11 @@ describe('War', () => {
   });
 
   it('reveal game', async () => {
-    await War.connect(dealer).revealCard(gameId, 1, 2);
+    await War.connect(dealer).revealCard(gameId, 8, 2);
 
     const game = await War.games(gameId);
 
-    expect(game.makerCard).to.equal(1);
-    expect(game.winner).to.equal(challenger.address);
+    expect(game.makerCard).to.equal(8);
+    expect(game.winner).to.equal(maker.address);
   });
 });
