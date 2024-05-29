@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "../interfaces/IGasha.sol";
-import "../interfaces/IGashaItem.sol";
-import "../interfaces/IHat.sol";
+import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
+import '../interfaces/IGasha.sol';
+import '../interfaces/ICard.sol';
+import '../interfaces/IHat.sol';
 
 contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
-    IGashaItem public GashaItem;
+    ICard public GashaItem;
 
     IHat public Hat;
 
@@ -32,13 +32,13 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         uint256 currentTime = block.timestamp;
         require(
             startTime <= currentTime && currentTime <= endTime,
-            "Gasha: not available now"
+            'Gasha: not available now'
         );
         _;
     }
 
     modifier onlyOperator() {
-        require(operators[msg.sender], "Gasha: caller is not the operator");
+        require(operators[msg.sender], 'Gasha: caller is not the operator');
         _;
     }
 
@@ -51,7 +51,7 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
-        GashaItem = IGashaItem(_gashaItemERC1155);
+        GashaItem = ICard(_gashaItemERC1155);
         Hat = IHat(_hatERC404);
         seed = _initialSeed;
         unitPrice = _unitPrice;
@@ -59,11 +59,10 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     }
 
     function spin(
-        uint256 quantity,
-        address to
-    ) external payable onlyOperator isAvailableTime whenNotPaused {
-        require(quantity > 0 && quantity < 1000, "Gasha: quantity is invalid");
-        require(msg.value >= unitPrice * quantity, "Gasha: insufficient funds");
+        uint256 quantity
+    ) external payable isAvailableTime whenNotPaused {
+        require(quantity > 0 && quantity < 1000, 'Gasha: quantity is invalid');
+        require(msg.value >= unitPrice * quantity, 'Gasha: insufficient funds');
 
         SeriesItem[] memory activeSeriesItem = activeSeriesItems();
         uint256[] memory ids = new uint256[](activeSeriesItem.length);
@@ -90,11 +89,11 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
                 (10 ** 18);
         }
 
-        _mint(to, ids, quantities);
+        _mint(msg.sender, ids, quantities);
 
-        emit Spin(to, ids, quantities);
+        emit Spin(msg.sender, ids, quantities);
 
-        Hat.mint(to, earnedPoint);
+        Hat.mint(msg.sender, earnedPoint);
     }
 
     function dropByOwner(
@@ -108,7 +107,7 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         }
         require(
             msg.value >= unitPrice * totalQuantity,
-            "Gasha: insufficient funds"
+            'Gasha: insufficient funds'
         );
 
         _mint(to, ids, quantities);
@@ -141,11 +140,13 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
             }
         }
 
+        // slither-disable-start weak-prng
         uint256 randomNum = uint256(
             keccak256(
                 abi.encodePacked(block.timestamp, block.prevrandao, seed - salt)
             )
         ) % totalWeight;
+        // slither-disable-end weak-prng
 
         uint256 sum = 0;
         for (uint256 i = 0; i < seriesItem.length; i++) {
@@ -201,7 +202,7 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         for (uint256 i = 0; i < series.length; i++) {
             require(
                 series[i].tokenId != tokenId,
-                "Gasha: tokenId is already exist"
+                'Gasha: tokenId is already exist'
             );
         }
         series.push(SeriesItem(tokenId, rareness, weight, false));

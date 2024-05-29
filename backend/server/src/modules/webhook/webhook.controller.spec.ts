@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AllowlistController } from './allowlist.controller';
+import { WebhookController } from './webhook.controller';
 
-describe('AllowlistController', () => {
-  let controller: AllowlistController;
+describe('WebhookController', () => {
+  let controller: WebhookController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [AllowlistController],
+      controllers: [WebhookController],
     }).compile();
 
-    controller = module.get<AllowlistController>(AllowlistController);
+    controller = module.get<WebhookController>(WebhookController);
   });
 
   it('should be defined', () => {
