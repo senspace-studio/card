@@ -62,7 +62,7 @@ contract War is
         dealerAddress = _dealerAddress;
     }
 
-    function createGame(
+    function makeGame(
         address currency,
         uint256 betAmount,
         bool isNativeToken,
@@ -95,7 +95,7 @@ contract War is
             createdAt: uint64(block.timestamp)
         });
 
-        emit GameCreated(msg.sender, gameId);
+        emit GameMade(gameId, msg.sender);
     }
 
     function challengeGame(
@@ -135,7 +135,7 @@ contract War is
             betAmount
         );
 
-        emit GameChallenged(msg.sender, gameId);
+        emit GameChallenged(gameId, msg.sender);
     }
 
     function revealCard(
@@ -186,7 +186,6 @@ contract War is
 
             if (winner == address(0)) {
                 warPool.returnToBoth(gameId);
-                return;
             } else {
                 address loser = winner == game.maker
                     ? game.challenger
@@ -202,7 +201,7 @@ contract War is
         game.winner = winner;
         game.makerCard = makerCard;
 
-        emit GameRevealed(gameId);
+        emit GameRevealed(gameId, game.maker, game.challenger, winner);
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {

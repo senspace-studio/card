@@ -7,7 +7,7 @@ const main = async () => {
     'https://nitrorpc-degen-mainnet-1.t.conduit.xyz',
   );
   const dealarAccount = new ethers.Wallet(
-    process.env.TEST_PRIVATE_KEY!,
+    process.env.LOCAL_PRIVATE_KEY!,
     provider,
   );
 
@@ -43,11 +43,11 @@ const main = async () => {
 
   let tx = await warContract
     .connect(maker)
-    .createGame(zeroAddress, 0, true, signature, { value: 0 });
+    .makeGame(zeroAddress, 0, true, signature, { value: 0 });
   const receipt = await tx.wait();
   const logs = receipt?.logs as EventLog[];
-  const gameId = logs.find((log) => log.eventName === 'GameCreated')
-    ?.args[1] as string;
+  const gameId = logs.find((log) => log.eventName === 'GameMade')
+    ?.args[0] as string;
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
@@ -58,9 +58,7 @@ const main = async () => {
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
-  tx = await warContract
-    .connect(dealarAccount)
-    .revealCard(gameId, makerCard, salt);
+  tx = await warContract.connect(maker).revealCard(gameId, makerCard, salt);
   await tx.wait();
 
   console.log('GameId:', gameId);

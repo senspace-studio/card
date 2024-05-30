@@ -18,3 +18,18 @@ export type SpinResult = {
   ids: number[];
   quantities: number[];
 };
+
+export type GameRevealedEventLog = {
+  gameId: string;
+  maker: string;
+  challenger: string;
+  winner: string;
+  timestamp: number;
+};
+
+export type TransferEventLog = {
+  from: string;
+  to: string;
+  tokenId: number;
+  timestamp: number;
+};
