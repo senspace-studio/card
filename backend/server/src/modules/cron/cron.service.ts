@@ -81,8 +81,6 @@ export class CronService {
       gameRevealedlogs,
     );
 
-    console.log('warScore', warScore);
-
     const startDate_invite = baseDate.subtract(14, 'days').startOf('day');
 
     const { height: fromBlock_invite } = await (
