@@ -35,4 +35,10 @@ export class NeynarService {
     }
     return false;
   }
+
+  async publishCast(sender: string, message: string) {
+    this.logger.log(this.publishCast.name);
+    // ToDo: メッセージを送る
+    // this.client.publishCast();
+  }
 }
