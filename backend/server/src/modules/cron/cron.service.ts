@@ -11,7 +11,7 @@ import {
 import tweClient from 'src/lib/thirdweb-engine';
 import * as dayjs from 'dayjs';
 import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
-import { zeroAddress } from 'viem';
+import { parseEther, zeroAddress } from 'viem';
 
 @Injectable()
 export class CronService {
@@ -21,7 +21,7 @@ export class CronService {
     private readonly viemService: ViemService,
   ) {}
 
-  @Interval(UPDATE_SCORE_INTERVAL_MINUTES * 5 * 1e3)
+  @Interval(UPDATE_SCORE_INTERVAL_MINUTES * 10 * 1e3)
   async updateScore() {
     if (!RUN_CRON) {
       return;
@@ -162,6 +162,47 @@ export class CronService {
       totalScore.set(player, (totalScore.get(player) || 0) + score);
     }
 
-    console.log('totalScore', totalScore);
+    const x = Array.from(totalScore.values()).reduce(
+      (sum, score) => sum + score,
+      0,
+    );
+    const h = 0.001;
+    const k = 0.005;
+    const y = h * (1 - Math.exp(-k * x));
+
+    // yを全員に分配したい。totalScoreのなかで割合を計算してyを分配する
+    const totalScoreArray = Array.from(totalScore.entries());
+    const totalScoreSum = totalScoreArray.reduce(
+      (sum, [, score]) => sum + score,
+      0,
+    );
+    const totalScoreArrayWithRatio = totalScoreArray.map(([player, score]) => [
+      player,
+      score / totalScoreSum,
+    ]);
+    const distributedScore = totalScoreArrayWithRatio.map(
+      ([player, ratio]) => [player, y * Number(ratio)] as [string, number],
+    );
+
+    for (const [player, score] of distributedScore) {
+      console.log(player, score);
+      // await this.viemService.createFlow(
+      //   '0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad',
+      //   player as `0x${string}`,
+      //   score,
+      // );
+      // await this.viemService.deleteFlow(
+      //   '0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad',
+      //   player as `0x${string}`,
+      // );
+    }
+
+    console.log('log');
+
+    // const flowrate = await this.viemService.createFlow(
+    //   '0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad',
+    //   zeroAddress,
+    //   0,
+    // );
   }
 }

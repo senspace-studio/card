@@ -21,6 +21,8 @@ import { SeriesItem } from 'src/types/contract';
 import { ZoraCreator1155ABI } from 'src/constants/ZoraCreator1155Impl';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 import { HatABI } from 'src/constants/HatABI';
+import { CFAv1ABI } from 'src/constants/Superfluid';
+import tweClient from 'src/lib/thirdweb-engine';
 
 @Injectable()
 export class ViemService {
@@ -177,5 +179,106 @@ export class ViemService {
     });
 
     return { balanceOfAll: res.map((n) => Number(n)), ids };
+  }
+
+  async createFlow(token: Address, receiver: Address, flowRate: number) {
+    const ethFlowRate = parseEther(flowRate.toString());
+
+    const {
+      data: { result },
+    } = await tweClient.GET('/contract/{chain}/{contractAddress}/read', {
+      params: {
+        path: {
+          chain: 'degen-chain',
+          contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
+        },
+        query: {
+          functionName: 'getFlowrate',
+          args: [
+            token,
+            '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+            receiver,
+          ].join(','),
+        },
+      },
+    });
+
+    if (ethFlowRate === BigInt(result as string)) {
+      return;
+    } else if (Number(result) && flowRate) {
+      await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
+          },
+          header: {
+            'x-backend-wallet-address':
+              '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+          },
+        },
+        body: {
+          functionName: 'updateFlow',
+          args: [
+            token,
+            '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+            receiver,
+            ethFlowRate.toString(),
+            '0x',
+          ],
+        },
+      });
+    } else {
+      await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
+          },
+          header: {
+            'x-backend-wallet-address':
+              '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+          },
+        },
+        body: {
+          functionName: 'createFlow',
+          args: [
+            token,
+            '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+            receiver,
+            ethFlowRate.toString(),
+            '0x',
+          ],
+        },
+      });
+    }
+
+    return;
+  }
+
+  async deleteFlow(token: Address, receiver: Address) {
+    await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
+      params: {
+        path: {
+          chain: 'degen-chain',
+          contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
+        },
+        header: {
+          'x-backend-wallet-address':
+            '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+        },
+      },
+      body: {
+        functionName: 'deleteFlow',
+        args: [
+          token,
+          '0xD58916bcfBEf97F88DB399A5bc6f741813048025',
+          receiver,
+          '0x',
+        ],
+      },
+    });
+
+    return;
   }
 }
