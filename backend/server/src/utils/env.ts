@@ -19,3 +19,5 @@ export const THIRDWEB_ENGINE_ENDPOINT =
 export const THIRDWEB_ENGINE_ACCESS_TOKEN =
   process.env.THIRDWEB_ENGINE_ACCESS_TOKEN || '';
 export const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';
+export const DEALER_PRIVATE_KEY = process.env.DEALER_PRIVATE_KEY || '';
+export const ENGINE_WALLET_ADDRESS = process.env.ENGINE_WALLET_ADDRESS || '';

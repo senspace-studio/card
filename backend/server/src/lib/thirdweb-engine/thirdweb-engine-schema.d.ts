@@ -3,9 +3,8 @@
  * Do not make direct changes to the file.
  */
 
-
 export interface paths {
-  "/json": {
+  '/json': {
     get: {
       responses: {
         /** @description Default Response */
@@ -15,1352 +14,1352 @@ export interface paths {
       };
     };
   };
-  "/backend-wallet/create": {
+  '/backend-wallet/create': {
     /**
      * Create backend wallet
      * @description Create a backend wallet.
      */
-    post: operations["create"];
+    post: operations['create'];
   };
-  "/backend-wallet/import": {
+  '/backend-wallet/import': {
     /**
      * Import backend wallet
      * @description Import an existing wallet as a backend wallet.
      */
-    post: operations["import"];
+    post: operations['import'];
   };
-  "/backend-wallet/update": {
+  '/backend-wallet/update': {
     /**
      * Update backend wallet
      * @description Update a backend wallet.
      */
-    post: operations["update"];
+    post: operations['update'];
   };
-  "/backend-wallet/{chain}/{walletAddress}/get-balance": {
+  '/backend-wallet/{chain}/{walletAddress}/get-balance': {
     /**
      * Get balance
      * @description Get the native balance for a backend wallet.
      */
-    get: operations["getBalance"];
+    get: operations['getBalance'];
   };
-  "/backend-wallet/get-all": {
+  '/backend-wallet/get-all': {
     /**
      * Get all backend wallets
      * @description Get all backend wallets.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/backend-wallet/{chain}/transfer": {
+  '/backend-wallet/{chain}/transfer': {
     /**
      * Transfer tokens
      * @description Transfer native or ERC20 tokens from this wallet to another wallet
      */
-    post: operations["transfer"];
+    post: operations['transfer'];
   };
-  "/backend-wallet/{chain}/withdraw": {
+  '/backend-wallet/{chain}/withdraw': {
     /**
      * Withdraw all funds
      * @description Withdraw all funds from this wallet to another wallet
      */
-    post: operations["withdraw"];
+    post: operations['withdraw'];
   };
-  "/backend-wallet/{chain}/send-transaction": {
+  '/backend-wallet/{chain}/send-transaction': {
     /**
      * Send a transaction
      * @description Send a transaction with transaction parameters
      */
-    post: operations["sendTransaction"];
+    post: operations['sendTransaction'];
   };
-  "/backend-wallet/{chain}/send-transaction-batch": {
+  '/backend-wallet/{chain}/send-transaction-batch': {
     /**
      * Send a batch of raw transactions
      * @description Send a batch of raw transactions with transaction parameters
      */
-    post: operations["sendTransactionBatch"];
+    post: operations['sendTransactionBatch'];
   };
-  "/backend-wallet/sign-transaction": {
+  '/backend-wallet/sign-transaction': {
     /**
      * Sign a transaction
      * @description Sign a transaction
      */
-    post: operations["signTransaction"];
+    post: operations['signTransaction'];
   };
-  "/backend-wallet/sign-message": {
+  '/backend-wallet/sign-message': {
     /**
      * Sign a message
      * @description Send a message
      */
-    post: operations["signMessage"];
+    post: operations['signMessage'];
   };
-  "/backend-wallet/sign-typed-data": {
+  '/backend-wallet/sign-typed-data': {
     /**
      * Sign an EIP-712 message
      * @description Send an EIP-712 message ("typed data")
      */
-    post: operations["signTypedData"];
+    post: operations['signTypedData'];
   };
-  "/backend-wallet/{chain}/{walletAddress}/get-all-transactions": {
+  '/backend-wallet/{chain}/{walletAddress}/get-all-transactions': {
     /**
      * Get all transactions
      * @description Get all transactions for a backend wallet.
      */
-    get: operations["getAllTransactions"];
+    get: operations['getAllTransactions'];
   };
-  "/backend-wallet/reset-nonces": {
+  '/backend-wallet/reset-nonces': {
     /**
      * Reset all nonces
      * @description Reset nonces for all backend wallets. This is for debugging purposes and does not impact held tokens.
      */
-    post: operations["resetNonces"];
+    post: operations['resetNonces'];
   };
-  "/backend-wallet/{chain}/{walletAddress}/get-nonce": {
+  '/backend-wallet/{chain}/{walletAddress}/get-nonce': {
     /**
      * Get backend-wallet nonces from DB
      * @description Get nonce for a backend wallets from DB. This is for debugging purposes and does not impact held tokens.
      */
-    get: operations["getNonce"];
+    get: operations['getNonce'];
   };
-  "/backend-wallet/{chain}/simulate-transaction": {
+  '/backend-wallet/{chain}/simulate-transaction': {
     /**
      * Simulate a transaction
      * @description Simulate a transaction with transaction parameters
      */
-    post: operations["simulateTransaction"];
+    post: operations['simulateTransaction'];
   };
-  "/configuration/wallets": {
+  '/configuration/wallets': {
     /**
      * Get wallets configuration
      * @description Get wallets configuration
      */
-    get: operations["getWalletsConfiguration"];
+    get: operations['getWalletsConfiguration'];
     /**
      * Update wallets configuration
      * @description Update wallets configuration
      */
-    post: operations["updateWalletsConfiguration"];
+    post: operations['updateWalletsConfiguration'];
   };
-  "/configuration/chains": {
+  '/configuration/chains': {
     /**
      * Get chain overrides configuration
      * @description Get chain overrides configuration
      */
-    get: operations["getChainsConfiguration"];
+    get: operations['getChainsConfiguration'];
     /**
      * Update chain overrides configuration
      * @description Update chain overrides configuration
      */
-    post: operations["updateChainsConfiguration"];
+    post: operations['updateChainsConfiguration'];
   };
-  "/configuration/transactions": {
+  '/configuration/transactions': {
     /**
      * Get transaction processing configuration
      * @description Get transactions processing configuration
      */
-    get: operations["getTransactionConfiguration"];
+    get: operations['getTransactionConfiguration'];
     /**
      * Update transaction processing configuration
      * @description Update transaction processing configuration
      */
-    post: operations["updateTransactionConfiguration"];
+    post: operations['updateTransactionConfiguration'];
   };
-  "/configuration/auth": {
+  '/configuration/auth': {
     /**
      * Get auth configuration
      * @description Get auth configuration
      */
-    get: operations["getAuthConfiguration"];
+    get: operations['getAuthConfiguration'];
     /**
      * Update auth configuration
      * @description Update auth configuration
      */
-    post: operations["updateAuthConfiguration"];
+    post: operations['updateAuthConfiguration'];
   };
-  "/configuration/backend-wallet-balance": {
+  '/configuration/backend-wallet-balance': {
     /**
      * Get wallet-balance configuration
      * @description Get wallet-balance configuration
      */
-    get: operations["getBackendWalletBalanceConfiguration"];
+    get: operations['getBackendWalletBalanceConfiguration'];
     /**
      * Update backend wallet balance configuration
      * @description Update backend wallet balance configuration
      */
-    post: operations["updateBackendWalletBalanceConfiguration"];
+    post: operations['updateBackendWalletBalanceConfiguration'];
   };
-  "/configuration/cors": {
+  '/configuration/cors': {
     /**
      * Get CORS configuration
      * @description Get CORS configuration
      */
-    get: operations["getCorsConfiguration"];
+    get: operations['getCorsConfiguration'];
     /**
      * Set CORS URLs
      * @description Replaces the CORS URLs to allow client-side calls to Engine
      */
-    put: operations["setUrlsToCorsConfiguration"];
+    put: operations['setUrlsToCorsConfiguration'];
     /**
      * Add a CORS URL
      * @description Add a URL to allow client-side calls to Engine
      */
-    post: operations["addUrlToCorsConfiguration"];
+    post: operations['addUrlToCorsConfiguration'];
     /**
      * Remove CORS URLs
      * @description Remove URLs from CORS configuration
      */
-    delete: operations["removeUrlToCorsConfiguration"];
+    delete: operations['removeUrlToCorsConfiguration'];
   };
-  "/configuration/cache": {
+  '/configuration/cache': {
     /**
      * Get cache configuration
      * @description Get cache configuration
      */
-    get: operations["getCacheConfiguration"];
+    get: operations['getCacheConfiguration'];
     /**
      * Update cache configuration
      * @description Update cache configuration
      */
-    post: operations["updateCacheConfiguration"];
+    post: operations['updateCacheConfiguration'];
   };
-  "/configuration/contract-subscriptions": {
+  '/configuration/contract-subscriptions': {
     /**
      * Get Contract Subscriptions configuration
      * @description Get the configuration for Contract Subscriptions
      */
-    get: operations["getContractSubscriptionsConfiguration"];
+    get: operations['getContractSubscriptionsConfiguration'];
     /**
      * Update Contract Subscriptions configuration
      * @description Update the configuration for Contract Subscriptions
      */
-    post: operations["updateContractSubscriptionsConfiguration"];
+    post: operations['updateContractSubscriptionsConfiguration'];
   };
-  "/webhooks/get-all": {
+  '/webhooks/get-all': {
     /**
      * Get all webhooks configured
      * @description Get all webhooks configuration data set up on Engine
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/webhooks/create": {
+  '/webhooks/create': {
     /**
      * Create a webhook
      * @description Create a webhook to call when certain blockchain events occur.
      */
-    post: operations["create"];
+    post: operations['create'];
   };
-  "/webhooks/revoke": {
+  '/webhooks/revoke': {
     /**
      * Revoke webhook
      * @description Revoke a Webhook
      */
-    post: operations["revoke"];
+    post: operations['revoke'];
   };
-  "/webhooks/event-types": {
+  '/webhooks/event-types': {
     /**
      * Get webhooks event types
      * @description Get the all the webhooks event types
      */
-    get: operations["getEventTypes"];
+    get: operations['getEventTypes'];
   };
-  "/auth/permissions/get-all": {
+  '/auth/permissions/get-all': {
     /**
      * Get all permissions
      * @description Get all users with their corresponding permissions
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/auth/permissions/grant": {
+  '/auth/permissions/grant': {
     /**
      * Grant permissions to user
      * @description Grant permissions to a user
      */
-    post: operations["grant"];
+    post: operations['grant'];
   };
-  "/auth/permissions/revoke": {
+  '/auth/permissions/revoke': {
     /**
      * Revoke permissions from user
      * @description Revoke a user's permissions
      */
-    post: operations["revoke"];
+    post: operations['revoke'];
   };
-  "/auth/access-tokens/get-all": {
+  '/auth/access-tokens/get-all': {
     /**
      * Get all access tokens
      * @description Get all access tokens
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/auth/access-tokens/create": {
+  '/auth/access-tokens/create': {
     /**
      * Create a new access token
      * @description Create a new access token
      */
-    post: operations["create"];
+    post: operations['create'];
   };
-  "/auth/access-tokens/revoke": {
+  '/auth/access-tokens/revoke': {
     /**
      * Revoke an access token
      * @description Revoke an access token
      */
-    post: operations["revoke"];
+    post: operations['revoke'];
   };
-  "/auth/access-tokens/update": {
+  '/auth/access-tokens/update': {
     /**
      * Update an access token
      * @description Update an access token
      */
-    post: operations["update"];
+    post: operations['update'];
   };
-  "/auth/keypair/get-all": {
+  '/auth/keypair/get-all': {
     /**
      * List public keys
      * @description List the public keys configured with Engine
      */
-    get: operations["list"];
+    get: operations['list'];
   };
-  "/auth/keypair/add": {
+  '/auth/keypair/add': {
     /**
      * Add public key
      * @description Add the public key for a keypair
      */
-    post: operations["add"];
+    post: operations['add'];
   };
-  "/auth/keypair/remove": {
+  '/auth/keypair/remove': {
     /**
      * Remove public key
      * @description Remove the public key for a keypair
      */
-    post: operations["remove"];
+    post: operations['remove'];
   };
-  "/chain/get": {
+  '/chain/get': {
     /**
      * Get chain details
      * @description Get details about a chain.
      */
-    get: operations["get"];
+    get: operations['get'];
   };
-  "/chain/get-all": {
+  '/chain/get-all': {
     /**
      * Get all chain details
      * @description Get details about all supported chains.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/relayer/get-all": {
+  '/relayer/get-all': {
     /**
      * Get all meta-transaction relayers
      * @description Get all meta-transaction relayers
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/relayer/create": {
+  '/relayer/create': {
     /**
      * Create a new meta-transaction relayer
      * @description Create a new meta-transaction relayer
      */
-    post: operations["create"];
+    post: operations['create'];
   };
-  "/relayer/revoke": {
+  '/relayer/revoke': {
     /**
      * Revoke a relayer
      * @description Revoke a relayer
      */
-    post: operations["revoke"];
+    post: operations['revoke'];
   };
-  "/relayer/update": {
+  '/relayer/update': {
     /**
      * Update a relayer
      * @description Update a relayer
      */
-    post: operations["update"];
+    post: operations['update'];
   };
-  "/relayer/{relayerId}": {
+  '/relayer/{relayerId}': {
     /**
      * Relay a meta-transaction
      * @description Relay an EIP-2771 meta-transaction
      */
-    post: operations["relay"];
+    post: operations['relay'];
   };
-  "/contract/{chain}/{contractAddress}/read": {
+  '/contract/{chain}/{contractAddress}/read': {
     /**
      * Read from contract
      * @description Call a read function on a contract.
      */
-    get: operations["read"];
+    get: operations['read'];
   };
-  "/contract/{chain}/{contractAddress}/write": {
+  '/contract/{chain}/{contractAddress}/write': {
     /**
      * Write to contract
      * @description Call a write function on a contract.
      */
-    post: operations["write"];
+    post: operations['write'];
   };
-  "/contract/{chain}/{contractAddress}/events/get-all": {
+  '/contract/{chain}/{contractAddress}/events/get-all': {
     /**
      * Get all events
      * @description Get a list of all blockchain events for this contract.
      */
-    get: operations["getAllEvents"];
+    get: operations['getAllEvents'];
   };
-  "/contract/{chain}/{contractAddress}/events/get": {
+  '/contract/{chain}/{contractAddress}/events/get': {
     /**
      * Get events
      * @description Get a list of specific blockchain events emitted from this contract.
      */
-    post: operations["getEvents"];
+    post: operations['getEvents'];
   };
-  "/contract/{chain}/{contractAddress}/metadata/abi": {
+  '/contract/{chain}/{contractAddress}/metadata/abi': {
     /**
      * Get ABI
      * @description Get the ABI of a contract.
      */
-    get: operations["getAbi"];
+    get: operations['getAbi'];
   };
-  "/contract/{chain}/{contractAddress}/metadata/events": {
+  '/contract/{chain}/{contractAddress}/metadata/events': {
     /**
      * Get events
      * @description Get details of all events implemented by a contract.
      */
-    get: operations["getEvents"];
+    get: operations['getEvents'];
   };
-  "/contract/{chain}/{contractAddress}/metadata/extensions": {
+  '/contract/{chain}/{contractAddress}/metadata/extensions': {
     /**
      * Get extensions
      * @description Get all detected extensions for a contract.
      */
-    get: operations["getExtensions"];
+    get: operations['getExtensions'];
   };
-  "/contract/{chain}/{contractAddress}/metadata/functions": {
+  '/contract/{chain}/{contractAddress}/metadata/functions': {
     /**
      * Get functions
      * @description Get details of all functions implemented by the contract.
      */
-    get: operations["getFunctions"];
+    get: operations['getFunctions'];
   };
-  "/contract/{chain}/{contractAddress}/roles/get": {
+  '/contract/{chain}/{contractAddress}/roles/get': {
     /**
      * Get wallets for role
      * @description Get all wallets with a specific role for a contract.
      */
-    get: operations["getRole"];
+    get: operations['getRole'];
   };
-  "/contract/{chain}/{contractAddress}/roles/get-all": {
+  '/contract/{chain}/{contractAddress}/roles/get-all': {
     /**
      * Get wallets for all roles
      * @description Get all wallets in each role for a contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/contract/{chain}/{contractAddress}/roles/grant": {
+  '/contract/{chain}/{contractAddress}/roles/grant': {
     /**
      * Grant role
      * @description Grant a role to a specific wallet.
      */
-    post: operations["grant"];
+    post: operations['grant'];
   };
-  "/contract/{chain}/{contractAddress}/roles/revoke": {
+  '/contract/{chain}/{contractAddress}/roles/revoke': {
     /**
      * Revoke role
      * @description Revoke a role from a specific wallet.
      */
-    post: operations["revoke"];
+    post: operations['revoke'];
   };
-  "/contract/{chain}/{contractAddress}/royalties/get-default-royalty-info": {
+  '/contract/{chain}/{contractAddress}/royalties/get-default-royalty-info': {
     /**
      * Get royalty details
      * @description Gets the royalty recipient and BPS (basis points) of the smart contract.
      */
-    get: operations["getDefaultRoyaltyInfo"];
+    get: operations['getDefaultRoyaltyInfo'];
   };
-  "/contract/{chain}/{contractAddress}/royalties/get-token-royalty-info/{token_id}": {
+  '/contract/{chain}/{contractAddress}/royalties/get-token-royalty-info/{token_id}': {
     /**
      * Get token royalty details
      * @description Gets the royalty recipient and BPS (basis points) of a particular token in the contract.
      */
-    get: operations["getTokenRoyaltyInfo"];
+    get: operations['getTokenRoyaltyInfo'];
   };
-  "/contract/{chain}/{contractAddress}/royalties/set-default-royalty-info": {
+  '/contract/{chain}/{contractAddress}/royalties/set-default-royalty-info': {
     /**
      * Set royalty details
      * @description Set the royalty recipient and fee for the smart contract.
      */
-    post: operations["setDefaultRoyaltyInfo"];
+    post: operations['setDefaultRoyaltyInfo'];
   };
-  "/contract/{chain}/{contractAddress}/royalties/set-token-royalty-info": {
+  '/contract/{chain}/{contractAddress}/royalties/set-token-royalty-info': {
     /**
      * Set token royalty details
      * @description Set the royalty recipient and fee for a particular token in the contract.
      */
-    post: operations["setTokenRoyaltyInfo"];
+    post: operations['setTokenRoyaltyInfo'];
   };
-  "/deploy/{chain}/prebuilts/edition": {
+  '/deploy/{chain}/prebuilts/edition': {
     /**
      * Deploy Edition
      * @description Deploy an Edition contract.
      */
-    post: operations["deployEdition"];
+    post: operations['deployEdition'];
   };
-  "/deploy/{chain}/prebuilts/edition-drop": {
+  '/deploy/{chain}/prebuilts/edition-drop': {
     /**
      * Deploy Edition Drop
      * @description Deploy an Edition Drop contract.
      */
-    post: operations["deployEditionDrop"];
+    post: operations['deployEditionDrop'];
   };
-  "/deploy/{chain}/prebuilts/marketplace-v3": {
+  '/deploy/{chain}/prebuilts/marketplace-v3': {
     /**
      * Deploy Marketplace
      * @description Deploy a Marketplace contract.
      */
-    post: operations["deployMarketplaceV3"];
+    post: operations['deployMarketplaceV3'];
   };
-  "/deploy/{chain}/prebuilts/multiwrap": {
+  '/deploy/{chain}/prebuilts/multiwrap': {
     /**
      * Deploy Multiwrap
      * @description Deploy a Multiwrap contract.
      */
-    post: operations["deployMultiwrap"];
+    post: operations['deployMultiwrap'];
   };
-  "/deploy/{chain}/prebuilts/nft-collection": {
+  '/deploy/{chain}/prebuilts/nft-collection': {
     /**
      * Deploy NFT Collection
      * @description Deploy an NFT Collection contract.
      */
-    post: operations["deployNFTCollection"];
+    post: operations['deployNFTCollection'];
   };
-  "/deploy/{chain}/prebuilts/nft-drop": {
+  '/deploy/{chain}/prebuilts/nft-drop': {
     /**
      * Deploy NFT Drop
      * @description Deploy an NFT Drop contract.
      */
-    post: operations["deployNFTDrop"];
+    post: operations['deployNFTDrop'];
   };
-  "/deploy/{chain}/prebuilts/pack": {
+  '/deploy/{chain}/prebuilts/pack': {
     /**
      * Deploy Pack
      * @description Deploy a Pack contract.
      */
-    post: operations["deployPack"];
+    post: operations['deployPack'];
   };
-  "/deploy/{chain}/prebuilts/signature-drop": {
+  '/deploy/{chain}/prebuilts/signature-drop': {
     /**
      * Deploy Signature Drop
      * @description Deploy a Signature Drop contract.
      */
-    post: operations["deploySignatureDrop"];
+    post: operations['deploySignatureDrop'];
   };
-  "/deploy/{chain}/prebuilts/split": {
+  '/deploy/{chain}/prebuilts/split': {
     /**
      * Deploy Split
      * @description Deploy a Split contract.
      */
-    post: operations["deploySplit"];
+    post: operations['deploySplit'];
   };
-  "/deploy/{chain}/prebuilts/token": {
+  '/deploy/{chain}/prebuilts/token': {
     /**
      * Deploy Token
      * @description Deploy a Token contract.
      */
-    post: operations["deployToken"];
+    post: operations['deployToken'];
   };
-  "/deploy/{chain}/prebuilts/token-drop": {
+  '/deploy/{chain}/prebuilts/token-drop': {
     /**
      * Deploy Token Drop
      * @description Deploy a Token Drop contract.
      */
-    post: operations["deployTokenDrop"];
+    post: operations['deployTokenDrop'];
   };
-  "/deploy/{chain}/prebuilts/vote": {
+  '/deploy/{chain}/prebuilts/vote': {
     /**
      * Deploy Vote
      * @description Deploy a Vote contract.
      */
-    post: operations["deployVote"];
+    post: operations['deployVote'];
   };
-  "/deploy/{chain}/{publisher}/{contractName}": {
+  '/deploy/{chain}/{publisher}/{contractName}': {
     /**
      * Deploy published contract
      * @description Deploy a published contract to the blockchain.
      */
-    post: operations["deployPublished"];
+    post: operations['deployPublished'];
   };
-  "/deploy/contract-types": {
+  '/deploy/contract-types': {
     /**
      * Get contract types
      * @description Get all prebuilt contract types.
      */
-    get: operations["contractTypes"];
+    get: operations['contractTypes'];
   };
-  "/transaction/status/{queueId}": {
+  '/transaction/status/{queueId}': {
     /**
      * Get transaction status
      * @description Get the status for a transaction request.
      */
-    get: operations["status"];
+    get: operations['status'];
   };
-  "/transaction/get-all": {
+  '/transaction/get-all': {
     /**
      * Get all transactions
      * @description Get all transaction requests.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/transaction/get-all-deployed-contracts": {
+  '/transaction/get-all-deployed-contracts': {
     /**
      * Get all deployment transactions
      * @description Get all transaction requests to deploy contracts.
      */
-    get: operations["getAllDeployedContracts"];
+    get: operations['getAllDeployedContracts'];
   };
-  "/transaction/status/group/{groupId}": {
+  '/transaction/status/group/{groupId}': {
     /**
      * Get transaction status for a group
      * @description Get the status for a transaction group.
      */
-    get: operations["status"];
+    get: operations['status'];
   };
-  "/transaction/retry": {
+  '/transaction/retry': {
     /**
      * Retry transaction
      * @description Retry a transaction with updated gas settings.
      */
-    post: operations["retry"];
+    post: operations['retry'];
   };
-  "/transaction/sync-retry": {
+  '/transaction/sync-retry': {
     /**
      * Retry transaction (synchronous)
      * @description Synchronously retry a transaction with updated gas settings.
      */
-    post: operations["syncRetry"];
+    post: operations['syncRetry'];
   };
-  "/transaction/cancel": {
+  '/transaction/cancel': {
     /**
      * Cancel transaction
      * @description Attempt to cancel a transaction by sending a null transaction with a higher gas setting. This transaction is not guaranteed to be cancelled.
      */
-    post: operations["cancel"];
+    post: operations['cancel'];
   };
-  "/transaction/{chain}/send-signed-transaction": {
+  '/transaction/{chain}/send-signed-transaction': {
     /**
      * Send a signed transaction
      * @description Send a signed transaction
      */
-    post: operations["sendRawTransaction"];
+    post: operations['sendRawTransaction'];
   };
-  "/transaction/{chain}/send-signed-user-op": {
+  '/transaction/{chain}/send-signed-user-op': {
     /**
      * Send a signed user operation
      * @description Send a signed user operation
      */
-    post: operations["sendSignedUserOp"];
+    post: operations['sendSignedUserOp'];
   };
-  "/transaction/{chain}/tx-hash/{txHash}": {
+  '/transaction/{chain}/tx-hash/{txHash}': {
     /**
      * Get transaction receipt from transaction hash
      * @description Get the transaction receipt from a transaction hash.
      */
-    get: operations["txHashReceipt"];
+    get: operations['txHashReceipt'];
   };
-  "/transaction/{chain}/userop-hash/{userOpHash}": {
+  '/transaction/{chain}/userop-hash/{userOpHash}': {
     /**
      * Get transaction receipt from user-op hash
      * @description Get the transaction receipt from a user-op hash.
      */
-    get: operations["useropHashReceipt"];
+    get: operations['useropHashReceipt'];
   };
-  "/contract/{chain}/{contractAddress}/account-factory/get-all-accounts": {
+  '/contract/{chain}/{contractAddress}/account-factory/get-all-accounts': {
     /**
      * Get all smart accounts
      * @description Get all the smart accounts for this account factory.
      */
-    get: operations["getAllAccounts"];
+    get: operations['getAllAccounts'];
   };
-  "/contract/{chain}/{contractAddress}/account-factory/get-associated-accounts": {
+  '/contract/{chain}/{contractAddress}/account-factory/get-associated-accounts': {
     /**
      * Get associated smart accounts
      * @description Get all the smart accounts for this account factory associated with the specific admin wallet.
      */
-    get: operations["getAssociatedAccounts"];
+    get: operations['getAssociatedAccounts'];
   };
-  "/contract/{chain}/{contractAddress}/account-factory/is-account-deployed": {
+  '/contract/{chain}/{contractAddress}/account-factory/is-account-deployed': {
     /**
      * Check if deployed
      * @description Check if a smart account has been deployed to the blockchain.
      */
-    get: operations["isAccountDeployed"];
+    get: operations['isAccountDeployed'];
   };
-  "/contract/{chain}/{contractAddress}/account-factory/predict-account-address": {
+  '/contract/{chain}/{contractAddress}/account-factory/predict-account-address': {
     /**
      * Predict smart account address
      * @description Get the counterfactual address of a smart account.
      */
-    get: operations["predictAccountAddress"];
+    get: operations['predictAccountAddress'];
   };
-  "/contract/{chain}/{contractAddress}/account-factory/create-account": {
+  '/contract/{chain}/{contractAddress}/account-factory/create-account': {
     /**
      * Create smart account
      * @description Create a smart account for this account factory.
      */
-    post: operations["createAccount"];
+    post: operations['createAccount'];
   };
-  "/contract/{chain}/{contractAddress}/account/admins/get-all": {
+  '/contract/{chain}/{contractAddress}/account/admins/get-all': {
     /**
      * Get all admins
      * @description Get all admins for a smart account.
      */
-    get: operations["getAllAdmins"];
+    get: operations['getAllAdmins'];
   };
-  "/contract/{chain}/{contractAddress}/account/sessions/get-all": {
+  '/contract/{chain}/{contractAddress}/account/sessions/get-all': {
     /**
      * Get all session keys
      * @description Get all session keys for a smart account.
      */
-    get: operations["getAllSessions"];
+    get: operations['getAllSessions'];
   };
-  "/contract/{chain}/{contractAddress}/account/admins/grant": {
+  '/contract/{chain}/{contractAddress}/account/admins/grant': {
     /**
      * Grant admin
      * @description Grant a smart account's admin permission.
      */
-    post: operations["grantAdmin"];
+    post: operations['grantAdmin'];
   };
-  "/contract/{chain}/{contractAddress}/account/admins/revoke": {
+  '/contract/{chain}/{contractAddress}/account/admins/revoke': {
     /**
      * Revoke admin
      * @description Revoke a smart account's admin permission.
      */
-    post: operations["revokeAdmin"];
+    post: operations['revokeAdmin'];
   };
-  "/contract/{chain}/{contractAddress}/account/sessions/create": {
+  '/contract/{chain}/{contractAddress}/account/sessions/create': {
     /**
      * Create session key
      * @description Create a session key for a smart account.
      */
-    post: operations["grantSession"];
+    post: operations['grantSession'];
   };
-  "/contract/{chain}/{contractAddress}/account/sessions/revoke": {
+  '/contract/{chain}/{contractAddress}/account/sessions/revoke': {
     /**
      * Revoke session key
      * @description Revoke a session key for a smart account.
      */
-    post: operations["revokeSession"];
+    post: operations['revokeSession'];
   };
-  "/contract/{chain}/{contractAddress}/account/sessions/update": {
+  '/contract/{chain}/{contractAddress}/account/sessions/update': {
     /**
      * Update session key
      * @description Update a session key for a smart account.
      */
-    post: operations["updateSession"];
+    post: operations['updateSession'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/allowance-of": {
+  '/contract/{chain}/{contractAddress}/erc20/allowance-of': {
     /**
      * Get token allowance
      * @description Get the allowance of a specific wallet for an ERC-20 contract.
      */
-    get: operations["allowanceOf"];
+    get: operations['allowanceOf'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/balance-of": {
+  '/contract/{chain}/{contractAddress}/erc20/balance-of': {
     /**
      * Get token balance
      * @description Get the balance of a specific wallet address for this ERC-20 contract.
      */
-    get: operations["balanceOf"];
+    get: operations['balanceOf'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/get": {
+  '/contract/{chain}/{contractAddress}/erc20/get': {
     /**
      * Get token details
      * @description Get details for this ERC-20 contract.
      */
-    get: operations["get"];
+    get: operations['get'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/total-supply": {
+  '/contract/{chain}/{contractAddress}/erc20/total-supply': {
     /**
      * Get total supply
      * @description Get the total supply in circulation for this ERC-20 contract.
      */
-    get: operations["totalSupply"];
+    get: operations['totalSupply'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/signature/generate": {
+  '/contract/{chain}/{contractAddress}/erc20/signature/generate': {
     /**
      * Generate signature
      * @description Generate a signature granting access for another wallet to mint tokens from this ERC-20 contract. This method is typically called by the token contract owner.
      */
-    post: operations["signatureGenerate"];
+    post: operations['signatureGenerate'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/can-claim": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/can-claim': {
     /**
      * Check if tokens are available for claiming
      * @description Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.
      */
-    get: operations["canClaim"];
+    get: operations['canClaim'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-active": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-active': {
     /**
      * Retrieve the currently active claim phase, if any.
      * @description Retrieve the currently active claim phase, if any.
      */
-    get: operations["getActiveClaimConditions"];
+    get: operations['getActiveClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-all": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-all': {
     /**
      * Get all the claim phases configured.
      * @description Get all the claim phases configured on the drop contract.
      */
-    get: operations["getAllClaimConditions"];
+    get: operations['getAllClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-claim-ineligibility-reasons": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-claim-ineligibility-reasons': {
     /**
      * Get claim ineligibility reasons
      * @description Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.
      */
-    get: operations["claimConditionsGetClaimIneligibilityReasons"];
+    get: operations['claimConditionsGetClaimIneligibilityReasons'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-claimer-proofs": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/get-claimer-proofs': {
     /**
      * Get claimer proofs
      * @description Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.
      */
-    post: operations["claimConditionsGetClaimerProofs"];
+    post: operations['claimConditionsGetClaimerProofs'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/set-allowance": {
+  '/contract/{chain}/{contractAddress}/erc20/set-allowance': {
     /**
      * Set allowance
      * @description Grant a specific wallet address to transfer ERC-20 tokens from the caller wallet.
      */
-    post: operations["setAllowance"];
+    post: operations['setAllowance'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/transfer": {
+  '/contract/{chain}/{contractAddress}/erc20/transfer': {
     /**
      * Transfer tokens
      * @description Transfer ERC-20 tokens from the caller wallet to a specific wallet.
      */
-    post: operations["transfer"];
+    post: operations['transfer'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/transfer-from": {
+  '/contract/{chain}/{contractAddress}/erc20/transfer-from': {
     /**
      * Transfer tokens from wallet
      * @description Transfer ERC-20 tokens from the connected wallet to another wallet. Requires allowance.
      */
-    post: operations["transferFrom"];
+    post: operations['transferFrom'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/burn": {
+  '/contract/{chain}/{contractAddress}/erc20/burn': {
     /**
      * Burn token
      * @description Burn ERC-20 tokens in the caller wallet.
      */
-    post: operations["burn"];
+    post: operations['burn'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/burn-from": {
+  '/contract/{chain}/{contractAddress}/erc20/burn-from': {
     /**
      * Burn token from wallet
      * @description Burn ERC-20 tokens in a specific wallet. Requires allowance.
      */
-    post: operations["burnFrom"];
+    post: operations['burnFrom'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-to": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-to': {
     /**
      * Claim tokens to wallet
      * @description Claim ERC-20 tokens to a specific wallet.
      */
-    post: operations["claimTo"];
+    post: operations['claimTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/mint-batch-to": {
+  '/contract/{chain}/{contractAddress}/erc20/mint-batch-to': {
     /**
      * Mint tokens (batch)
      * @description Mint ERC-20 tokens to multiple wallets in one transaction.
      */
-    post: operations["mintBatchTo"];
+    post: operations['mintBatchTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/mint-to": {
+  '/contract/{chain}/{contractAddress}/erc20/mint-to': {
     /**
      * Mint tokens
      * @description Mint ERC-20 tokens to a specific wallet.
      */
-    post: operations["mintTo"];
+    post: operations['mintTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/signature/mint": {
+  '/contract/{chain}/{contractAddress}/erc20/signature/mint': {
     /**
      * Signature mint
      * @description Mint ERC-20 tokens from a generated signature.
      */
-    post: operations["signatureMint"];
+    post: operations['signatureMint'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/set": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/set': {
     /**
      * Overwrite the claim conditions for the drop.
      * @description Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
      */
-    post: operations["setClaimConditions"];
+    post: operations['setClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc20/claim-conditions/update": {
+  '/contract/{chain}/{contractAddress}/erc20/claim-conditions/update': {
     /**
      * Update a single claim phase.
      * @description Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
      */
-    post: operations["updateClaimConditions"];
+    post: operations['updateClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/get": {
+  '/contract/{chain}/{contractAddress}/erc721/get': {
     /**
      * Get details
      * @description Get the details for a token in an ERC-721 contract.
      */
-    get: operations["get"];
+    get: operations['get'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/get-all": {
+  '/contract/{chain}/{contractAddress}/erc721/get-all': {
     /**
      * Get all details
      * @description Get details for all tokens in an ERC-721 contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/get-owned": {
+  '/contract/{chain}/{contractAddress}/erc721/get-owned': {
     /**
      * Get owned tokens
      * @description Get all tokens in an ERC-721 contract owned by a specific wallet.
      */
-    get: operations["getOwned"];
+    get: operations['getOwned'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/balance-of": {
+  '/contract/{chain}/{contractAddress}/erc721/balance-of': {
     /**
      * Get token balance
      * @description Get the balance of a specific wallet address for this ERC-721 contract.
      */
-    get: operations["balanceOf"];
+    get: operations['balanceOf'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/is-approved": {
+  '/contract/{chain}/{contractAddress}/erc721/is-approved': {
     /**
      * Check if approved transfers
      * @description Check if the specific wallet has approved transfers from a specific operator wallet.
      */
-    get: operations["isApproved"];
+    get: operations['isApproved'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/total-count": {
+  '/contract/{chain}/{contractAddress}/erc721/total-count': {
     /**
      * Get total supply
      * @description Get the total supply in circulation for this ERC-721 contract.
      */
-    get: operations["totalCount"];
+    get: operations['totalCount'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/total-claimed-supply": {
+  '/contract/{chain}/{contractAddress}/erc721/total-claimed-supply': {
     /**
      * Get claimed supply
      * @description Get the claimed supply for this ERC-721 contract.
      */
-    get: operations["totalClaimedSupply"];
+    get: operations['totalClaimedSupply'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/total-unclaimed-supply": {
+  '/contract/{chain}/{contractAddress}/erc721/total-unclaimed-supply': {
     /**
      * Get unclaimed supply
      * @description Get the unclaimed supply for this ERC-721 contract.
      */
-    get: operations["totalUnclaimedSupply"];
+    get: operations['totalUnclaimedSupply'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/can-claim": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/can-claim': {
     /**
      * Check if tokens are available for claiming
      * @description Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.
      */
-    get: operations["canClaim"];
+    get: operations['canClaim'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-active": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-active': {
     /**
      * Retrieve the currently active claim phase, if any.
      * @description Retrieve the currently active claim phase, if any.
      */
-    get: operations["getActiveClaimConditions"];
+    get: operations['getActiveClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-all": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-all': {
     /**
      * Get all the claim phases configured for the drop.
      * @description Get all the claim phases configured for the drop.
      */
-    get: operations["getAllClaimConditions"];
+    get: operations['getAllClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-claim-ineligibility-reasons": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-claim-ineligibility-reasons': {
     /**
      * Get claim ineligibility reasons
      * @description Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.
      */
-    get: operations["getClaimIneligibilityReasons"];
+    get: operations['getClaimIneligibilityReasons'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-claimer-proofs": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/get-claimer-proofs': {
     /**
      * Get claimer proofs
      * @description Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.
      */
-    get: operations["getClaimerProofs"];
+    get: operations['getClaimerProofs'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/set-approval-for-all": {
+  '/contract/{chain}/{contractAddress}/erc721/set-approval-for-all': {
     /**
      * Set approval for all
      * @description Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.
      */
-    post: operations["setApprovalForAll"];
+    post: operations['setApprovalForAll'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/set-approval-for-token": {
+  '/contract/{chain}/{contractAddress}/erc721/set-approval-for-token': {
     /**
      * Set approval for token
      * @description Approve an operator for the NFT owner. Operators can call transferFrom or safeTransferFrom for the specific token.
      */
-    post: operations["setApprovalForToken"];
+    post: operations['setApprovalForToken'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/transfer": {
+  '/contract/{chain}/{contractAddress}/erc721/transfer': {
     /**
      * Transfer token
      * @description Transfer an ERC-721 token from the caller wallet.
      */
-    post: operations["transfer"];
+    post: operations['transfer'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/transfer-from": {
+  '/contract/{chain}/{contractAddress}/erc721/transfer-from': {
     /**
      * Transfer token from wallet
      * @description Transfer an ERC-721 token from the connected wallet to another wallet. Requires allowance.
      */
-    post: operations["transferFrom"];
+    post: operations['transferFrom'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/mint-to": {
+  '/contract/{chain}/{contractAddress}/erc721/mint-to': {
     /**
      * Mint tokens
      * @description Mint ERC-721 tokens to a specific wallet.
      */
-    post: operations["mintTo"];
+    post: operations['mintTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/mint-batch-to": {
+  '/contract/{chain}/{contractAddress}/erc721/mint-batch-to': {
     /**
      * Mint tokens (batch)
      * @description Mint ERC-721 tokens to multiple wallets in one transaction.
      */
-    post: operations["mintBatchTo"];
+    post: operations['mintBatchTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/burn": {
+  '/contract/{chain}/{contractAddress}/erc721/burn': {
     /**
      * Burn token
      * @description Burn ERC-721 tokens in the caller wallet.
      */
-    post: operations["burn"];
+    post: operations['burn'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/lazy-mint": {
+  '/contract/{chain}/{contractAddress}/erc721/lazy-mint': {
     /**
      * Lazy mint
      * @description Lazy mint ERC-721 tokens to be claimed in the future.
      */
-    post: operations["lazyMint"];
+    post: operations['lazyMint'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-to": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-to': {
     /**
      * Claim tokens to wallet
      * @description Claim ERC-721 tokens to a specific wallet.
      */
-    post: operations["claimTo"];
+    post: operations['claimTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/signature/generate": {
+  '/contract/{chain}/{contractAddress}/erc721/signature/generate': {
     /**
      * Generate signature
      * @description Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.
      */
-    post: operations["signatureGenerate"];
+    post: operations['signatureGenerate'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/signature/mint": {
+  '/contract/{chain}/{contractAddress}/erc721/signature/mint': {
     /**
      * Signature mint
      * @description Mint ERC-721 tokens from a generated signature.
      */
-    post: operations["signatureMint"];
+    post: operations['signatureMint'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/set": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/set': {
     /**
      * Overwrite the claim conditions for the drop.
      * @description Overwrite the claim conditions for the drop. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
      */
-    post: operations["setClaimConditions"];
+    post: operations['setClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/claim-conditions/update": {
+  '/contract/{chain}/{contractAddress}/erc721/claim-conditions/update': {
     /**
      * Update a single claim phase.
      * @description Update a single claim phase, by providing the index of the claim phase and the new phase configuration. The index is the position of the phase in the list of phases you have made, starting from zero. e.g. if you have two phases, the first phase has an index of 0 and the second phase has an index of 1. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
      */
-    post: operations["updateClaimConditions"];
+    post: operations['updateClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/signature/prepare": {
+  '/contract/{chain}/{contractAddress}/erc721/signature/prepare': {
     /**
      * Prepare signature
      * @description Prepares a payload for a wallet to generate a signature.
      */
-    post: operations["signaturePrepare"];
+    post: operations['signaturePrepare'];
   };
-  "/contract/{chain}/{contractAddress}/erc721/token/update": {
+  '/contract/{chain}/{contractAddress}/erc721/token/update': {
     /**
      * Update token metadata
      * @description Update the metadata for an ERC721 token.
      */
-    post: operations["updateTokenMetadata"];
+    post: operations['updateTokenMetadata'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/get": {
+  '/contract/{chain}/{contractAddress}/erc1155/get': {
     /**
      * Get details
      * @description Get the details for a token in an ERC-1155 contract.
      */
-    get: operations["get"];
+    get: operations['get'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/get-all": {
+  '/contract/{chain}/{contractAddress}/erc1155/get-all': {
     /**
      * Get all details
      * @description Get details for all tokens in an ERC-1155 contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/get-owned": {
+  '/contract/{chain}/{contractAddress}/erc1155/get-owned': {
     /**
      * Get owned tokens
      * @description Get all tokens in an ERC-1155 contract owned by a specific wallet.
      */
-    get: operations["getOwned"];
+    get: operations['getOwned'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/balance-of": {
+  '/contract/{chain}/{contractAddress}/erc1155/balance-of': {
     /**
      * Get balance
      * @description Get the balance of a specific wallet address for this ERC-1155 contract.
      */
-    get: operations["balanceOf"];
+    get: operations['balanceOf'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/is-approved": {
+  '/contract/{chain}/{contractAddress}/erc1155/is-approved': {
     /**
      * Check if approved transfers
      * @description Check if the specific wallet has approved transfers from a specific operator wallet.
      */
-    get: operations["isApproved"];
+    get: operations['isApproved'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/total-count": {
+  '/contract/{chain}/{contractAddress}/erc1155/total-count': {
     /**
      * Get total supply
      * @description Get the total supply in circulation for this ERC-1155 contract.
      */
-    get: operations["totalCount"];
+    get: operations['totalCount'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/total-supply": {
+  '/contract/{chain}/{contractAddress}/erc1155/total-supply': {
     /**
      * Get total supply
      * @description Get the total supply in circulation for this ERC-1155 contract.
      */
-    get: operations["totalSupply"];
+    get: operations['totalSupply'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/signature/generate": {
+  '/contract/{chain}/{contractAddress}/erc1155/signature/generate': {
     /**
      * Generate signature
      * @description Generate a signature granting access for another wallet to mint tokens from this ERC-721 contract. This method is typically called by the token contract owner.
      */
-    post: operations["signatureGenerate"];
+    post: operations['signatureGenerate'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/can-claim": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/can-claim': {
     /**
      * Check if tokens are available for claiming
      * @description Check if tokens are currently available for claiming, optionally specifying if a specific wallet address can claim.
      */
-    get: operations["canClaim"];
+    get: operations['canClaim'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-active": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-active': {
     /**
      * Get currently active claim phase for a specific token ID.
      * @description Retrieve the currently active claim phase for a specific token ID, if any.
      */
-    get: operations["getActiveClaimConditions"];
+    get: operations['getActiveClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-all": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-all': {
     /**
      * Get all the claim phases configured for a specific token ID.
      * @description Get all the claim phases configured for a specific token ID.
      */
-    get: operations["getAllClaimConditions"];
+    get: operations['getAllClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-claimer-proofs": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-claimer-proofs': {
     /**
      * Get claimer proofs
      * @description Returns allowlist information and merkle proofs for a given wallet address. Returns null if no proof is found for the given wallet address.
      */
-    get: operations["getClaimerProofs"];
+    get: operations['getClaimerProofs'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-claim-ineligibility-reasons": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/get-claim-ineligibility-reasons': {
     /**
      * Get claim ineligibility reasons
      * @description Get an array of reasons why a specific wallet address is not eligible to claim tokens, if any.
      */
-    post: operations["getClaimIneligibilityReasons"];
+    post: operations['getClaimIneligibilityReasons'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/airdrop": {
+  '/contract/{chain}/{contractAddress}/erc1155/airdrop': {
     /**
      * Airdrop tokens
      * @description Airdrop ERC-1155 tokens to specific wallets.
      */
-    post: operations["airdrop"];
+    post: operations['airdrop'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/burn": {
+  '/contract/{chain}/{contractAddress}/erc1155/burn': {
     /**
      * Burn token
      * @description Burn ERC-1155 tokens in the caller wallet.
      */
-    post: operations["burn"];
+    post: operations['burn'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/burn-batch": {
+  '/contract/{chain}/{contractAddress}/erc1155/burn-batch': {
     /**
      * Burn tokens (batch)
      * @description Burn a batch of ERC-1155 tokens in the caller wallet.
      */
-    post: operations["burnBatch"];
+    post: operations['burnBatch'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-to": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-to': {
     /**
      * Claim tokens to wallet
      * @description Claim ERC-1155 tokens to a specific wallet.
      */
-    post: operations["claimTo"];
+    post: operations['claimTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/lazy-mint": {
+  '/contract/{chain}/{contractAddress}/erc1155/lazy-mint': {
     /**
      * Lazy mint
      * @description Lazy mint ERC-1155 tokens to be claimed in the future.
      */
-    post: operations["lazyMint"];
+    post: operations['lazyMint'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/mint-additional-supply-to": {
+  '/contract/{chain}/{contractAddress}/erc1155/mint-additional-supply-to': {
     /**
      * Mint additional supply
      * @description Mint additional supply of ERC-1155 tokens to a specific wallet.
      */
-    post: operations["mintAdditionalSupplyTo"];
+    post: operations['mintAdditionalSupplyTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/mint-batch-to": {
+  '/contract/{chain}/{contractAddress}/erc1155/mint-batch-to': {
     /**
      * Mint tokens (batch)
      * @description Mint ERC-1155 tokens to multiple wallets in one transaction.
      */
-    post: operations["mintBatchTo"];
+    post: operations['mintBatchTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/mint-to": {
+  '/contract/{chain}/{contractAddress}/erc1155/mint-to': {
     /**
      * Mint tokens
      * @description Mint ERC-1155 tokens to a specific wallet.
      */
-    post: operations["mintTo"];
+    post: operations['mintTo'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/set-approval-for-all": {
+  '/contract/{chain}/{contractAddress}/erc1155/set-approval-for-all': {
     /**
      * Set approval for all
      * @description Approve or remove operator as an operator for the caller. Operators can call transferFrom or safeTransferFrom for any token owned by the caller.
      */
-    post: operations["setApprovalForAll"];
+    post: operations['setApprovalForAll'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/transfer": {
+  '/contract/{chain}/{contractAddress}/erc1155/transfer': {
     /**
      * Transfer token
      * @description Transfer an ERC-1155 token from the caller wallet.
      */
-    post: operations["transfer"];
+    post: operations['transfer'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/transfer-from": {
+  '/contract/{chain}/{contractAddress}/erc1155/transfer-from': {
     /**
      * Transfer token from wallet
      * @description Transfer an ERC-1155 token from the connected wallet to another wallet. Requires allowance.
      */
-    post: operations["transferFrom"];
+    post: operations['transferFrom'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/signature/mint": {
+  '/contract/{chain}/{contractAddress}/erc1155/signature/mint': {
     /**
      * Signature mint
      * @description Mint ERC-1155 tokens from a generated signature.
      */
-    post: operations["signatureMint"];
+    post: operations['signatureMint'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/set": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/set': {
     /**
      * Overwrite the claim conditions for a specific token ID..
      * @description Overwrite the claim conditions for a specific token ID. All properties of a phase are optional, with the default being a free, open, unlimited claim, in the native currency, starting immediately.
      */
-    post: operations["setClaimConditions"];
+    post: operations['setClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/set-batch": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/set-batch': {
     /**
      * Overwrite the claim conditions for a specific token ID..
      * @description Allows you to set claim conditions for multiple token IDs in a single transaction.
      */
-    post: operations["claimConditionsUpdate"];
+    post: operations['claimConditionsUpdate'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/claim-conditions/update": {
+  '/contract/{chain}/{contractAddress}/erc1155/claim-conditions/update': {
     /**
      * Update a single claim phase.
      * @description Update a single claim phase on a specific token ID, by providing the index of the claim phase and the new phase configuration.
      */
-    post: operations["updateClaimConditions"];
+    post: operations['updateClaimConditions'];
   };
-  "/contract/{chain}/{contractAddress}/erc1155/token/update": {
+  '/contract/{chain}/{contractAddress}/erc1155/token/update': {
     /**
      * Update token metadata
      * @description Update the metadata for an ERC1155 token.
      */
-    post: operations["updateTokenMetadata"];
+    post: operations['updateTokenMetadata'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/get-all": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/get-all': {
     /**
      * Get all listings
      * @description Get all direct listings for this marketplace contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/get-all-valid": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/get-all-valid': {
     /**
      * Get all valid listings
      * @description Get all the valid direct listings for this marketplace contract. A valid listing is where the listing is active, and the creator still owns & has approved Marketplace to transfer the listed NFTs.
      */
-    get: operations["getAllValid"];
+    get: operations['getAllValid'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/get-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/get-listing': {
     /**
      * Get direct listing
      * @description Gets a direct listing on this marketplace contract.
      */
-    get: operations["getListing"];
+    get: operations['getListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/is-buyer-approved-for-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/is-buyer-approved-for-listing': {
     /**
      * Check approved buyer
      * @description Check if a buyer is approved to purchase a specific direct listing.
      */
-    get: operations["isBuyerApprovedForListing"];
+    get: operations['isBuyerApprovedForListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/is-currency-approved-for-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/is-currency-approved-for-listing': {
     /**
      * Check approved currency
      * @description Check if a currency is approved for a specific direct listing.
      */
-    get: operations["isCurrencyApprovedForListing"];
+    get: operations['isCurrencyApprovedForListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/get-total-count": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/get-total-count': {
     /**
      * Transfer token from wallet
      * @description Get the total number of direct listings on this marketplace contract.
      */
-    get: operations["getTotalCount"];
+    get: operations['getTotalCount'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-all": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-all': {
     /**
      * Get all English auctions
      * @description Get all English auction listings on this marketplace contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-all-valid": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-all-valid': {
     /**
      * Get all valid English auctions
      * @description Get all valid English auction listings on this marketplace contract.
      */
-    get: operations["getAllValid"];
+    get: operations['getAllValid'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-auction": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-auction': {
     /**
      * Get English auction
      * @description Get a specific English auction listing on this marketplace contract.
      */
-    get: operations["getAuction"];
+    get: operations['getAuction'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-bid-buffer-bps": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-bid-buffer-bps': {
     /**
      * Get bid buffer BPS
      * @description Get the basis points of the bid buffer.
@@ -1368,144 +1367,144 @@ export interface paths {
      * If there is no current bid, the bid must be at least the minimum bid amount.
      * Returns the value in percentage format, e.g. 100 = 1%.
      */
-    get: operations["getBidBufferBps"];
+    get: operations['getBidBufferBps'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-minimum-next-bid": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-minimum-next-bid': {
     /**
      * Get minimum next bid
      * @description Helper function to calculate the value that the next bid must be in order to be accepted.
      * If there is no current bid, the bid must be at least the minimum bid amount.
      * If there is a current bid, the bid must be at least the current bid amount + the bid buffer.
      */
-    get: operations["getMinimumNextBid"];
+    get: operations['getMinimumNextBid'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-winning-bid": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-winning-bid': {
     /**
      * Get winning bid
      * @description Get the current highest bid of an active auction.
      */
-    get: operations["getWinningBid"];
+    get: operations['getWinningBid'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-total-count": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-total-count': {
     /**
      * Get total listings
      * @description Get the count of English auction listings on this marketplace contract.
      */
-    get: operations["getTotalCount"];
+    get: operations['getTotalCount'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/is-winning-bid": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/is-winning-bid': {
     /**
      * Check winning bid
      * @description Check if a bid is or will be the winning bid for an auction.
      */
-    get: operations["isWinningBid"];
+    get: operations['isWinningBid'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/get-winner": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/get-winner': {
     /**
      * Get winner
      * @description Get the winner of an English auction. Can only be called after the auction has ended.
      */
-    get: operations["getWinner"];
+    get: operations['getWinner'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/get-all": {
+  '/marketplace/{chain}/{contractAddress}/offers/get-all': {
     /**
      * Get all offers
      * @description Get all offers on this marketplace contract.
      */
-    get: operations["getAll"];
+    get: operations['getAll'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/get-all-valid": {
+  '/marketplace/{chain}/{contractAddress}/offers/get-all-valid': {
     /**
      * Get all valid offers
      * @description Get all valid offers on this marketplace contract. Valid offers are offers that have not expired, been canceled, or been accepted.
      */
-    get: operations["getAllValid"];
+    get: operations['getAllValid'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/get-offer": {
+  '/marketplace/{chain}/{contractAddress}/offers/get-offer': {
     /**
      * Get offer
      * @description Get details about an offer.
      */
-    get: operations["getOffer"];
+    get: operations['getOffer'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/get-total-count": {
+  '/marketplace/{chain}/{contractAddress}/offers/get-total-count': {
     /**
      * Get total count
      * @description Get the total number of offers on this marketplace contract.
      */
-    get: operations["getTotalCount"];
+    get: operations['getTotalCount'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/create-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/create-listing': {
     /**
      * Create direct listing
      * @description Create a direct listing on this marketplace contract.
      */
-    post: operations["createListing"];
+    post: operations['createListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/update-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/update-listing': {
     /**
      * Update direct listing
      * @description Update a direct listing on this marketplace contract.
      */
-    post: operations["updateListing"];
+    post: operations['updateListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/buy-from-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/buy-from-listing': {
     /**
      * Buy from direct listing
      * @description Buy from a specific direct listing from this marketplace contract.
      */
-    post: operations["buyFromListing"];
+    post: operations['buyFromListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/approve-buyer-for-reserved-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/approve-buyer-for-reserved-listing': {
     /**
      * Approve buyer for reserved listing
      * @description Approve a wallet address to buy from a reserved listing.
      */
-    post: operations["approveBuyerForReservedListing"];
+    post: operations['approveBuyerForReservedListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/revoke-buyer-approval-for-reserved-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/revoke-buyer-approval-for-reserved-listing': {
     /**
      * Revoke approval for reserved listings
      * @description Revoke approval for a buyer to purchase a reserved listing.
      */
-    post: operations["revokeBuyerApprovalForReservedListing"];
+    post: operations['revokeBuyerApprovalForReservedListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/revoke-currency-approval-for-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/revoke-currency-approval-for-listing': {
     /**
      * Revoke currency approval for reserved listing
      * @description Revoke approval of a currency for a reserved listing.
      */
-    post: operations["revokeCurrencyApprovalForListing"];
+    post: operations['revokeCurrencyApprovalForListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/direct-listings/cancel-listing": {
+  '/marketplace/{chain}/{contractAddress}/direct-listings/cancel-listing': {
     /**
      * Cancel direct listing
      * @description Cancel a direct listing from this marketplace contract. Only the creator of the listing can cancel it.
      */
-    post: operations["cancelListing"];
+    post: operations['cancelListing'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/buyout-auction": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/buyout-auction': {
     /**
      * Buyout English auction
      * @description Buyout the listing for this auction.
      */
-    post: operations["buyoutAuction"];
+    post: operations['buyoutAuction'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/cancel-auction": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/cancel-auction': {
     /**
      * Cancel English auction
      * @description Cancel an existing auction listing. Only the creator of the listing can cancel it. Auctions cannot be canceled once a bid has been made.
      */
-    post: operations["cancelAuction"];
+    post: operations['cancelAuction'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/create-auction": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/create-auction': {
     /**
      * Create English auction
      * @description Create an English auction listing on this marketplace contract.
      */
-    post: operations["createAuction"];
+    post: operations['createAuction'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/close-auction-for-bidder": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/close-auction-for-bidder': {
     /**
      * Close English auction for bidder
      * @description After an auction has concluded (and a buyout did not occur),
@@ -1513,96 +1512,95 @@ export interface paths {
      * You must also call closeAuctionForSeller to execute the sale for the seller,
      * meaning the seller receives the payment from the highest bid.
      */
-    post: operations["closeAuctionForBidder"];
+    post: operations['closeAuctionForBidder'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/close-auction-for-seller": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/close-auction-for-seller': {
     /**
      * Close English auction for seller
      * @description After an auction has concluded (and a buyout did not occur),
      * execute the sale for the seller, meaning the seller receives the payment from the highest bid.
      * You must also call closeAuctionForBidder to execute the sale for the buyer, meaning the buyer receives the NFT(s).
      */
-    post: operations["closeAuctionForSeller"];
+    post: operations['closeAuctionForSeller'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/execute-sale": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/execute-sale': {
     /**
      * Execute sale
      * @description Close the auction for both buyer and seller.
      * This means the NFT(s) will be transferred to the buyer and the seller will receive the funds.
      * This function can only be called after the auction has ended.
      */
-    post: operations["executeSale"];
+    post: operations['executeSale'];
   };
-  "/marketplace/{chain}/{contractAddress}/english-auctions/make-bid": {
+  '/marketplace/{chain}/{contractAddress}/english-auctions/make-bid': {
     /**
      * Make bid
      * @description Place a bid on an English auction listing.
      */
-    post: operations["makeBid"];
+    post: operations['makeBid'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/make-offer": {
+  '/marketplace/{chain}/{contractAddress}/offers/make-offer': {
     /**
      * Make offer
      * @description Make an offer on a token. A valid listing is not required.
      */
-    post: operations["makeOffer"];
+    post: operations['makeOffer'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/cancel-offer": {
+  '/marketplace/{chain}/{contractAddress}/offers/cancel-offer': {
     /**
      * Cancel offer
      * @description Cancel a valid offer made by the caller wallet.
      */
-    post: operations["cancelOffer"];
+    post: operations['cancelOffer'];
   };
-  "/marketplace/{chain}/{contractAddress}/offers/accept-offer": {
+  '/marketplace/{chain}/{contractAddress}/offers/accept-offer': {
     /**
      * Accept offer
      * @description Accept a valid offer.
      */
-    post: operations["acceptOffer"];
+    post: operations['acceptOffer'];
   };
-  "/contract-subscriptions/get-all": {
+  '/contract-subscriptions/get-all': {
     /**
      * Get contract subscriptions
      * @description Get all contract subscriptions.
      */
-    get: operations["getContractSubscriptions"];
+    get: operations['getContractSubscriptions'];
   };
-  "/contract-subscriptions/add": {
+  '/contract-subscriptions/add': {
     /**
      * Add contract subscription
      * @description Subscribe to event logs and transaction receipts for a contract.
      */
-    post: operations["addContractSubscription"];
+    post: operations['addContractSubscription'];
   };
-  "/contract-subscriptions/remove": {
+  '/contract-subscriptions/remove': {
     /**
      * Remove contract subscription
      * @description Remove an existing contract subscription
      */
-    post: operations["removeContractSubscription"];
+    post: operations['removeContractSubscription'];
   };
-  "/contract/{chain}/{contractAddress}/subscriptions/get-indexed-blocks": {
+  '/contract/{chain}/{contractAddress}/subscriptions/get-indexed-blocks': {
     /**
      * Get subscribed contract indexed block range
      * @description Gets the subscribed contract's indexed block range
      */
-    get: operations["getContractIndexedBlockRange"];
+    get: operations['getContractIndexedBlockRange'];
   };
-  "/contract-subscriptions/last-block": {
+  '/contract-subscriptions/last-block': {
     /**
      * Get last processed block
      * @description Get the last processed block for a chain.
      */
-    get: operations["getLatestBlock"];
+    get: operations['getLatestBlock'];
   };
 }
 
 export type webhooks = Record<string, never>;
 
 export interface components {
-  schemas: {
-  };
+  schemas: object;
   responses: never;
   parameters: never;
   requestBodies: never;
@@ -1615,7 +1613,6 @@ export type $defs = Record<string, never>;
 export type external = Record<string, never>;
 
 export interface operations {
-
   /**
    * Create a new meta-transaction relayer
    * @description Create a new meta-transaction relayer
@@ -1636,7 +1633,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           name?: string;
           chain: string;
           /** @description The address of the backend wallet to use for relaying transactions. */
@@ -1650,7 +1647,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               relayerId: string;
             };
@@ -1660,7 +1657,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1674,7 +1671,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1688,7 +1685,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1708,35 +1705,42 @@ export interface operations {
   import: {
     requestBody?: {
       content: {
-        "application/json": {
-          /** @description AWS KMS key ID */
-          awsKmsKeyId: string;
-          /** @description AWS KMS key ARN */
-          awsKmsArn: string;
-        } | {
-          /** @description GCP KMS key ID */
-          gcpKmsKeyId: string;
-          /** @description GCP KMS key version ID */
-          gcpKmsKeyVersionId: string;
-        } | ({
-          /** @description The private key of the wallet to import */
-          privateKey: string;
-        } | {
-          /** @description The mnemonic phrase of the wallet to import */
-          mnemonic: string;
-        } | {
-          /** @description The encrypted JSON of the wallet to import */
-          encryptedJson: string;
-          /** @description The password used to encrypt the encrypted JSON */
-          password: string;
-        });
+        'application/json':
+          | {
+              /** @description AWS KMS key ID */
+              awsKmsKeyId: string;
+              /** @description AWS KMS key ARN */
+              awsKmsArn: string;
+            }
+          | {
+              /** @description GCP KMS key ID */
+              gcpKmsKeyId: string;
+              /** @description GCP KMS key version ID */
+              gcpKmsKeyVersionId: string;
+            }
+          | (
+              | {
+                  /** @description The private key of the wallet to import */
+                  privateKey: string;
+                }
+              | {
+                  /** @description The mnemonic phrase of the wallet to import */
+                  mnemonic: string;
+                }
+              | {
+                  /** @description The encrypted JSON of the wallet to import */
+                  encryptedJson: string;
+                  /** @description The password used to encrypt the encrypted JSON */
+                  password: string;
+                }
+            );
       };
     };
     responses: {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               walletAddress: string;
               status: string;
@@ -1747,7 +1751,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1761,7 +1765,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1775,7 +1779,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1795,7 +1799,7 @@ export interface operations {
   update: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           id: string;
           name?: string;
           chain?: string;
@@ -1809,7 +1813,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               success: boolean;
             };
@@ -1819,7 +1823,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1833,7 +1837,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1847,7 +1851,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1883,7 +1887,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               walletAddress: string;
               name: string;
@@ -1898,7 +1902,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1912,7 +1916,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1926,7 +1930,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -1974,53 +1978,53 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
-                /** @description The address of the asset being listed. */
-                assetContractAddress: string;
-                /** @description The ID of the token to list. */
-                tokenId: string;
-                /** @description The address of the currency to accept for the listing. */
-                currencyContractAddress?: string;
-                /** @description The quantity of tokens to include in the listing. NOTE: For ERC721s, this value should always be 1 (and will be forced internally regardless of what is passed here). */
-                quantity?: string;
-                /** @description The id of the offer. */
+          'application/json': {
+            result: {
+              /** @description The address of the asset being listed. */
+              assetContractAddress: string;
+              /** @description The ID of the token to list. */
+              tokenId: string;
+              /** @description The address of the currency to accept for the listing. */
+              currencyContractAddress?: string;
+              /** @description The quantity of tokens to include in the listing. NOTE: For ERC721s, this value should always be 1 (and will be forced internally regardless of what is passed here). */
+              quantity?: string;
+              /** @description The id of the offer. */
+              id: string;
+              /** @description The address of the creator of offer. */
+              offerorAddress: string;
+              /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
+              currencyValue?: {
+                name: string;
+                symbol: string;
+                decimals: number;
+                value: string;
+                displayValue: string;
+              };
+              /** @description The total offer amount for the NFTs. */
+              totalPrice: string;
+              asset?: {
                 id: string;
-                /** @description The address of the creator of offer. */
-                offerorAddress: string;
-                /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
-                currencyValue?: {
-                  name: string;
-                  symbol: string;
-                  decimals: number;
-                  value: string;
-                  displayValue: string;
-                };
-                /** @description The total offer amount for the NFTs. */
-                totalPrice: string;
-                asset?: {
-                  id: string;
-                  uri: string;
-                  name?: string | number | null;
-                  description?: string | null;
-                  image?: string | null;
-                  external_url?: string | null;
-                  animation_url?: string | null;
-                  properties?: unknown;
-                  attributes?: unknown;
-                  [key: string]: unknown;
-                };
-                /** @description The end time of the auction. */
-                endTimeInSeconds?: number;
-                status?: 0 | 1 | 2 | 3 | 4 | 5;
-              })[];
+                uri: string;
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                [key: string]: unknown;
+              };
+              /** @description The end time of the auction. */
+              endTimeInSeconds?: number;
+              status?: 0 | 1 | 2 | 3 | 4 | 5;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2034,7 +2038,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2048,7 +2052,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2073,11 +2077,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -2101,7 +2105,7 @@ export interface operations {
          *   "amount": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to transfer to */
           to: string;
           /** @description the tokenId to transfer */
@@ -2125,7 +2129,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -2136,7 +2140,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2150,7 +2154,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2164,7 +2168,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2185,11 +2189,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -2201,7 +2205,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Address to withdraw all funds to */
           toAddress: string;
         };
@@ -2211,7 +2215,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -2222,7 +2226,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2236,7 +2240,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2250,7 +2254,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2275,11 +2279,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         chain: string;
@@ -2294,7 +2298,7 @@ export interface operations {
          *   "value": "0x00"
          * }
          */
-        "application/json": {
+        'application/json': {
           toAddress?: string;
           data: string;
           value: string;
@@ -2305,7 +2309,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -2316,7 +2320,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2330,7 +2334,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2344,7 +2348,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2365,11 +2369,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         chain: string;
@@ -2377,18 +2381,18 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        "application/json": {
-            toAddress?: string;
-            data: string;
-            value: string;
-          }[];
+        'application/json': {
+          toAddress?: string;
+          data: string;
+          value: string;
+        }[];
       };
     };
     responses: {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               groupId: string;
               queueIds: string[];
@@ -2399,7 +2403,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2413,7 +2417,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2427,7 +2431,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2448,16 +2452,16 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           transaction: {
             to?: string;
             from?: string;
@@ -2483,7 +2487,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string;
           };
         };
@@ -2491,7 +2495,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2505,7 +2509,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2519,7 +2523,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2540,16 +2544,16 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           message: string;
           isBytes?: boolean;
         };
@@ -2559,7 +2563,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string;
           };
         };
@@ -2567,7 +2571,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2581,7 +2585,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2595,7 +2599,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2616,16 +2620,16 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           domain: {
             [key: string]: unknown;
           };
@@ -2642,7 +2646,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string;
           };
         };
@@ -2650,7 +2654,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2664,7 +2668,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2678,7 +2682,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2714,53 +2718,53 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-              transactions: ({
-                  queueId: string | null;
-                  chainId: string | null;
-                  fromAddress: string | null;
-                  toAddress: string | null;
-                  data: string | null;
-                  extension: string | null;
-                  value: string | null;
-                  nonce: number | null;
-                  gasLimit: string | null;
-                  gasPrice: string | null;
-                  maxFeePerGas: string | null;
-                  maxPriorityFeePerGas: string | null;
-                  transactionType: number | null;
-                  transactionHash: string | null;
-                  queuedAt: string | null;
-                  sentAt: string | null;
-                  minedAt: string | null;
-                  cancelledAt: string | null;
-                  deployedContractAddress: string | null;
-                  deployedContractType: string | null;
-                  errorMessage: string | null;
-                  sentAtBlockNumber: number | null;
-                  blockNumber: number | null;
-                  status: string | null;
-                  /** @description The number of retry attempts */
-                  retryCount: number;
-                  retryGasValues: boolean | null;
-                  retryMaxFeePerGas: string | null;
-                  retryMaxPriorityFeePerGas: string | null;
-                  signerAddress: string | null;
-                  accountAddress: string | null;
-                  target: string | null;
-                  sender: string | null;
-                  initCode: string | null;
-                  callData: string | null;
-                  callGasLimit: string | null;
-                  verificationGasLimit: string | null;
-                  preVerificationGas: string | null;
-                  paymasterAndData: string | null;
-                  userOpHash: string | null;
-                  functionName: string | null;
-                  functionArgs: string | null;
-                  onChainTxStatus: number | null;
-                })[];
+              transactions: {
+                queueId: string | null;
+                chainId: string | null;
+                fromAddress: string | null;
+                toAddress: string | null;
+                data: string | null;
+                extension: string | null;
+                value: string | null;
+                nonce: number | null;
+                gasLimit: string | null;
+                gasPrice: string | null;
+                maxFeePerGas: string | null;
+                maxPriorityFeePerGas: string | null;
+                transactionType: number | null;
+                transactionHash: string | null;
+                queuedAt: string | null;
+                sentAt: string | null;
+                minedAt: string | null;
+                cancelledAt: string | null;
+                deployedContractAddress: string | null;
+                deployedContractType: string | null;
+                errorMessage: string | null;
+                sentAtBlockNumber: number | null;
+                blockNumber: number | null;
+                status: string | null;
+                /** @description The number of retry attempts */
+                retryCount: number;
+                retryGasValues: boolean | null;
+                retryMaxFeePerGas: string | null;
+                retryMaxPriorityFeePerGas: string | null;
+                signerAddress: string | null;
+                accountAddress: string | null;
+                target: string | null;
+                sender: string | null;
+                initCode: string | null;
+                callData: string | null;
+                callGasLimit: string | null;
+                verificationGasLimit: string | null;
+                preVerificationGas: string | null;
+                paymasterAndData: string | null;
+                userOpHash: string | null;
+                functionName: string | null;
+                functionArgs: string | null;
+                onChainTxStatus: number | null;
+              }[];
             };
           };
         };
@@ -2768,7 +2772,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2782,7 +2786,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2796,7 +2800,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2818,7 +2822,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               status: string;
             };
@@ -2828,7 +2832,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2842,7 +2846,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2856,7 +2860,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2892,7 +2896,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               status: string;
               nonce: string;
@@ -2905,7 +2909,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2919,7 +2923,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2933,7 +2937,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -2954,11 +2958,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         chain: string;
@@ -2966,7 +2970,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The contract address */
           toAddress: string;
           /** @description The amount of native currency */
@@ -2983,7 +2987,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Simulation Success */
               success: boolean;
@@ -2994,7 +2998,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3008,7 +3012,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3022,7 +3026,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3044,30 +3048,33 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: {
-              /** @enum {string} */
-              type: "local";
-            } | {
-              /** @enum {string} */
-              type: "aws-kms";
-              awsAccessKeyId: string;
-              awsRegion: string;
-            } | {
-              /** @enum {string} */
-              type: "gcp-kms";
-              gcpApplicationProjectId: string;
-              gcpKmsLocationId: string;
-              gcpKmsKeyRingId: string;
-              gcpApplicationCredentialEmail: string;
-            };
+          'application/json': {
+            result:
+              | {
+                  /** @enum {string} */
+                  type: 'local';
+                }
+              | {
+                  /** @enum {string} */
+                  type: 'aws-kms';
+                  awsAccessKeyId: string;
+                  awsRegion: string;
+                }
+              | {
+                  /** @enum {string} */
+                  type: 'gcp-kms';
+                  gcpApplicationProjectId: string;
+                  gcpKmsLocationId: string;
+                  gcpKmsKeyRingId: string;
+                  gcpApplicationCredentialEmail: string;
+                };
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3081,7 +3088,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3095,7 +3102,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3115,54 +3122,60 @@ export interface operations {
   updateWalletsConfiguration: {
     requestBody?: {
       content: {
-        "application/json": {
-          /** @enum {string} */
-          type: "local";
-        } | {
-          /** @enum {string} */
-          type: "aws-kms";
-          awsAccessKeyId: string;
-          awsSecretAccessKey: string;
-          awsRegion: string;
-        } | {
-          /** @enum {string} */
-          type: "gcp-kms";
-          gcpApplicationProjectId: string;
-          gcpKmsLocationId: string;
-          gcpKmsKeyRingId: string;
-          gcpApplicationCredentialEmail: string;
-          gcpApplicationCredentialPrivateKey: string;
-        };
+        'application/json':
+          | {
+              /** @enum {string} */
+              type: 'local';
+            }
+          | {
+              /** @enum {string} */
+              type: 'aws-kms';
+              awsAccessKeyId: string;
+              awsSecretAccessKey: string;
+              awsRegion: string;
+            }
+          | {
+              /** @enum {string} */
+              type: 'gcp-kms';
+              gcpApplicationProjectId: string;
+              gcpKmsLocationId: string;
+              gcpKmsKeyRingId: string;
+              gcpApplicationCredentialEmail: string;
+              gcpApplicationCredentialPrivateKey: string;
+            };
       };
     };
     responses: {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: {
-              /** @enum {string} */
-              type: "local";
-            } | {
-              /** @enum {string} */
-              type: "aws-kms";
-              awsAccessKeyId: string;
-              awsRegion: string;
-            } | {
-              /** @enum {string} */
-              type: "gcp-kms";
-              gcpApplicationProjectId: string;
-              gcpKmsLocationId: string;
-              gcpKmsKeyRingId: string;
-              gcpApplicationCredentialEmail: string;
-            };
+          'application/json': {
+            result:
+              | {
+                  /** @enum {string} */
+                  type: 'local';
+                }
+              | {
+                  /** @enum {string} */
+                  type: 'aws-kms';
+                  awsAccessKeyId: string;
+                  awsRegion: string;
+                }
+              | {
+                  /** @enum {string} */
+                  type: 'gcp-kms';
+                  gcpApplicationProjectId: string;
+                  gcpKmsLocationId: string;
+                  gcpKmsKeyRingId: string;
+                  gcpApplicationCredentialEmail: string;
+                };
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3176,7 +3189,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3190,7 +3203,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3212,7 +3225,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string | null;
           };
         };
@@ -3220,7 +3233,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3234,7 +3247,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3248,7 +3261,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3288,19 +3301,19 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           chainOverrides: {
+            name: string;
+            chain: string;
+            rpc: string[];
+            nativeCurrency: {
               name: string;
-              chain: string;
-              rpc: string[];
-              nativeCurrency: {
-                name: string;
-                symbol: string;
-                decimals: number;
-              };
-              chainId: number;
-              slug: string;
-            }[];
+              symbol: string;
+              decimals: number;
+            };
+            chainId: number;
+            slug: string;
+          }[];
         };
       };
     };
@@ -3308,7 +3321,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string | null;
           };
         };
@@ -3316,7 +3329,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3330,7 +3343,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3344,7 +3357,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3366,7 +3379,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               minTxsToProcess: number;
               maxTxsToProcess: number;
@@ -3385,7 +3398,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3399,7 +3412,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3413,7 +3426,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3433,7 +3446,7 @@ export interface operations {
   updateTransactionConfiguration: {
     requestBody?: {
       content: {
-        "application/json": {
+        'application/json': {
           minTxsToProcess?: number;
           maxTxsToProcess?: number;
           minedTxListenerCronSchedule?: string | null;
@@ -3450,7 +3463,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               minTxsToProcess: number;
               maxTxsToProcess: number;
@@ -3468,7 +3481,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3482,7 +3495,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3496,7 +3509,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3518,7 +3531,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               domain: string;
             };
@@ -3528,7 +3541,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3542,7 +3555,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3556,7 +3569,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3576,7 +3589,7 @@ export interface operations {
   updateAuthConfiguration: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           domain: string;
         };
       };
@@ -3585,7 +3598,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               domain: string;
             };
@@ -3595,7 +3608,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3609,7 +3622,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3623,7 +3636,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3645,7 +3658,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Minimum wallet balance in wei */
               minWalletBalance: string;
@@ -3656,7 +3669,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3670,7 +3683,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3684,7 +3697,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3704,7 +3717,7 @@ export interface operations {
   updateBackendWalletBalanceConfiguration: {
     requestBody?: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Minimum wallet balance in wei */
           minWalletBalance?: string;
         };
@@ -3714,7 +3727,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Minimum wallet balance in wei */
               minWalletBalance: string;
@@ -3725,7 +3738,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3739,7 +3752,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3753,7 +3766,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3775,7 +3788,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -3783,7 +3796,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3797,7 +3810,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3811,7 +3824,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3839,7 +3852,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           urls: string[];
         };
       };
@@ -3848,7 +3861,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -3856,7 +3869,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3870,7 +3883,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3884,7 +3897,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3912,7 +3925,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           urlsToAdd: string[];
         };
       };
@@ -3921,7 +3934,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -3929,7 +3942,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3943,7 +3956,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3957,7 +3970,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -3985,7 +3998,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           urlsToRemove: string[];
         };
       };
@@ -3994,7 +4007,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -4002,7 +4015,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4016,7 +4029,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4030,7 +4043,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4052,7 +4065,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               clearCacheCronSchedule: string;
             };
@@ -4062,7 +4075,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4076,7 +4089,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4090,7 +4103,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4110,7 +4123,7 @@ export interface operations {
   updateCacheConfiguration: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /**
            * @description Cron expression for clearing cache. It should be in the format of 'ss mm hh * * *' where ss is seconds, mm is minutes and hh is hours. Seconds should not be '*' or less than 10
            * @default *\/30 * * * * *
@@ -4123,7 +4136,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               clearCacheCronSchedule: string;
             };
@@ -4133,7 +4146,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4147,7 +4160,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4161,7 +4174,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4183,7 +4196,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               maxBlocksToIndex: number;
               contractSubscriptionsRequeryDelaySeconds: string;
@@ -4194,7 +4207,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4208,7 +4221,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4222,7 +4235,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4242,7 +4255,7 @@ export interface operations {
   updateContractSubscriptionsConfiguration: {
     requestBody?: {
       content: {
-        "application/json": {
+        'application/json': {
           maxBlocksToIndex?: number;
           contractSubscriptionsRequeryDelaySeconds?: string;
         };
@@ -4252,7 +4265,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               maxBlocksToIndex: number;
               contractSubscriptionsRequeryDelaySeconds: string;
@@ -4263,7 +4276,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4277,7 +4290,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4291,7 +4304,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4316,11 +4329,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -4337,7 +4350,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The role to revoke */
           role: string;
           /** @description The address to revoke the role from */
@@ -4349,7 +4362,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -4360,7 +4373,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4374,7 +4387,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4388,7 +4401,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4410,15 +4423,25 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ("queued_transaction" | "sent_transaction" | "mined_transaction" | "errored_transaction" | "cancelled_transaction" | "all_transactions" | "backend_wallet_balance" | "auth" | "contract_subscription")[];
+          'application/json': {
+            result: (
+              | 'queued_transaction'
+              | 'sent_transaction'
+              | 'mined_transaction'
+              | 'errored_transaction'
+              | 'cancelled_transaction'
+              | 'all_transactions'
+              | 'backend_wallet_balance'
+              | 'auth'
+              | 'contract_subscription'
+            )[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4432,7 +4455,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4446,7 +4469,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4471,11 +4494,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -4492,7 +4515,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The role to grant */
           role: string;
           /** @description The address to grant the role to */
@@ -4504,7 +4527,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -4515,7 +4538,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4529,7 +4552,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4543,7 +4566,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4565,34 +4588,34 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                /** @description A unique identifier for the keypair */
-                hash: string;
-                /** @description The public key */
-                publicKey: string;
-                /** @description The keypair algorithm. */
-                algorithm: string;
-                /** @description A description for the keypair. */
-                label?: string;
-                /**
-                 * Format: date
-                 * @description When the keypair was added
-                 */
-                createdAt: string;
-                /**
-                 * Format: date
-                 * @description When the keypair was updated
-                 */
-                updatedAt: string;
-              }[];
+              /** @description A unique identifier for the keypair */
+              hash: string;
+              /** @description The public key */
+              publicKey: string;
+              /** @description The keypair algorithm. */
+              algorithm: string;
+              /** @description A description for the keypair. */
+              label?: string;
+              /**
+               * Format: date
+               * @description When the keypair was added
+               */
+              createdAt: string;
+              /**
+               * Format: date
+               * @description When the keypair was updated
+               */
+              updatedAt: string;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4606,7 +4629,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4620,7 +4643,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4640,10 +4663,19 @@ export interface operations {
   add: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The public key of your keypair beginning with '-----BEGIN PUBLIC KEY-----'. */
           publicKey: string;
-          algorithm: "RS256" | "RS384" | "RS512" | "ES256" | "ES384" | "ES512" | "PS256" | "PS384" | "PS512";
+          algorithm:
+            | 'RS256'
+            | 'RS384'
+            | 'RS512'
+            | 'ES256'
+            | 'ES384'
+            | 'ES512'
+            | 'PS256'
+            | 'PS384'
+            | 'PS512';
           label?: string;
         };
       };
@@ -4652,7 +4684,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               keypair: {
                 /** @description A unique identifier for the keypair */
@@ -4681,7 +4713,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4695,7 +4727,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4709,7 +4741,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4729,7 +4761,7 @@ export interface operations {
   remove: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           hash: string;
         };
       };
@@ -4738,7 +4770,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               success: boolean;
             };
@@ -4748,7 +4780,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4762,7 +4794,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4776,7 +4808,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4819,7 +4851,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               metadata: {
                 id: string;
@@ -4834,7 +4866,7 @@ export interface operations {
                 [key: string]: unknown;
               };
               owner: string;
-              type: "ERC1155" | "ERC721" | "metaplex";
+              type: 'ERC1155' | 'ERC721' | 'metaplex';
               supply: string;
               quantityOwned?: string;
             };
@@ -4844,7 +4876,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4858,7 +4890,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4872,7 +4904,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4897,49 +4929,52 @@ export interface operations {
     };
     requestBody?: {
       content: {
-        "application/json": {
-          /** @enum {string} */
-          type: "forward";
-          request: {
-            from: string;
-            to: string;
-            value: string;
-            gas: string;
-            nonce: string;
-            data: string;
-            chainid?: string;
-          };
-          signature: string;
-          forwarderAddress: string;
-        } | {
-          /** @enum {string} */
-          type: "permit";
-          request: {
-            to: string;
-            owner: string;
-            spender: string;
-            value: string;
-            nonce: string;
-            deadline: string;
-          };
-          signature: string;
-        } | {
-          /** @enum {string} */
-          type: "execute-meta-transaction";
-          request: {
-            from: string;
-            to: string;
-            data: string;
-          };
-          signature: string;
-        };
+        'application/json':
+          | {
+              /** @enum {string} */
+              type: 'forward';
+              request: {
+                from: string;
+                to: string;
+                value: string;
+                gas: string;
+                nonce: string;
+                data: string;
+                chainid?: string;
+              };
+              signature: string;
+              forwarderAddress: string;
+            }
+          | {
+              /** @enum {string} */
+              type: 'permit';
+              request: {
+                to: string;
+                owner: string;
+                spender: string;
+                value: string;
+                nonce: string;
+                deadline: string;
+              };
+              signature: string;
+            }
+          | {
+              /** @enum {string} */
+              type: 'execute-meta-transaction';
+              request: {
+                from: string;
+                to: string;
+                data: string;
+              };
+              signature: string;
+            };
       };
     };
     responses: {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -4950,7 +4985,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4964,7 +4999,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -4978,7 +5013,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5026,15 +5061,21 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result?: number | string | Record<string, never> | unknown[] | boolean | [unknown, unknown];
+          'application/json': {
+            result?:
+              | number
+              | string
+              | Record<string, never>
+              | unknown[]
+              | boolean
+              | [unknown, unknown];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5048,7 +5089,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5062,7 +5103,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5087,11 +5128,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -5118,7 +5159,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The function to call on the contract */
           functionName: string;
           args: unknown[];
@@ -5139,7 +5180,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -5150,7 +5191,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5164,7 +5205,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5178,7 +5219,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5200,7 +5241,7 @@ export interface operations {
       query?: {
         fromBlock?: number | string;
         toBlock?: number | string;
-        order?: "asc" | "desc";
+        order?: 'asc' | 'desc';
       };
       path: {
         /**
@@ -5219,17 +5260,17 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                [key: string]: unknown;
-              }[];
+              [key: string]: unknown;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5243,7 +5284,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5257,7 +5298,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5293,38 +5334,38 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                name: string;
-                inputs: {
-                    type?: string;
-                    name?: string;
-                    stateMutability?: string;
-                    components?: {
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                      }[];
-                  }[];
-                outputs: {
-                    type?: string;
-                    name?: string;
-                    stateMutability?: string;
-                    components?: {
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                      }[];
-                  }[];
-                comment?: string;
+              name: string;
+              inputs: {
+                type?: string;
+                name?: string;
+                stateMutability?: string;
+                components?: {
+                  type?: string;
+                  name?: string;
+                  internalType?: string;
+                }[];
               }[];
+              outputs: {
+                type?: string;
+                name?: string;
+                stateMutability?: string;
+                components?: {
+                  type?: string;
+                  name?: string;
+                  internalType?: string;
+                }[];
+              }[];
+              comment?: string;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5338,7 +5379,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5352,7 +5393,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5388,28 +5429,28 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                type: string;
-                name: string;
-                inputs: {
-                    type?: string;
-                    name?: string;
-                    stateMutability?: string;
-                    components?: {
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                      }[];
-                  }[];
+              type: string;
+              name: string;
+              inputs: {
+                type?: string;
+                name?: string;
+                stateMutability?: string;
+                components?: {
+                  type?: string;
+                  name?: string;
+                  internalType?: string;
+                }[];
               }[];
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5423,7 +5464,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5437,7 +5478,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5473,7 +5514,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description Array of detected extension names */
             result: string[];
           };
@@ -5482,7 +5523,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5496,7 +5537,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5510,7 +5551,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5546,40 +5587,40 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                name: string;
-                inputs: {
-                    type?: string;
-                    name?: string;
-                    stateMutability?: string;
-                    components?: {
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                      }[];
-                  }[];
-                outputs: {
-                    type?: string;
-                    name?: string;
-                    stateMutability?: string;
-                    components?: {
-                        type?: string;
-                        name?: string;
-                        internalType?: string;
-                      }[];
-                  }[];
-                comment?: string;
-                signature: string;
-                stateMutability: string;
+              name: string;
+              inputs: {
+                type?: string;
+                name?: string;
+                stateMutability?: string;
+                components?: {
+                  type?: string;
+                  name?: string;
+                  internalType?: string;
+                }[];
               }[];
+              outputs: {
+                type?: string;
+                name?: string;
+                stateMutability?: string;
+                components?: {
+                  type?: string;
+                  name?: string;
+                  internalType?: string;
+                }[];
+              }[];
+              comment?: string;
+              signature: string;
+              stateMutability: string;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5593,7 +5634,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5607,7 +5648,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5647,7 +5688,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -5655,7 +5696,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5669,7 +5710,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5683,7 +5724,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5719,7 +5760,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description The royalty fee in BPS (basis points). 100 = 1%. */
               seller_fee_basis_points: number;
@@ -5732,7 +5773,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5746,7 +5787,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5760,7 +5801,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5797,7 +5838,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description The royalty fee in BPS (basis points). 100 = 1%. */
               seller_fee_basis_points: number;
@@ -5810,7 +5851,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5824,7 +5865,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5838,7 +5879,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5863,11 +5904,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -5890,7 +5931,7 @@ export interface operations {
          *   "seller_fee_basis_points": 100
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The royalty fee in BPS (basis points). 100 = 1%. */
           seller_fee_basis_points: number;
           /** @description The wallet address that will receive the royalty fees. */
@@ -5902,7 +5943,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -5913,7 +5954,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5927,7 +5968,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5941,7 +5982,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -5966,11 +6007,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -5994,7 +6035,7 @@ export interface operations {
          *   "token_id": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The royalty fee in BPS (basis points). 100 = 1%. */
           seller_fee_basis_points: number;
           /** @description The wallet address that will receive the royalty fees. */
@@ -6008,7 +6049,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -6019,7 +6060,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6033,7 +6074,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6047,7 +6088,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6068,11 +6109,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6093,7 +6134,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6134,7 +6175,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6145,7 +6186,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6159,7 +6200,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6173,7 +6214,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6194,11 +6235,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6219,7 +6260,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6263,7 +6304,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6274,7 +6315,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6288,7 +6329,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6302,7 +6343,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6323,11 +6364,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6346,7 +6387,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6380,7 +6421,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6391,7 +6432,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6405,7 +6446,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6419,7 +6460,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6440,11 +6481,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6464,7 +6505,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6500,7 +6541,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6511,7 +6552,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6525,7 +6566,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6539,7 +6580,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6560,11 +6601,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6584,7 +6625,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6625,7 +6666,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6636,7 +6677,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6650,7 +6691,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6664,7 +6705,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6685,11 +6726,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6710,7 +6751,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6754,7 +6795,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6765,7 +6806,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6779,7 +6820,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6793,7 +6834,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6814,11 +6855,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6838,7 +6879,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -6878,7 +6919,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -6889,7 +6930,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6903,7 +6944,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6917,7 +6958,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -6938,11 +6979,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -6963,7 +7004,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -7007,7 +7048,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -7018,7 +7059,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7032,7 +7073,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7046,7 +7087,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7067,11 +7108,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -7100,7 +7141,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -7109,9 +7150,9 @@ export interface operations {
             app_uri?: string;
             defaultAdmin?: string;
             recipients: {
-                address: string;
-                sharesBps: number;
-              }[];
+              address: string;
+              sharesBps: number;
+            }[];
             /** @default [] */
             trusted_forwarders: string[];
           };
@@ -7134,7 +7175,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -7145,7 +7186,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7159,7 +7200,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7173,7 +7214,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7194,11 +7235,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -7219,7 +7260,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -7256,7 +7297,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -7267,7 +7308,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7281,7 +7322,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7295,7 +7336,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7316,11 +7357,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -7341,7 +7382,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -7381,7 +7422,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -7392,7 +7433,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7406,7 +7447,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7420,7 +7461,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7441,11 +7482,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -7464,7 +7505,7 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           contractMetadata: {
             name: string;
             description?: string;
@@ -7503,7 +7544,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -7514,7 +7555,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7528,7 +7569,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7542,7 +7583,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7563,11 +7604,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -7596,7 +7637,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Constructor arguments for the deployment. */
           constructorParams: unknown[];
           /** @description Version of the contract to deploy. Defaults to latest. */
@@ -7618,7 +7659,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             queueId?: string;
             /** @description Not all contracts return a deployed address. */
             deployedAddress?: string;
@@ -7629,7 +7670,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7643,7 +7684,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7657,7 +7698,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7679,7 +7720,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string[];
           };
         };
@@ -7687,7 +7728,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7701,7 +7742,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7715,7 +7756,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7742,8 +7783,125 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
+          'application/json': {
+            result: {
+              queueId: string | null;
+              chainId: string | null;
+              fromAddress: string | null;
+              toAddress: string | null;
+              data: string | null;
+              extension: string | null;
+              value: string | null;
+              nonce: number | null;
+              gasLimit: string | null;
+              gasPrice: string | null;
+              maxFeePerGas: string | null;
+              maxPriorityFeePerGas: string | null;
+              transactionType: number | null;
+              transactionHash: string | null;
+              queuedAt: string | null;
+              sentAt: string | null;
+              minedAt: string | null;
+              cancelledAt: string | null;
+              deployedContractAddress: string | null;
+              deployedContractType: string | null;
+              errorMessage: string | null;
+              sentAtBlockNumber: number | null;
+              blockNumber: number | null;
+              status: string | null;
+              /** @description The number of retry attempts */
+              retryCount: number;
+              retryGasValues: boolean | null;
+              retryMaxFeePerGas: string | null;
+              retryMaxPriorityFeePerGas: string | null;
+              signerAddress: string | null;
+              accountAddress: string | null;
+              target: string | null;
+              sender: string | null;
+              initCode: string | null;
+              callData: string | null;
+              callGasLimit: string | null;
+              verificationGasLimit: string | null;
+              preVerificationGas: string | null;
+              paymasterAndData: string | null;
+              userOpHash: string | null;
+              functionName: string | null;
+              functionArgs: string | null;
+              onChainTxStatus: number | null;
+            }[];
+          };
+        };
+      };
+      /** @description Bad Request */
+      400: {
+        content: {
+          'application/json': {
+            error?: {
+              message?: string;
+              reason?: string;
+              code?: string;
+              stack?: string;
+              statusCode?: number;
+            };
+          };
+        };
+      };
+      /** @description Not Found */
+      404: {
+        content: {
+          'application/json': {
+            error?: {
+              message?: string;
+              reason?: string;
+              code?: string;
+              stack?: string;
+              statusCode?: number;
+            };
+          };
+        };
+      };
+      /** @description Internal Server Error */
+      500: {
+        content: {
+          'application/json': {
+            error?: {
+              message?: string;
+              reason?: string;
+              code?: string;
+              stack?: string;
+              statusCode?: number;
+            };
+          };
+        };
+      };
+    };
+  };
+  /**
+   * Get all deployment transactions
+   * @description Get all transaction requests to deploy contracts.
+   */
+  getAllDeployedContracts: {
+    parameters: {
+      query: {
+        /**
+         * @description This parameter allows the user to specify the page number for pagination purposes
+         * @example 1
+         */
+        page: string;
+        /**
+         * @description This parameter defines the maximum number of transaction request data to return per page.
+         * @example 10
+         */
+        limit: string;
+      };
+    };
+    responses: {
+      /** @description Default Response */
+      200: {
+        content: {
+          'application/json': {
+            result: {
+              transactions: {
                 queueId: string | null;
                 chainId: string | null;
                 fromAddress: string | null;
@@ -7787,124 +7945,7 @@ export interface operations {
                 functionName: string | null;
                 functionArgs: string | null;
                 onChainTxStatus: number | null;
-              })[];
-          };
-        };
-      };
-      /** @description Bad Request */
-      400: {
-        content: {
-          "application/json": {
-            error?: {
-              message?: string;
-              reason?: string;
-              code?: string;
-              stack?: string;
-              statusCode?: number;
-            };
-          };
-        };
-      };
-      /** @description Not Found */
-      404: {
-        content: {
-          "application/json": {
-            error?: {
-              message?: string;
-              reason?: string;
-              code?: string;
-              stack?: string;
-              statusCode?: number;
-            };
-          };
-        };
-      };
-      /** @description Internal Server Error */
-      500: {
-        content: {
-          "application/json": {
-            error?: {
-              message?: string;
-              reason?: string;
-              code?: string;
-              stack?: string;
-              statusCode?: number;
-            };
-          };
-        };
-      };
-    };
-  };
-  /**
-   * Get all deployment transactions
-   * @description Get all transaction requests to deploy contracts.
-   */
-  getAllDeployedContracts: {
-    parameters: {
-      query: {
-        /**
-         * @description This parameter allows the user to specify the page number for pagination purposes
-         * @example 1
-         */
-        page: string;
-        /**
-         * @description This parameter defines the maximum number of transaction request data to return per page.
-         * @example 10
-         */
-        limit: string;
-      };
-    };
-    responses: {
-      /** @description Default Response */
-      200: {
-        content: {
-          "application/json": {
-            result: {
-              transactions: ({
-                  queueId: string | null;
-                  chainId: string | null;
-                  fromAddress: string | null;
-                  toAddress: string | null;
-                  data: string | null;
-                  extension: string | null;
-                  value: string | null;
-                  nonce: number | null;
-                  gasLimit: string | null;
-                  gasPrice: string | null;
-                  maxFeePerGas: string | null;
-                  maxPriorityFeePerGas: string | null;
-                  transactionType: number | null;
-                  transactionHash: string | null;
-                  queuedAt: string | null;
-                  sentAt: string | null;
-                  minedAt: string | null;
-                  cancelledAt: string | null;
-                  deployedContractAddress: string | null;
-                  deployedContractType: string | null;
-                  errorMessage: string | null;
-                  sentAtBlockNumber: number | null;
-                  blockNumber: number | null;
-                  status: string | null;
-                  /** @description The number of retry attempts */
-                  retryCount: number;
-                  retryGasValues: boolean | null;
-                  retryMaxFeePerGas: string | null;
-                  retryMaxPriorityFeePerGas: string | null;
-                  signerAddress: string | null;
-                  accountAddress: string | null;
-                  target: string | null;
-                  sender: string | null;
-                  initCode: string | null;
-                  callData: string | null;
-                  callGasLimit: string | null;
-                  verificationGasLimit: string | null;
-                  preVerificationGas: string | null;
-                  paymasterAndData: string | null;
-                  userOpHash: string | null;
-                  functionName: string | null;
-                  functionArgs: string | null;
-                  onChainTxStatus: number | null;
-                })[];
+              }[];
               totalCount: number;
             };
           };
@@ -7913,7 +7954,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7927,7 +7968,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7941,7 +7982,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7961,7 +8002,7 @@ export interface operations {
   retry: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Transaction queue ID */
           queueId: string;
           maxFeePerGas: string;
@@ -7973,7 +8014,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               message: string;
               status: string;
@@ -7984,7 +8025,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -7998,7 +8039,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8012,7 +8053,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8032,7 +8073,7 @@ export interface operations {
   syncRetry: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Transaction queue ID */
           queueId: string;
           maxFeePerGas?: string;
@@ -8044,7 +8085,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               transactionHash: string;
             };
@@ -8054,7 +8095,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8068,7 +8109,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8082,7 +8123,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8102,7 +8143,7 @@ export interface operations {
   cancel: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Transaction queue ID */
           queueId: string;
         };
@@ -8112,7 +8153,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Transaction queue ID */
               queueId: string;
@@ -8129,7 +8170,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8143,7 +8184,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8157,7 +8198,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8182,7 +8223,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           signedTransaction: string;
         };
       };
@@ -8191,7 +8232,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               transactionHash: string;
             };
@@ -8201,7 +8242,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8215,7 +8256,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8229,7 +8270,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8254,7 +8295,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           signedUserOp: unknown;
         };
       };
@@ -8263,21 +8304,23 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: {
-              userOpHash: string;
-            };
-          } | {
-            error: {
-              message: string;
-            };
-          };
+          'application/json':
+            | {
+                result: {
+                  userOpHash: string;
+                };
+              }
+            | {
+                error: {
+                  message: string;
+                };
+              };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8291,7 +8334,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8305,7 +8348,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8341,8 +8384,8 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
+          'application/json': {
+            result: {
               to?: string;
               from?: string;
               contractAddress?: string | null;
@@ -8360,14 +8403,14 @@ export interface operations {
               byzantium?: boolean;
               type?: number;
               status?: number;
-            }) | null;
+            } | null;
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8381,7 +8424,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8395,7 +8438,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8431,7 +8474,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: unknown;
           };
         };
@@ -8439,7 +8482,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8453,7 +8496,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8467,7 +8510,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8503,7 +8546,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description The account addresses of all the accounts in this factory */
             result: string[];
           };
@@ -8512,7 +8555,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8526,7 +8569,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8540,7 +8583,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8580,7 +8623,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description The account addresses of all the accounts with a specific signer in this factory */
             result: string[];
           };
@@ -8589,7 +8632,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8603,7 +8646,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8617,7 +8660,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8659,7 +8702,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description Whether or not the account has been deployed */
             result: boolean;
           };
@@ -8668,7 +8711,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8682,7 +8725,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8696,7 +8739,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8738,7 +8781,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description New account counter-factual address. */
             result: string;
           };
@@ -8747,7 +8790,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8761,7 +8804,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8775,7 +8818,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8800,11 +8843,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -8826,7 +8869,7 @@ export interface operations {
          *   "adminAddress": "0x3ecdbf3b911d0e9052b64850693888b008e18373"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The admin address to create an account for */
           adminAddress: string;
           /** @description Extra data to add to use in creating the account address */
@@ -8838,7 +8881,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               queueId?: string;
               deployedAddress?: string;
@@ -8849,7 +8892,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8863,7 +8906,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8877,7 +8920,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8913,7 +8956,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description The address of the admins on this account */
             result: string[];
           };
@@ -8922,7 +8965,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8936,7 +8979,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8950,7 +8993,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -8986,21 +9029,21 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
-                signerAddress: string;
-                startDate: string;
-                expirationDate: string;
-                nativeTokenLimitPerTransaction: string;
-                approvedCallTargets: string[];
-              }[];
+              signerAddress: string;
+              startDate: string;
+              expirationDate: string;
+              nativeTokenLimitPerTransaction: string;
+              approvedCallTargets: string[];
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9014,7 +9057,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9028,7 +9071,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9053,11 +9096,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9079,7 +9122,7 @@ export interface operations {
          *   "signerAddress": "0x3ecdbf3b911d0e9052b64850693888b008e18373"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address to grant admin permissions to */
           signerAddress: string;
         };
@@ -9089,7 +9132,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -9100,7 +9143,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9114,7 +9157,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9128,7 +9171,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9153,11 +9196,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9179,7 +9222,7 @@ export interface operations {
          *   "walletAddress": "0x3ecdbf3b911d0e9052b64850693888b008e18373"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address to revoke admin permissions from */
           walletAddress: string;
         };
@@ -9189,7 +9232,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -9200,7 +9243,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9214,7 +9257,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9228,7 +9271,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9253,11 +9296,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9285,7 +9328,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           signerAddress: string;
           startDate: string;
           expirationDate: string;
@@ -9298,7 +9341,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -9309,7 +9352,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9323,7 +9366,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9337,7 +9380,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9362,11 +9405,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9388,7 +9431,7 @@ export interface operations {
          *   "walletAddress": "0x3ecdbf3b911d0e9052b64850693888b008e18373"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address to revoke session from */
           walletAddress: string;
         };
@@ -9398,7 +9441,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -9409,7 +9452,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9423,7 +9466,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9437,7 +9480,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9462,11 +9505,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9491,7 +9534,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           signerAddress: string;
           approvedCallTargets: string[];
           startDate?: string;
@@ -9504,7 +9547,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -9515,7 +9558,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9529,7 +9572,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9543,7 +9586,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9591,7 +9634,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               name: string;
               symbol: string;
@@ -9607,7 +9650,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9621,7 +9664,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9635,7 +9678,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9683,7 +9726,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: string;
           };
         };
@@ -9691,7 +9734,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9705,7 +9748,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9719,7 +9762,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9762,7 +9805,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: string;
           };
         };
@@ -9770,7 +9813,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9784,7 +9827,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9798,7 +9841,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9819,11 +9862,11 @@ export interface operations {
     parameters: {
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -9852,21 +9895,23 @@ export interface operations {
          *   "mintEndTime": "2023-07-07T21:51:33.386Z"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The wallet address that can use this signature to mint tokens. This is to prevent another wallet from intercepting the signature and using it to mint tokens for themselves. */
           to: string;
           /** @description The number of tokens this signature can be used to mint. */
           quantity: string;
-          metadata: ({
-            name?: string | number | null;
-            description?: string | null;
-            image?: string | null;
-            external_url?: string | null;
-            animation_url?: string | null;
-            properties?: unknown;
-            attributes?: unknown;
-            background_color?: unknown;
-          }) | string;
+          metadata:
+            | {
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                background_color?: unknown;
+              }
+            | string;
           /** @description The address that will receive the royalty fees from secondary sales. Defaults to the royaltyRecipient address of the contract. */
           royaltyRecipient?: string;
           /** @description The percentage fee you want to charge for secondary sales. Defaults to the royaltyBps of the contract. */
@@ -9896,7 +9941,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               payload: {
                 uri: string;
@@ -9918,16 +9963,18 @@ export interface operations {
                  *       which means you can deterministically generate the uid to prevent specific exploits.
                  */
                 uid: string;
-                metadata: ({
-                  name?: string | number | null;
-                  description?: string | null;
-                  image?: string | null;
-                  external_url?: string | null;
-                  animation_url?: string | null;
-                  properties?: unknown;
-                  attributes?: unknown;
-                  background_color?: unknown;
-                }) | string;
+                metadata:
+                  | {
+                      name?: string | number | null;
+                      description?: string | null;
+                      image?: string | null;
+                      external_url?: string | null;
+                      animation_url?: string | null;
+                      properties?: unknown;
+                      attributes?: unknown;
+                      background_color?: unknown;
+                    }
+                  | string;
                 /** @description The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS */
                 currencyAddress: string;
                 /**
@@ -9948,7 +9995,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9962,7 +10009,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -9976,7 +10023,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10023,7 +10070,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: boolean;
           };
         };
@@ -10031,7 +10078,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10045,7 +10092,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10059,7 +10106,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10101,7 +10148,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               maxClaimableSupply?: string | number;
               /** Format: date-time */
@@ -10124,12 +10171,15 @@ export interface operations {
               metadata?: {
                 name?: string;
               };
-              snapshot?: null | string[] | (({
-                  price?: string | number;
-                  currencyAddress?: string;
-                  address: string;
-                  maxClaimable?: string | number;
-                })[]);
+              snapshot?:
+                | null
+                | string[]
+                | {
+                    price?: string | number;
+                    currencyAddress?: string;
+                    address: string;
+                    maxClaimable?: string | number;
+                  }[];
             };
           };
         };
@@ -10137,7 +10187,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10151,7 +10201,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10165,7 +10215,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10207,43 +10257,46 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
-                maxClaimableSupply?: string | number;
-                /** Format: date-time */
-                startTime: string;
-                price?: number | string;
-                currencyAddress?: string;
-                maxClaimablePerWallet?: number | string;
-                waitInSeconds?: number | string;
-                merkleRootHash: string | number[];
-                availableSupply: string;
-                currentMintSupply: string;
-                /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
-                currencyMetadata: {
-                  name: string;
-                  symbol: string;
-                  decimals: number;
-                  value: string;
-                  displayValue: string;
-                };
-                metadata?: {
-                  name?: string;
-                };
-                snapshot?: null | string[] | (({
+          'application/json': {
+            result: {
+              maxClaimableSupply?: string | number;
+              /** Format: date-time */
+              startTime: string;
+              price?: number | string;
+              currencyAddress?: string;
+              maxClaimablePerWallet?: number | string;
+              waitInSeconds?: number | string;
+              merkleRootHash: string | number[];
+              availableSupply: string;
+              currentMintSupply: string;
+              /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
+              currencyMetadata: {
+                name: string;
+                symbol: string;
+                decimals: number;
+                value: string;
+                displayValue: string;
+              };
+              metadata?: {
+                name?: string;
+              };
+              snapshot?:
+                | null
+                | string[]
+                | {
                     price?: string | number;
                     currencyAddress?: string;
                     address: string;
                     maxClaimable?: string | number;
-                  })[]);
-              })[];
+                  }[];
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10257,7 +10310,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10271,7 +10324,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10316,15 +10369,31 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: (string | ("There is not enough supply to claim." | "This address is not on the allowlist." | "Not enough time since last claim transaction. Please wait." | "Claim phase has not started yet." | "You have already claimed the token." | "Incorrect price or currency." | "Cannot claim more than maximum allowed quantity." | "There are not enough tokens in the wallet to pay for the claim." | "There is no active claim phase at the moment. Please check back in later." | "There is no claim condition set." | "No wallet connected." | "No claim conditions found."))[];
+          'application/json': {
+            result: (
+              | string
+              | (
+                  | 'There is not enough supply to claim.'
+                  | 'This address is not on the allowlist.'
+                  | 'Not enough time since last claim transaction. Please wait.'
+                  | 'Claim phase has not started yet.'
+                  | 'You have already claimed the token.'
+                  | 'Incorrect price or currency.'
+                  | 'Cannot claim more than maximum allowed quantity.'
+                  | 'There are not enough tokens in the wallet to pay for the claim.'
+                  | 'There is no active claim phase at the moment. Please check back in later.'
+                  | 'There is no claim condition set.'
+                  | 'No wallet connected.'
+                  | 'No claim conditions found.'
+                )
+            )[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10338,7 +10407,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10352,7 +10421,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10392,7 +10461,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: null | {
               price?: string;
               currencyAddress?: string;
@@ -10406,7 +10475,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10420,7 +10489,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10434,7 +10503,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10459,11 +10528,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -10486,7 +10555,7 @@ export interface operations {
          *   "amount": "100"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to allow transfers from */
           spenderAddress: string;
           /** @description The number of tokens to give as allowance */
@@ -10508,7 +10577,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -10519,7 +10588,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10533,7 +10602,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10547,7 +10616,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10572,11 +10641,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -10601,7 +10670,7 @@ export interface operations {
          *   "amount": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the token owner */
           from: string;
           /** @description Address of the wallet to transferFrom to */
@@ -10627,7 +10696,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -10638,7 +10707,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10652,7 +10721,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10666,7 +10735,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10691,11 +10760,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -10718,7 +10787,7 @@ export interface operations {
          *   "amount": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The token ID to burn */
           tokenId: string;
           /** @description The amount of tokens to burn */
@@ -10740,7 +10809,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -10751,7 +10820,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10765,7 +10834,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10779,7 +10848,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10804,11 +10873,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -10831,7 +10900,7 @@ export interface operations {
          *   "amount": "0.1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet sending the tokens */
           holderAddress: string;
           /** @description The amount of this token you want to burn */
@@ -10853,7 +10922,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -10864,7 +10933,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10878,7 +10947,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10892,7 +10961,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10917,11 +10986,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -10945,7 +11014,7 @@ export interface operations {
          *   "quantity": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to claim the NFT to */
           receiver: string;
           /** @description Token ID of the NFT to claim */
@@ -10969,7 +11038,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -10980,7 +11049,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -10994,7 +11063,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11008,7 +11077,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11033,11 +11102,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -11077,22 +11146,24 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to mint the NFT to */
           receiver: string;
-          metadataWithSupply: ({
-              metadata: ({
-                name?: string | number | null;
-                description?: string | null;
-                image?: string | null;
-                external_url?: string | null;
-                animation_url?: string | null;
-                properties?: unknown;
-                attributes?: unknown;
-                background_color?: unknown;
-              }) | string;
-              supply: string;
-            })[];
+          metadataWithSupply: {
+            metadata:
+              | {
+                  name?: string | number | null;
+                  description?: string | null;
+                  image?: string | null;
+                  external_url?: string | null;
+                  animation_url?: string | null;
+                  properties?: unknown;
+                  attributes?: unknown;
+                  background_color?: unknown;
+                }
+              | string;
+            supply: string;
+          }[];
           txOverrides?: {
             /** @description Amount of native currency to send */
             value?: string;
@@ -11110,7 +11181,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -11121,7 +11192,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11135,7 +11206,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11149,7 +11220,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11174,11 +11245,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -11208,20 +11279,22 @@ export interface operations {
          *   }
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to mint the NFT to */
           receiver: string;
           metadataWithSupply: {
-            metadata: ({
-              name?: string | number | null;
-              description?: string | null;
-              image?: string | null;
-              external_url?: string | null;
-              animation_url?: string | null;
-              properties?: unknown;
-              attributes?: unknown;
-              background_color?: unknown;
-            }) | string;
+            metadata:
+              | {
+                  name?: string | number | null;
+                  description?: string | null;
+                  image?: string | null;
+                  external_url?: string | null;
+                  animation_url?: string | null;
+                  properties?: unknown;
+                  attributes?: unknown;
+                  background_color?: unknown;
+                }
+              | string;
             supply: string;
           };
           txOverrides?: {
@@ -11241,7 +11314,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -11252,7 +11325,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11266,7 +11339,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11280,7 +11353,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11305,11 +11378,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -11332,7 +11405,7 @@ export interface operations {
          *   "signature": ""
          * }
          */
-        "application/json": {
+        'application/json': {
           payload: {
             uri: string;
             tokenId: string;
@@ -11353,16 +11426,18 @@ export interface operations {
              *       which means you can deterministically generate the uid to prevent specific exploits.
              */
             uid: string;
-            metadata: ({
-              name?: string | number | null;
-              description?: string | null;
-              image?: string | null;
-              external_url?: string | null;
-              animation_url?: string | null;
-              properties?: unknown;
-              attributes?: unknown;
-              background_color?: unknown;
-            }) | string;
+            metadata:
+              | {
+                  name?: string | number | null;
+                  description?: string | null;
+                  image?: string | null;
+                  external_url?: string | null;
+                  animation_url?: string | null;
+                  properties?: unknown;
+                  attributes?: unknown;
+                  background_color?: unknown;
+                }
+              | string;
             /** @description The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS */
             currencyAddress: string;
             /**
@@ -11393,7 +11468,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -11404,7 +11479,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11418,7 +11493,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11432,7 +11507,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11457,11 +11532,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -11478,27 +11553,30 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description ID of the token to set the claim conditions for */
           tokenId: string | number;
-          claimConditionInputs: ({
-              maxClaimableSupply?: string | number;
-              startTime?: string | number;
-              price?: number | string;
-              currencyAddress?: string;
-              maxClaimablePerWallet?: number | string;
-              waitInSeconds?: number | string;
-              merkleRootHash?: string | number[];
-              metadata?: {
-                name?: string;
-              };
-              snapshot?: string[] | (({
+          claimConditionInputs: {
+            maxClaimableSupply?: string | number;
+            startTime?: string | number;
+            price?: number | string;
+            currencyAddress?: string;
+            maxClaimablePerWallet?: number | string;
+            waitInSeconds?: number | string;
+            merkleRootHash?: string | number[];
+            metadata?: {
+              name?: string;
+            };
+            snapshot?:
+              | string[]
+              | {
                   price?: string | number;
                   currencyAddress?: string;
                   address: string;
                   maxClaimable?: string | number;
-                })[]) | null;
-            })[];
+                }[]
+              | null;
+          }[];
           resetClaimEligibilityForAll?: boolean;
         };
       };
@@ -11507,7 +11585,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -11518,7 +11596,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11532,7 +11610,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11546,7 +11624,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11571,11 +11649,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -11592,7 +11670,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Token ID to update claim phase for */
           tokenId: string | number;
           claimConditionInput: {
@@ -11606,12 +11684,15 @@ export interface operations {
             metadata?: {
               name?: string;
             };
-            snapshot?: string[] | (({
-                price?: string | number;
-                currencyAddress?: string;
-                address: string;
-                maxClaimable?: string | number;
-              })[]) | null;
+            snapshot?:
+              | string[]
+              | {
+                  price?: string | number;
+                  currencyAddress?: string;
+                  address: string;
+                  maxClaimable?: string | number;
+                }[]
+              | null;
           };
           /** @description Index of the claim condition to update */
           index: number;
@@ -11622,7 +11703,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -11633,7 +11714,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11647,7 +11728,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11661,7 +11742,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11704,32 +11785,32 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
-                metadata: {
-                  id: string;
-                  uri: string;
-                  name?: string | number | null;
-                  description?: string | null;
-                  image?: string | null;
-                  external_url?: string | null;
-                  animation_url?: string | null;
-                  properties?: unknown;
-                  attributes?: unknown;
-                  [key: string]: unknown;
-                };
-                owner: string;
-                type: "ERC1155" | "ERC721" | "metaplex";
-                supply: string;
-                quantityOwned?: string;
-              })[];
+          'application/json': {
+            result: {
+              metadata: {
+                id: string;
+                uri: string;
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                [key: string]: unknown;
+              };
+              owner: string;
+              type: 'ERC1155' | 'ERC721' | 'metaplex';
+              supply: string;
+              quantityOwned?: string;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11743,7 +11824,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11757,7 +11838,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11805,7 +11886,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: boolean;
           };
         };
@@ -11813,7 +11894,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11827,7 +11908,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11841,7 +11922,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11877,7 +11958,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: string;
           };
         };
@@ -11885,7 +11966,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11899,7 +11980,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11913,7 +11994,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11949,7 +12030,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: string;
           };
         };
@@ -11957,7 +12038,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11971,7 +12052,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -11985,7 +12066,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12021,7 +12102,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: string;
           };
         };
@@ -12029,7 +12110,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12043,7 +12124,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12057,7 +12138,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12104,15 +12185,31 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: (string | ("There is not enough supply to claim." | "This address is not on the allowlist." | "Not enough time since last claim transaction. Please wait." | "Claim phase has not started yet." | "You have already claimed the token." | "Incorrect price or currency." | "Cannot claim more than maximum allowed quantity." | "There are not enough tokens in the wallet to pay for the claim." | "There is no active claim phase at the moment. Please check back in later." | "There is no claim condition set." | "No wallet connected." | "No claim conditions found."))[];
+          'application/json': {
+            result: (
+              | string
+              | (
+                  | 'There is not enough supply to claim.'
+                  | 'This address is not on the allowlist.'
+                  | 'Not enough time since last claim transaction. Please wait.'
+                  | 'Claim phase has not started yet.'
+                  | 'You have already claimed the token.'
+                  | 'Incorrect price or currency.'
+                  | 'Cannot claim more than maximum allowed quantity.'
+                  | 'There are not enough tokens in the wallet to pay for the claim.'
+                  | 'There is no active claim phase at the moment. Please check back in later.'
+                  | 'There is no claim condition set.'
+                  | 'No wallet connected.'
+                  | 'No claim conditions found.'
+                )
+            )[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12126,7 +12223,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12140,7 +12237,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12182,7 +12279,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: null | {
               price?: string;
               currencyAddress?: string;
@@ -12196,7 +12293,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12210,7 +12307,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12224,7 +12321,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12249,11 +12346,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -12276,7 +12373,7 @@ export interface operations {
          *   "approved": "true"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the operator to give approval to */
           operator: string;
           /** @description whether to approve or revoke approval */
@@ -12298,7 +12395,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -12309,7 +12406,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12323,7 +12420,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12337,7 +12434,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12362,11 +12459,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -12389,7 +12486,7 @@ export interface operations {
          *   "tokenId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the operator to give approval to */
           operator: string;
           /** @description the tokenId to give approval for */
@@ -12411,7 +12508,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -12422,7 +12519,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12436,7 +12533,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12450,7 +12547,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12475,11 +12572,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -12512,17 +12609,20 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
-          metadatas: (({
-              name?: string | number | null;
-              description?: string | null;
-              image?: string | null;
-              external_url?: string | null;
-              animation_url?: string | null;
-              properties?: unknown;
-              attributes?: unknown;
-              background_color?: unknown;
-            }) | string)[];
+        'application/json': {
+          metadatas: (
+            | {
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                background_color?: unknown;
+              }
+            | string
+          )[];
           txOverrides?: {
             /** @description Amount of native currency to send */
             value?: string;
@@ -12540,7 +12640,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -12551,7 +12651,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12565,7 +12665,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12579,7 +12679,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12625,7 +12725,7 @@ export interface operations {
          *   "mintEndTime": "2023-07-07T21:51:33.386Z"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The wallet address that can use this signature to mint tokens. This is to prevent another wallet from intercepting the signature and using it to mint tokens for themselves. */
           to: string;
           /** @description The address that will receive the royalty fees from secondary sales. Defaults to the royaltyRecipient address of the contract. */
@@ -12636,16 +12736,18 @@ export interface operations {
           royaltyBps?: number;
           /** @description If a price is specified, the funds will be sent to the primarySaleRecipient address. Defaults to the primarySaleRecipient address of the contract. */
           primarySaleRecipient?: string;
-          metadata: ({
-            name?: string | number | null;
-            description?: string | null;
-            image?: string | null;
-            external_url?: string | null;
-            animation_url?: string | null;
-            properties?: unknown;
-            attributes?: unknown;
-            background_color?: unknown;
-          }) | string;
+          metadata:
+            | {
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                background_color?: unknown;
+              }
+            | string;
           /** @description The address of the currency to pay for minting the tokens (use the price field to specify the price). Defaults to NATIVE_TOKEN_ADDRESS */
           currencyAddress?: string;
           /**
@@ -12662,7 +12764,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               mintPayload: unknown;
               typedDataPayload: {
@@ -12683,7 +12785,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12697,7 +12799,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12711,7 +12813,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12736,11 +12838,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -12757,7 +12859,7 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description Token ID to update metadata */
           tokenId: string;
           metadata: {
@@ -12777,7 +12879,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -12788,7 +12890,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12802,7 +12904,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12816,7 +12918,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12841,11 +12943,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -12877,15 +12979,15 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Token ID of the NFT to airdrop */
           tokenId: string;
           /** @description Addresses and quantities to airdrop to */
           addresses: {
-              address: string;
-              /** @default 1 */
-              quantity: string;
-            }[];
+            address: string;
+            /** @default 1 */
+            quantity: string;
+          }[];
           txOverrides?: {
             /** @description Amount of native currency to send */
             value?: string;
@@ -12903,7 +13005,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -12914,7 +13016,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12928,7 +13030,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12942,7 +13044,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -12967,11 +13069,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -13000,7 +13102,7 @@ export interface operations {
          *   ]
          * }
          */
-        "application/json": {
+        'application/json': {
           tokenIds: string[];
           amounts: string[];
           txOverrides?: {
@@ -13020,7 +13122,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -13031,7 +13133,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13045,7 +13147,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13059,7 +13161,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13084,11 +13186,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -13112,7 +13214,7 @@ export interface operations {
          *   "additionalSupply": "10"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description Address of the wallet to mint the NFT to */
           receiver: string;
           /** @description Token ID to mint additional supply to */
@@ -13136,7 +13238,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -13147,7 +13249,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13161,7 +13263,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13175,7 +13277,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13200,11 +13302,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -13221,29 +13323,32 @@ export interface operations {
     };
     requestBody: {
       content: {
-        "application/json": {
-          claimConditionsForToken: ({
-              /** @description ID of the token to set the claim conditions for */
-              tokenId: string | number;
-              claimConditions: ({
-                  maxClaimableSupply?: string | number;
-                  startTime?: string | number;
-                  price?: number | string;
-                  currencyAddress?: string;
-                  maxClaimablePerWallet?: number | string;
-                  waitInSeconds?: number | string;
-                  merkleRootHash?: string | number[];
-                  metadata?: {
-                    name?: string;
-                  };
-                  snapshot?: string[] | (({
-                      price?: string | number;
-                      currencyAddress?: string;
-                      address: string;
-                      maxClaimable?: string | number;
-                    })[]) | null;
-                })[];
-            })[];
+        'application/json': {
+          claimConditionsForToken: {
+            /** @description ID of the token to set the claim conditions for */
+            tokenId: string | number;
+            claimConditions: {
+              maxClaimableSupply?: string | number;
+              startTime?: string | number;
+              price?: number | string;
+              currencyAddress?: string;
+              maxClaimablePerWallet?: number | string;
+              waitInSeconds?: number | string;
+              merkleRootHash?: string | number[];
+              metadata?: {
+                name?: string;
+              };
+              snapshot?:
+                | string[]
+                | {
+                    price?: string | number;
+                    currencyAddress?: string;
+                    address: string;
+                    maxClaimable?: string | number;
+                  }[]
+                | null;
+            }[];
+          }[];
           resetClaimEligibilityForAll?: boolean;
         };
       };
@@ -13252,7 +13357,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -13263,7 +13368,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13277,7 +13382,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13291,7 +13396,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13339,53 +13444,53 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
-                /** @description The address of the asset being listed. */
-                assetContractAddress: string;
-                /** @description The ID of the token to list. */
-                tokenId: string;
-                /** @description The address of the currency to accept for the listing. */
-                currencyContractAddress?: string;
-                /** @description The quantity of tokens to include in the listing. NOTE: For ERC721s, this value should always be 1 (and will be forced internally regardless of what is passed here). */
-                quantity?: string;
-                /** @description The id of the offer. */
+          'application/json': {
+            result: {
+              /** @description The address of the asset being listed. */
+              assetContractAddress: string;
+              /** @description The ID of the token to list. */
+              tokenId: string;
+              /** @description The address of the currency to accept for the listing. */
+              currencyContractAddress?: string;
+              /** @description The quantity of tokens to include in the listing. NOTE: For ERC721s, this value should always be 1 (and will be forced internally regardless of what is passed here). */
+              quantity?: string;
+              /** @description The id of the offer. */
+              id: string;
+              /** @description The address of the creator of offer. */
+              offerorAddress: string;
+              /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
+              currencyValue?: {
+                name: string;
+                symbol: string;
+                decimals: number;
+                value: string;
+                displayValue: string;
+              };
+              /** @description The total offer amount for the NFTs. */
+              totalPrice: string;
+              asset?: {
                 id: string;
-                /** @description The address of the creator of offer. */
-                offerorAddress: string;
-                /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
-                currencyValue?: {
-                  name: string;
-                  symbol: string;
-                  decimals: number;
-                  value: string;
-                  displayValue: string;
-                };
-                /** @description The total offer amount for the NFTs. */
-                totalPrice: string;
-                asset?: {
-                  id: string;
-                  uri: string;
-                  name?: string | number | null;
-                  description?: string | null;
-                  image?: string | null;
-                  external_url?: string | null;
-                  animation_url?: string | null;
-                  properties?: unknown;
-                  attributes?: unknown;
-                  [key: string]: unknown;
-                };
-                /** @description The end time of the auction. */
-                endTimeInSeconds?: number;
-                status?: 0 | 1 | 2 | 3 | 4 | 5;
-              })[];
+                uri: string;
+                name?: string | number | null;
+                description?: string | null;
+                image?: string | null;
+                external_url?: string | null;
+                animation_url?: string | null;
+                properties?: unknown;
+                attributes?: unknown;
+                [key: string]: unknown;
+              };
+              /** @description The end time of the auction. */
+              endTimeInSeconds?: number;
+              status?: 0 | 1 | 2 | 3 | 4 | 5;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13399,7 +13504,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13413,7 +13518,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13453,7 +13558,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description The address of the asset being listed. */
               assetContractAddress: string;
@@ -13501,7 +13606,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13515,7 +13620,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13529,7 +13634,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13571,7 +13676,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: boolean;
           };
         };
@@ -13579,7 +13684,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13593,7 +13698,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13607,7 +13712,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13649,7 +13754,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: boolean;
           };
         };
@@ -13657,7 +13762,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13671,7 +13776,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13685,7 +13790,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13721,7 +13826,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string;
           };
         };
@@ -13729,7 +13834,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13743,7 +13848,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13757,7 +13862,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13797,7 +13902,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description The address of the asset being listed. */
               assetContractAddress: string;
@@ -13849,7 +13954,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13863,7 +13968,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13877,7 +13982,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13920,7 +14025,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description Returns a number representing the basis points of the bid buffer. */
             result: number;
           };
@@ -13929,7 +14034,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13943,7 +14048,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13957,7 +14062,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -13999,7 +14104,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             /** @description The `CurrencyValue` of the listing. Useful for displaying the price information. */
             result: {
               name: string;
@@ -14014,7 +14119,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14028,7 +14133,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14042,7 +14147,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14082,7 +14187,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result?: {
               /** @description The id of the auction. */
               auctionId?: string;
@@ -14107,7 +14212,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14121,7 +14226,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14135,7 +14240,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14177,7 +14282,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: boolean;
           };
         };
@@ -14185,7 +14290,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14199,7 +14304,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14213,7 +14318,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14253,7 +14358,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: string;
           };
         };
@@ -14261,7 +14366,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14275,7 +14380,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14289,7 +14394,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14329,7 +14434,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description The address of the asset being listed. */
               assetContractAddress: string;
@@ -14375,7 +14480,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14389,7 +14494,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14403,7 +14508,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14428,11 +14533,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -14460,7 +14565,7 @@ export interface operations {
          *   "endTimestamp": 1686610889058
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The address of the asset being listed. */
           assetContractAddress: string;
           /** @description The ID of the token to list. */
@@ -14484,7 +14589,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -14495,7 +14600,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14509,7 +14614,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14523,7 +14628,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14548,11 +14653,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -14574,7 +14679,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to update. */
           listingId: string;
         } & {
@@ -14601,7 +14706,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -14612,7 +14717,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14626,7 +14731,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14640,7 +14745,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14665,11 +14770,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -14693,7 +14798,7 @@ export interface operations {
          *   "buyer": "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to approve a buyer for. */
           listingId: string;
           /** @description The number of tokens to buy (default is 1 for ERC721 NFTs). */
@@ -14707,7 +14812,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -14718,7 +14823,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14732,7 +14837,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14746,7 +14851,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14771,11 +14876,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -14798,7 +14903,7 @@ export interface operations {
          *   "buyer": "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to approve a buyer for. */
           listingId: string;
           /** @description The wallet address of the buyer to approve. */
@@ -14810,7 +14915,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -14821,7 +14926,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14835,7 +14940,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14849,7 +14954,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14874,11 +14979,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -14901,7 +15006,7 @@ export interface operations {
          *   "buyerAddress": "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to approve a buyer for. */
           listingId: string;
           /** @description The wallet address of the buyer to approve. */
@@ -14913,7 +15018,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -14924,7 +15029,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14938,7 +15043,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14952,7 +15057,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -14977,11 +15082,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -15004,7 +15109,7 @@ export interface operations {
          *   "currencyContractAddress": "0x19411143085F1ec7D21a7cc07000CBA5188C5e8e"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to approve a buyer for. */
           listingId: string;
           /** @description The wallet address of the buyer to approve. */
@@ -15016,7 +15121,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15027,7 +15132,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15041,7 +15146,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15055,7 +15160,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15080,11 +15185,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -15106,7 +15211,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing you want to cancel. */
           listingId: string;
         };
@@ -15116,7 +15221,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15127,7 +15232,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15141,7 +15246,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15155,7 +15260,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15198,7 +15303,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to buy NFT(s) from. */
           listingId: string;
         };
@@ -15208,7 +15313,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15219,7 +15324,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15233,7 +15338,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15247,7 +15352,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15290,7 +15395,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to cancel auction. */
           listingId: string;
         };
@@ -15300,7 +15405,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15311,7 +15416,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15325,7 +15430,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15339,7 +15444,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15391,7 +15496,7 @@ export interface operations {
          *   "timeBufferInSeconds": 600
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The address of the asset being listed. */
           assetContractAddress: string;
           /** @description The ID of the token to list. */
@@ -15419,7 +15524,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15430,7 +15535,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15444,7 +15549,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15458,7 +15563,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15504,7 +15609,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to execute the sale for. */
           listingId: string;
         };
@@ -15514,7 +15619,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15525,7 +15630,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15539,7 +15644,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15553,7 +15658,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15598,7 +15703,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to execute the sale for. */
           listingId: string;
         };
@@ -15608,7 +15713,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15619,7 +15724,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15633,7 +15738,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15647,7 +15752,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15692,7 +15797,7 @@ export interface operations {
          *   "listingId": "0"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to execute the sale for. */
           listingId: string;
         };
@@ -15702,7 +15807,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15713,7 +15818,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15727,7 +15832,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15741,7 +15846,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15785,7 +15890,7 @@ export interface operations {
          *   "bidAmount": "0.00000001"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the listing to place a bid on. */
           listingId: string;
           /** @description The amount of the bid to place in the currency of the listing. Use getNextBidAmount to get the minimum amount for the next bid. */
@@ -15797,7 +15902,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15808,7 +15913,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15822,7 +15927,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15836,7 +15941,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15861,11 +15966,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -15892,7 +15997,7 @@ export interface operations {
          *   "totalPrice": "0.00000001"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The address of the asset being listed. */
           assetContractAddress: string;
           /** @description The ID of the token to list. */
@@ -15912,7 +16017,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -15923,7 +16028,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15937,7 +16042,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15951,7 +16056,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -15976,11 +16081,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -16002,7 +16107,7 @@ export interface operations {
          *   "offerId": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the offer to cancel. You can view all offers with getAll or getAllValid. */
           offerId: string;
         };
@@ -16012,7 +16117,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -16023,7 +16128,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16037,7 +16142,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16051,7 +16156,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16076,11 +16181,11 @@ export interface operations {
       };
       header: {
         /** @description Backend wallet address */
-        "x-backend-wallet-address": string;
+        'x-backend-wallet-address': string;
         /** @description Smart account address */
-        "x-account-address"?: string;
+        'x-account-address'?: string;
         /** @description A string that uniquely identifies this transaction. Submitting the same idempotency key will not enqueue a new transaction for 24 hours. */
-        "x-idempotency-key"?: string;
+        'x-idempotency-key'?: string;
       };
       path: {
         /**
@@ -16102,7 +16207,7 @@ export interface operations {
          *   "offerId": "1"
          * }
          */
-        "application/json": {
+        'application/json': {
           /** @description The ID of the offer to accept. You can view all offers with getAll or getAllValid. */
           offerId: string;
         };
@@ -16112,7 +16217,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               /** @description Queue ID */
               queueId: string;
@@ -16123,7 +16228,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16137,7 +16242,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16151,7 +16256,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16173,30 +16278,30 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
-            result: ({
-                id: string;
-                chainId: number;
-                contractAddress: string;
-                webhook?: {
-                  url: string;
-                  name: string | null;
-                  secret?: string;
-                  eventType: string;
-                  active: boolean;
-                  createdAt: string;
-                  id: number;
-                };
-                /** Format: date */
+          'application/json': {
+            result: {
+              id: string;
+              chainId: number;
+              contractAddress: string;
+              webhook?: {
+                url: string;
+                name: string | null;
+                secret?: string;
+                eventType: string;
+                active: boolean;
                 createdAt: string;
-              })[];
+                id: number;
+              };
+              /** Format: date */
+              createdAt: string;
+            }[];
           };
         };
       };
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16210,7 +16315,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16224,7 +16329,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16244,7 +16349,7 @@ export interface operations {
   addContractSubscription: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The chain for the contract. */
           chain: string;
           /** @description The address for the contract. */
@@ -16258,7 +16363,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               id: string;
               chainId: number;
@@ -16281,7 +16386,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16295,7 +16400,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16309,7 +16414,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16329,7 +16434,7 @@ export interface operations {
   removeContractSubscription: {
     requestBody: {
       content: {
-        "application/json": {
+        'application/json': {
           /** @description The ID for an existing contract subscription. */
           contractSubscriptionId: string;
         };
@@ -16339,7 +16444,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               status: string;
             };
@@ -16349,7 +16454,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16363,7 +16468,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16377,7 +16482,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16413,7 +16518,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               chain: string;
               contractAddress: string;
@@ -16427,7 +16532,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16441,7 +16546,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16455,7 +16560,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16483,7 +16588,7 @@ export interface operations {
       /** @description Default Response */
       200: {
         content: {
-          "application/json": {
+          'application/json': {
             result: {
               lastBlock: number;
               status: string;
@@ -16494,7 +16599,7 @@ export interface operations {
       /** @description Bad Request */
       400: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16508,7 +16613,7 @@ export interface operations {
       /** @description Not Found */
       404: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
@@ -16522,7 +16627,7 @@ export interface operations {
       /** @description Internal Server Error */
       500: {
         content: {
-          "application/json": {
+          'application/json': {
             error?: {
               message?: string;
               reason?: string;
