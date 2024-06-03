@@ -1,14 +1,4 @@
-import { Button, Frog, TextInput } from 'frog';
-import { devtools } from 'frog/dev';
-import { serveStatic } from 'frog/serve-static';
-// import { neynar } from 'frog/hubs'
-import { handle } from 'frog/vercel';
-import { drawApp } from './draw.js';
-
-// Uncomment to use Edge Runtime.
-// export const config = {
-//   runtime: 'edge',
-// }
+import { Button, Frog } from 'frog';
 
 export const warApp = new Frog();
 
@@ -49,6 +39,7 @@ warApp.frame('/', (c) => {
         </div>
       </div>
     ),
+    imageAspectRatio: '1:1',
     intents: [<Button action="/test">draw</Button>],
   });
 });
@@ -90,6 +81,7 @@ warApp.frame('/test', (c) => {
         </div>
       </div>
     ),
+    imageAspectRatio: '1:1',
     intents: [],
   });
 });

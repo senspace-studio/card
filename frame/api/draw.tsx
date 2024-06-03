@@ -59,7 +59,7 @@ drawApp.frame('/input', (c) => {
           {`${numOfMint}`} cards
         </Button.Transaction>
       ) : (
-        <Button action="/card/draw">Custom</Button>
+        <Button action="/input">Custom</Button>
       ),
     ],
   });
@@ -108,7 +108,7 @@ drawApp.frame('/score', async (c) => {
 
       return c.res({
         image:
-          '/api/draw/image/score/' +
+          '/draw/image/score/' +
           encodeURIComponent(JSON.stringify(spinEvent.args)),
         imageAspectRatio: '1:1',
         intents: [
@@ -116,7 +116,7 @@ drawApp.frame('/score', async (c) => {
           <Button action={`/card/${getNextCard(ids, quantities, 15)}`}>
             Next
           </Button>,
-          <Button action="/">War ⚔</Button>,
+          <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
         ],
       });
     }
@@ -145,7 +145,7 @@ drawApp.frame('/card/:id', (c) => {
       ) : (
         <Button action={`/`}>Top</Button>
       ),
-      <Button.Link href="https://google.com">Share</Button.Link>,
+      <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
     ],
   });
 });
@@ -221,8 +221,7 @@ drawApp.hono.get('/image/score/:event', async (c) => {
         .toBuffer();
       return {
         input,
-        left:
-          158 + index * (index > 9 ? 55 : 53) - quantity.toString().length * 2,
+        left: (index > 8 ? 113 : 158) + index * (index > 8 ? 59 : 52),
         top: 916,
       };
     }),
