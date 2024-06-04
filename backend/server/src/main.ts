@@ -12,7 +12,9 @@ const numCPUs = os.cpus().length > 8 ? 8 : os.cpus().length;
 const logger = new Logger(cluster.isPrimary ? 'Primary' : 'Worker');
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    rawBody: true,
+  });
   app.enableCors({
     origin: '*',
   });

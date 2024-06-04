@@ -40,10 +40,19 @@ export class WarService {
     return signature;
   }
 
-  async onGameCreated(gameId: string, signature: string) {
+  async onGameMade(gameId: string, signature: string) {
     const game = await this.getWarGameBySignature(signature);
     if (!game) {
-      throw new Error('game not found');
+      // ToDo: Dev環境じゃなくなったらコメントアウト
+      await this.createNewGame(
+        '0xD0575cA24D907b35d39383a53c3300D510446BaE',
+        3n,
+        0n,
+      );
+      game.game_id = gameId;
+      await this.warRepositry.save(game);
+      return;
+      // throw new Error('game not found');
     }
     game.game_id = gameId;
     await this.warRepositry.save(game);
@@ -52,14 +61,14 @@ export class WarService {
   async onGameChallenged(
     gameId: string,
     challenger: string,
-    challengerTokenId: bigint,
+    // challengerTokenId: bigint,
   ) {
     const game = await this.getWarGameByGameId(gameId);
     if (!game) {
       throw new Error('game not found');
     }
     game.challenger = challenger;
-    game.challenger_token_id = challengerTokenId.toString();
+    // game.challenger_token_id = challengerTokenId.toString();
     await this.warRepositry.save(game);
   }
 

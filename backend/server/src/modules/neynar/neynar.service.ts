@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NeynarAPIClient, ReactionsType } from '@neynar/nodejs-sdk';
-import { NEYNER_API_KEY } from 'src/utils/env';
+import { NEYNER_API_KEY, FARCASTER_SIGNER_UUID } from 'src/utils/env';
 
 @Injectable()
 export class NeynarService {
@@ -36,9 +36,9 @@ export class NeynarService {
     return false;
   }
 
-  async publishCast(sender: string, message: string) {
+  async publishCast(text: string) {
     this.logger.log(this.publishCast.name);
     // ToDo: メッセージを送る
-    // this.client.publishCast();
+    return await this.client.publishCast(FARCASTER_SIGNER_UUID, text);
   }
 }
