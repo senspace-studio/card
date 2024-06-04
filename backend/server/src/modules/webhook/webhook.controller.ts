@@ -1,6 +1,11 @@
-import { Body, Controller, Get, Headers, Post, Req, Request, RawBodyRequest } from '@nestjs/common';
-import * as rawbody from 'raw-body';
-import bodyParser from 'body-parser';
+import {
+  Body,
+  Controller,
+  Headers,
+  Post,
+  Req,
+  RawBodyRequest,
+} from '@nestjs/common';
 import { EventLog, TransactionReceipt } from 'src/lib/thirdweb-engine/types';
 import { NeynarService } from '../neynar/neynar.service';
 import { WarService } from '../war/war.service';
@@ -14,10 +19,7 @@ const generateSignature = (
   secret: string,
 ): string => {
   const payload = `${timestamp}.${body}`;
-  return crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
+  return crypto.createHmac('sha256', secret).update(payload).digest('hex');
 };
 
 const isValidSignature = (
@@ -26,11 +28,7 @@ const isValidSignature = (
   signature: string,
   secret: string,
 ): boolean => {
-  const expectedSignature = generateSignature(
-    body,
-    timestamp,
-    secret,
-  );
+  const expectedSignature = generateSignature(body, timestamp, secret);
   console.log(expectedSignature);
   console.log(signature);
   return crypto.timingSafeEqual(
@@ -39,10 +37,7 @@ const isValidSignature = (
   );
 };
 
-const isExpired = (
-  timestamp: string,
-  expirationInSeconds: number,
-): boolean => {
+const isExpired = (timestamp: string, expirationInSeconds: number): boolean => {
   const currentTime = Math.floor(Date.now() / 1000);
   return currentTime - parseInt(timestamp) > expirationInSeconds;
 };
@@ -112,36 +107,52 @@ export class WebhookController {
       switch (body.data.eventName) {
         case 'GameMade': {
           console.log('GameMade');
-          const { maker, signature, gameId } = body.data.decodedLog as GameMadeEvent;
+          const { maker, signature, gameId } = body.data
+            .decodedLog as GameMadeEvent;
           // gameIdとsignatureを紐づける
           await this.warService.onGameMade(gameId.value, signature.value);
           // ToDo: gameIdを元にゲームの情報を取得してBotからCast
-          const res = await this.neynarService.publishCast(`[GameMade] maker:${maker.value}, id:${gameId.value}, signature:${signature.value}`);
+          const res = await this.neynarService.publishCast(
+            `[GameMade] maker:${maker.value}, id:${gameId.value}, signature:${signature.value}`,
+          );
           console.log(res);
           break;
         }
         case 'GameChallenged': {
           console.log('GameChallenged');
-          const { challenger, gameId } = body.data.decodedLog as GameChallengedEvent;
-          await this.warService.onGameChallenged(gameId.value, challenger.value);
+          const { challenger, gameId } = body.data
+            .decodedLog as GameChallengedEvent;
+          await this.warService.onGameChallenged(
+            gameId.value,
+            challenger.value,
+          );
           const game = await this.warService.getWarGameByGameId(gameId.value);
           // ToDo: revealトランザクションをEngine経由で実行
           // bytes8 gameId,
           // uint256 makerCard,
           // uint256 nonce
-          await sendTransaction(WAR_CONTRACT_ADDRESS, 'revealCard', [gameId.value, game.maker_token_id, game.seed]);
-          const res = await this.neynarService.publishCast(`[GameChallenged] challenger:${challenger.value} id:${gameId.value}`);
+          await sendTransaction(WAR_CONTRACT_ADDRESS, 'revealCard', [
+            gameId.value,
+            game.maker_token_id,
+            game.seed,
+          ]);
+          const res = await this.neynarService.publishCast(
+            `[GameChallenged] challenger:${challenger.value} id:${gameId.value}`,
+          );
           console.log(res);
           break;
         }
         case 'GameRevealed': {
           console.log('GameRevealed');
           // ToDo: ゲーム結果を取得
-          const { gameId, maker, challenger, winner } = body.data.decodedLog as GameRevealedEvent;
+          const { gameId, maker, challenger, winner } = body.data
+            .decodedLog as GameRevealedEvent;
           // const game = await this.warService.getWarGameByGameId(gameId.value);
           // const { maker, challenger } = game;
           // ToDo: BotからCast
-          await this.neynarService.publishCast(`[GameRevealed] gameId:${gameId.value}, maker:${maker.value}, challenger:${challenger.value}, winner:${winner.value}`);
+          await this.neynarService.publishCast(
+            `[GameRevealed] gameId:${gameId.value}, maker:${maker.value}, challenger:${challenger.value}, winner:${winner.value}`,
+          );
           break;
         }
         default: {

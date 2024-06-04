@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NeynarAPIClient, ReactionsType } from '@neynar/nodejs-sdk';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { NEYNER_API_KEY, FARCASTER_SIGNER_UUID } from 'src/utils/env';
 
 @Injectable()
