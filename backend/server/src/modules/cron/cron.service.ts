@@ -21,7 +21,7 @@ export class CronService {
     private readonly viemService: ViemService,
   ) {}
 
-  @Interval(UPDATE_SCORE_INTERVAL_MINUTES * 5 * 1e3)
+  @Interval(UPDATE_SCORE_INTERVAL_MINUTES * 111115 * 1e3)
   async updateScore() {
     if (!RUN_CRON) {
       return;
