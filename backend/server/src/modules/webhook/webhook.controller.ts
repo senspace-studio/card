@@ -73,11 +73,15 @@ export class WebhookController {
   @Post('/')
   async webhook(
     @Req() req: RawBodyRequest<Request>,
+    @Headers('Authorization') authorization: string,
     @Headers('X-Engine-Signature') signatureFromHeader: string,
     @Headers('X-Engine-Timestamp') timestampFromHeader: string,
     @Body() body: EventLog | TransactionReceipt,
   ) {
-    console.log(signatureFromHeader, timestampFromHeader);
+    // authorizationのヘッダーにSecret入れてくれてるのでこれ使えば復元できます。(てまえのBearer はいらないです)
+    // なので、ENGINE_WEBHOOK_SECRETは使わなくていいかも。
+
+    console.log(authorization, signatureFromHeader, timestampFromHeader);
     console.log(body);
     // const signatureFromHeader = headers['X-Engine-Signature'];
     // const timestampFromHeader = headers['X-Engine-Timestamp']
@@ -85,11 +89,9 @@ export class WebhookController {
     if (!signatureFromHeader || !timestampFromHeader) {
       throw new Error('Missing signature or timestamp header');
     }
-    const text = req.rawBody.toString().trim();
-    console.log(text);
     if (
       !isValidSignature(
-        text,
+        JSON.stringify(body),
         timestampFromHeader,
         signatureFromHeader,
         ENGINE_WEBHOOK_SECRET,
