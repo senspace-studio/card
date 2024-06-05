@@ -21,9 +21,14 @@ interface IWar {
         uint64 createdAt;
     }
 
-    event GameCreated(address indexed maker, bytes8 indexed gameId);
+    event GameMade(bytes8 indexed gameId, address indexed maker);
 
-    event GameChallenged(address indexed challenger, bytes8 indexed gameId);
+    event GameChallenged(bytes8 indexed gameId, address indexed challenger);
 
-    event GameRevealed(bytes8 indexed gameId);
+    event GameRevealed(
+        bytes8 indexed gameId,
+        address indexed maker,
+        address indexed challenger,
+        address winner
+    );
 }
