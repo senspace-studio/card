@@ -31,6 +31,10 @@ export class WarService {
       encodePacked(['uint256', 'uint256'], [tokenId, seed]),
     );
     const signature = await dealar.signMessage(getBytes(messageHash));
+    const game = await this.getWarGameBySignature(signature);
+    if (game) {
+      throw new Error('signature already used');
+    }
     await this.warRepositry.save({
       seed: seed.toString(),
       maker,
@@ -43,16 +47,7 @@ export class WarService {
   async onGameMade(gameId: string, signature: string) {
     const game = await this.getWarGameBySignature(signature);
     if (!game) {
-      // ToDo: Dev環境じゃなくなったらコメントアウト
-      await this.createNewGame(
-        '0xD0575cA24D907b35d39383a53c3300D510446BaE',
-        3n,
-        0n,
-      );
-      game.game_id = gameId;
-      await this.warRepositry.save(game);
-      return;
-      // throw new Error('game not found');
+      throw new Error('game not found');
     }
     game.game_id = gameId;
     await this.warRepositry.save(game);

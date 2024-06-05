@@ -113,11 +113,16 @@ export class WebhookController {
             .decodedLog as GameMadeEvent;
           // gameIdとsignatureを紐づける
           await this.warService.onGameMade(gameId.value, signature.value);
-          // ToDo: gameIdを元にゲームの情報を取得してBotからCast
-          const res = await this.neynarService.publishCast(
-            `[GameMade] maker:${maker.value}, id:${gameId.value}, signature:${signature.value}`,
+          const makerAccount = (
+            await this.neynarService.getUserInfo(maker.value)
+          )[0];
+          const makerInMessageText = makerAccount
+            ? `@${makerAccount.username}`
+            : '???';
+          // gameIdを元にゲームの情報を取得してBotからCast
+          await this.neynarService.publishCast(
+            `[GameMade] maker: ${makerInMessageText}`,
           );
-          console.log(res);
           break;
         }
         case 'GameChallenged': {
@@ -129,7 +134,7 @@ export class WebhookController {
             challenger.value,
           );
           const game = await this.warService.getWarGameByGameId(gameId.value);
-          // ToDo: revealトランザクションをEngine経由で実行
+          // revealトランザクションをEngine経由で実行
           // bytes8 gameId,
           // uint256 makerCard,
           // uint256 nonce
@@ -138,22 +143,44 @@ export class WebhookController {
             game.maker_token_id,
             game.seed,
           ]);
-          const res = await this.neynarService.publishCast(
-            `[GameChallenged] challenger:${challenger.value} id:${gameId.value}`,
+          const challengerAccount = (
+            await this.neynarService.getUserInfo(challenger.value)
+          )[0];
+          const challengerInMessageText = challengerAccount
+            ? `@${challengerAccount.username}`
+            : '???';
+          await this.neynarService.publishCast(
+            `[GameChallenged] challenger: ${challengerInMessageText}`,
           );
-          console.log(res);
           break;
         }
         case 'GameRevealed': {
           console.log('GameRevealed');
-          // ToDo: ゲーム結果を取得
+          // ゲーム結果を取得
           const { gameId, maker, challenger, winner } = body.data
             .decodedLog as GameRevealedEvent;
           // const game = await this.warService.getWarGameByGameId(gameId.value);
           // const { maker, challenger } = game;
-          // ToDo: BotからCast
+          // BotからCast
+          console.log(gameId);
+          const makerAccount = (
+            await this.neynarService.getUserInfo(maker.value)
+          )[0];
+          const challengerAccount = (
+            await this.neynarService.getUserInfo(challenger.value)
+          )[0];
+          const makerInMessageText = makerAccount
+            ? `@${makerAccount.username}`
+            : '???';
+          const challengerInMessageText = challengerAccount
+            ? `@${challengerAccount.username}`
+            : '???';
+          const winnerInMessageText =
+            winner.value === maker.value
+              ? makerInMessageText
+              : challengerInMessageText;
           await this.neynarService.publishCast(
-            `[GameRevealed] gameId:${gameId.value}, maker:${maker.value}, challenger:${challenger.value}, winner:${winner.value}`,
+            `[GameRevealed] maker: ${makerInMessageText}, challenger: ${challengerInMessageText}, winner: ${winnerInMessageText}`,
           );
           break;
         }
