@@ -89,7 +89,7 @@ describe('War', () => {
       getBytes(messageHash),
     )) as `0x${string}`;
 
-    const tx = await War.connect(maker).createGame(
+    const tx = await War.connect(maker).makeGame(
       zeroAddress,
       0,
       true,
@@ -98,8 +98,8 @@ describe('War', () => {
     );
     const receipt = await tx.wait();
     const logs = receipt?.logs as EventLog[];
-    gameId = logs.find((log) => log.eventName === 'GameCreated')
-      ?.args[1] as string;
+    gameId = logs.find((log) => log.eventName === 'GameMade')
+      ?.args[0] as string;
 
     const game = await War.games(gameId);
     expect(game.maker).to.equal(maker.address);
