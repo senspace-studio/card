@@ -12,8 +12,14 @@ export class NeynarService {
 
   async getUserInfo(address: string) {
     this.logger.log('getUserInfo', address);
-    const users = await this.client.fetchBulkUsersByEthereumAddress([address]);
-    return users[0];
+    try {
+      const users = await this.client.fetchBulkUsersByEthereumAddress([
+        address,
+      ]);
+      return users[address];
+    } catch (error) {
+      return [];
+    }
   }
 
   async validateRequest(messageBytes: string) {
@@ -38,7 +44,6 @@ export class NeynarService {
 
   async publishCast(text: string) {
     this.logger.log(this.publishCast.name);
-    // ToDo: メッセージを送る
     return await this.client.publishCast(FARCASTER_SIGNER_UUID, text);
   }
 }
