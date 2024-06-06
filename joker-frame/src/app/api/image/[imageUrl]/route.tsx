@@ -1,14 +1,14 @@
-import { NextRequest } from "next/server";
-import sharp from "sharp";
+import { NextRequest } from 'next/server';
+import sharp from 'sharp';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { imageUrl: string } }
+  { params }: { params: { imageUrl: string } },
 ) {
   const encodedImageUrl = params.imageUrl;
   const imageUrl = decodeURIComponent(encodedImageUrl);
   const { searchParams } = new URL(req.url);
-  const download = searchParams.get("download") === "true";
+  const download = searchParams.get('download') === 'true';
 
   const overlayMaxWidth = 650; // オーバーレイ画像の最大幅
   const overlayMaxHeight = 1500; // オーバーレイ画像の最大高さ
@@ -17,14 +17,14 @@ export async function GET(
   const backgroundUrl = `${process.env.SITE_URL}/joker.png`;
   const backgroundResponse = await fetch(backgroundUrl);
   if (!backgroundResponse.ok) {
-    return new Response("Failed to fetch background image", { status: 500 });
+    return new Response('Failed to fetch background image', { status: 500 });
   }
   const backgroundBuffer = Buffer.from(await backgroundResponse.arrayBuffer());
 
   // オーバーレイ画像の取得
   const overlayResponse = await fetch(imageUrl);
   if (!overlayResponse.ok) {
-    return new Response("Failed to fetch overlay image", { status: 500 });
+    return new Response('Failed to fetch overlay image', { status: 500 });
   }
   const overlayBuffer = Buffer.from(await overlayResponse.arrayBuffer());
 
@@ -34,7 +34,7 @@ export async function GET(
   // オーバーレイ画像のメタデータを取得
   const overlayMetadata = await sharp(overlayBuffer).metadata();
   if (!overlayMetadata.width || !overlayMetadata.height) {
-    return new Response("Failed to retrieve overlay image metadata", {
+    return new Response('Failed to retrieve overlay image metadata', {
       status: 500,
     });
   }
@@ -98,11 +98,11 @@ export async function GET(
         input: overlayImageBuffer,
         left:
           Math.floor(
-            (backgroundMetadata.width! - overlayImageMetadata.width!) / 2
+            (backgroundMetadata.width! - overlayImageMetadata.width!) / 2,
           ) - leftOffset,
         top:
           Math.floor(
-            (backgroundMetadata.height! - overlayImageMetadata.height!) / 2
+            (backgroundMetadata.height! - overlayImageMetadata.height!) / 2,
           ) - topOffset,
       },
     ])
@@ -112,20 +112,20 @@ export async function GET(
   // 背景画像とオーバーレイ画像の合成
   const compositeImage = await sharp(backgroundBuffer)
     .composite([{ input: extendedOverlayImageBuffer }])
-    .toFormat("png")
+    .toFormat('png')
     .toBuffer();
 
   if (download) {
     // ダウンロード用の処理
     const headers = new Headers();
     headers.set(
-      "Content-Disposition",
-      `attachment; filename="generated_image.png"`
+      'Content-Disposition',
+      `attachment; filename="joker_meme_${new Date().getTime()}.png"`,
     );
-    headers.set("Content-Type", "image/png");
+    headers.set('Content-Type', 'image/png');
     headers.set(
-      "Cache-Control",
-      "public, max-age=86400, stale-while-revalidate=43200"
+      'Cache-Control',
+      'public, max-age=86400, stale-while-revalidate=43200',
     );
 
     return new Response(compositeImage, { headers });
@@ -134,7 +134,7 @@ export async function GET(
   // 画像を直接表示するためのレスポンス
   return new Response(compositeImage, {
     headers: {
-      "Content-Type": "image/png",
+      'Content-Type': 'image/png',
     },
   });
 }
