@@ -23,9 +23,9 @@ const app = new Frog({
   imageAspectRatio: '1:1',
 });
 
-const name = 'Joker Meme';
-const actionPath = '/joker-meme-action';
-const framePath = '/joker-meme';
+const name = 'Joker Maker';
+const actionPath = '/joker-maker-action';
+const framePath = '/joker-maker';
 
 // Add Cast Action Frame
 app.frame('/', (c) => {
