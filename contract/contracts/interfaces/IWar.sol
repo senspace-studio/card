@@ -21,7 +21,11 @@ interface IWar {
         uint64 createdAt;
     }
 
-    event GameMade(bytes8 indexed gameId, address indexed maker);
+    event GameMade(
+        bytes8 indexed gameId,
+        address indexed maker,
+        bytes signature
+    );
 
     event GameChallenged(bytes8 indexed gameId, address indexed challenger);
 
