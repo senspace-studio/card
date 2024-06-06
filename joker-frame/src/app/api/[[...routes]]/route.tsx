@@ -9,7 +9,7 @@ import {
 import { JSDOM } from 'jsdom';
 
 // TODO - replace url after cast
-const ROOT_CAST_URL = 'https://warpcast.com/senspace/0xf9b9a4e5';
+const ROOT_CAST_URL = 'https://warpcast.com/renstern.eth/0xb56678d0';
 
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
 const SHARE_TEXT = encodeURI(
@@ -69,7 +69,7 @@ app.frame(framePath + '/:hash', async (c) => {
   console.timeEnd('frame total time');
 
   return c.res({
-    image: `/image/${encodedImageUrl}`,
+    image: `/api/image/${encodedImageUrl}`,
     browserLocation: `/api/image/${encodedImageUrl}`,
     intents: [
       <Button.Link
@@ -115,12 +115,11 @@ app.frame(framePath + '/share/:hash', async (c) => {
   const encodedImageUrl = await getEncodedImageUrlFromHash(hash);
 
   return c.res({
-    image: `/image/${encodedImageUrl}`,
+    image: `/api/image/${encodedImageUrl}`,
     browserLocation: `/api/image/${encodedImageUrl}`,
     intents: [
       <Button.Link key="create" href={ROOT_CAST_URL}>
-        {/* TODO */}
-        Create (TODO change link url)
+        Create My Joker
       </Button.Link>,
     ],
   });
