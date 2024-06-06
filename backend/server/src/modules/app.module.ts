@@ -15,11 +15,13 @@ import {
 } from 'src/utils/env';
 import { AccountEntity } from 'src/entities/account.entity';
 import { TotalEntity } from 'src/entities/total.entity';
+import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { CronModule } from './cron/cron.module';
 import { OgpModule } from './ogp/ogp.module';
 import { ScorecardEntity } from 'src/entities/scorecard';
 import { GashaModule } from './gasha/gasha.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 
 @Module({
   imports: [
@@ -30,7 +32,13 @@ import { WebhookModule } from './webhook/webhook.module';
       username: DB_USERNAME,
       password: DB_PASSWORD,
       database: DB_NAME,
-      entities: [AccountEntity, TotalEntity, ScorecardEntity],
+      entities: [
+        AccountEntity,
+        TotalEntity,
+        ScorecardEntity,
+        HeatScoreEntity,
+        StreamSmartAccountEntity,
+      ],
       synchronize: true,
     }),
     ScheduleModule.forRoot(),
