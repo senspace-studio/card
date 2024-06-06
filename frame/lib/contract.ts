@@ -9,7 +9,7 @@ import {
   THIRDWEB_RPC_URL,
 } from '../constant/config.js';
 
-const publicClient = createPublicClient({
+export const publicClient = createPublicClient({
   chain: degen,
   transport: http(),
 });

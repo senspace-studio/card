@@ -13,6 +13,7 @@ import JSON from 'json-bigint';
 import { CARD_ABI, WAR_ABI } from '../constant/abi.js';
 import { zeroAddress, encodePacked, keccak256, decodeEventLog } from 'viem';
 import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
+import { getFarcasterUserInfo } from '../lib/neynar.js';
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -57,19 +58,12 @@ warApp.frame('/', (c) => {
 warApp.frame('/make-duel', async (c) => {
   console.time('make-duel');
   const { frameData } = c;
-  const userInfo = await fetch(
-    `https://api.neynar.com/v2/farcaster/user/bulk?fids=${frameData?.fid}&viewer_fid=3`,
-    {
-      method: 'GET',
-      headers: { accept: 'application/json', api_key: NEYNAR_API_KEY },
-    },
-  );
-  const userData = await userInfo.json();
-  const pfp_url = userData.users[0].pfp_url;
-  const userName = userData.users[0].username;
-  const verifyedAddresses = userData.users[0].verified_addresses.eth_addresses;
 
-  if (!verifyedAddresses) {
+  const { pfp_url, userName, verifiedAddresses } = await getFarcasterUserInfo(
+    frameData?.fid,
+  );
+
+  if (!verifiedAddresses) {
     return c.res({
       image: '/error_address.png',
       imageAspectRatio: '1:1',
