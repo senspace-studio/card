@@ -30,18 +30,22 @@ export class WarController {
   //   }
   // }
 
-  // ToDo: 選んだTokenIDを認識
+  // 選んだTokenIDを認識して署名
   @Post('/sign')
-  async sign(@Body('messageBytes') messageBytes: string) {
+  async sign(
+    @Body('trustedData') trustedData: { messageBytes: string },
+    @Body('messageBytes') messageBytes: string,
+  ) {
     // @Body('maker') maker: string, @Body('tokenId') tokenId: string
     this.logger.log(this.sign.name);
-    const result = await this.neynarService.validateRequest(messageBytes);
+    const result = await this.neynarService.validateRequest(
+      trustedData.messageBytes || messageBytes,
+    );
     if (!result.valid) {
       throw new Error('invalid message');
     }
     const maker = result.action.address;
-    // const tokenId = result.action.tapped_button.index;
-    const tokenId = '3';
+    const tokenId = result.action.tapped_button.index;
     for (let i = 0; i < 100; i++) {
       try {
         const seed = Math.floor(Math.random() * 1000000);
