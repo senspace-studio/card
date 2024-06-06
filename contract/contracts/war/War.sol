@@ -95,7 +95,7 @@ contract War is
             createdAt: uint64(block.timestamp)
         });
 
-        emit GameMade(gameId, msg.sender);
+        emit GameMade(gameId, msg.sender, signature);
     }
 
     function challengeGame(
