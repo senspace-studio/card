@@ -1,26 +1,41 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PointsService } from '../points/points.service';
 import { ViemService } from '../viem/viem.service';
-import { Cron, Interval } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import {
   ACCOUNT_FACTORY_ADDRESS,
   INVITATION_CONTRACT_ADDRESS,
   RUN_CRON,
   STREAM_BACKEND_WALLET,
+  STREAM_CFAV1_ADDRESS,
+  STREAM_END_SCHEDULE_CRON_EXPRESSION,
+  STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+  STREAM_HOST_ADDRESS,
+  STREAM_INTERVAL_MINUTES,
+  STREAM_SCORING_CRON_EXPRESSION,
+  STREAM_SET_SCHEDULE_CRON_EXPRESSION,
   SUPER_TOKEN,
-  UPDATE_SCORE_INTERVAL_MINUTES,
   VESTING_SCHEDULE_ADDRESS,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient, { tweClientPure } from 'src/lib/thirdweb-engine';
 import * as dayjs from 'dayjs';
 import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
-import { Address, bytesToHex, parseEther, zeroAddress } from 'viem';
+import {
+  Address,
+  bytesToHex,
+  getContract,
+  maxUint256,
+  parseEther,
+  zeroAddress,
+} from 'viem';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 import { randomBytes } from 'tweetnacl';
+import parser from 'cron-parser';
+const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
 export class CronService {
@@ -35,18 +50,33 @@ export class CronService {
     private readonly streamSmartAccountRepository: Repository<StreamSmartAccountEntity>,
   ) {}
 
-  @Cron('0 */6 * * *')
+  // @Cron('0 44 * * * *')
+  // async test() {
+  //   if (!RUN_CRON) {
+  //     return;
+  //   }
+  //   await this.authorizeFlowOperatorWithFullControl(
+  //     '0xB5517B61900d35E200a6101fd5e71FE10bD4fBD0',
+  //   );
+  // }
+
+  @Cron(STREAM_SCORING_CRON_EXPRESSION)
   async updateScore() {
     if (!RUN_CRON) {
       return;
     }
 
     this.logger.log('update score');
-    // const baseDate = dayjs().startOf('day');
-    const baseDate = dayjs();
 
-    const startDate_game = baseDate.subtract(3, 'days').startOf('day');
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+    const baseDate = dayjs(currentCronDate);
 
+    const startDate_game = baseDate.subtract(3, 'days');
+
+    console.log('Scoring range', startDate_game.toDate(), baseDate.toDate());
     const { height: fromBlock_game } = await (
       await fetch(`https://coins.llama.fi/block/degen/${startDate_game.unix()}`)
     ).json();
@@ -95,7 +125,7 @@ export class CronService {
       gameRevealedlogs,
     );
 
-    const startDate_invite = baseDate.subtract(14, 'days').startOf('day');
+    const startDate_invite = baseDate.subtract(14, 'days');
 
     const { height: fromBlock_invite } = await (
       await fetch(
@@ -179,26 +209,26 @@ export class CronService {
     // yを全員に分配したい。totalScoreのなかで割合を計算してyを分配する
     const totalScoreArray = Array.from(totalScore.entries());
 
+    console.log('ScoredDate: ', baseDate.toDate());
+
     for (const [player, score] of totalScoreArray) {
       const exists = await this.heatScoreRepository.exists({
         where: {
           address: player,
-          date: baseDate.startOf('day').toDate(),
+          date: baseDate.toDate(),
         },
       });
       if (!exists) {
         await this.heatScoreRepository.save({
           address: player,
           score: score,
-          date: baseDate.startOf('day').toDate(),
+          date: baseDate.toDate(),
         });
       }
     }
-
-    console.log('log');
   }
 
-  @Interval(UPDATE_SCORE_INTERVAL_MINUTES * 111190 * 1000)
+  @Cron(STREAM_SET_SCHEDULE_CRON_EXPRESSION)
   async setSchedule() {
     if (!RUN_CRON) {
       return;
@@ -206,11 +236,16 @@ export class CronService {
     this.logger.log('Running set schedule');
 
     try {
-      const baseDate = dayjs().startOf('day');
-
+      const scoredDate = cronParser
+        .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+        .prev()
+        .toDate();
+      console.log('SetSchedule target scoreDate: ', scoredDate);
       const scores = await this.heatScoreRepository.find({
-        where: { date: baseDate.toDate() },
+        where: { date: scoredDate },
       });
+
+      if (scores.length === 0) return;
 
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
       const h = 0.001;
@@ -231,14 +266,21 @@ export class CronService {
         };
       });
 
-      const startDate_flow = baseDate.add(1, 'day').startOf('day').unix();
-      const endDate_flow = baseDate.add(1, 'day').endOf('day').unix();
+      const executeCron = cronParser.parseExpression(
+        STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+      );
+      const startDate_flow = executeCron.next().getTime() / 1000;
+      const endDate_flow = executeCron.next().getTime() / 1000 - 1;
+      console.log('Stream start and end:', startDate_flow, endDate_flow);
       const smartAccountAddress = await this.createSmartAccount_SendDegenX(
-        y,
+        (y / (24 * 60)) * Number(STREAM_INTERVAL_MINUTES),
         startDate_flow,
         endDate_flow,
       );
+
       console.log('smartAccountAddress', smartAccountAddress);
+
+      await this.authorizeFlowOperatorWithFullControl(smartAccountAddress);
 
       for (const flowRate of flowRates) {
         await this.createVestingSchedule(
@@ -249,6 +291,108 @@ export class CronService {
           endDate_flow,
         );
       }
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  @Cron(STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION)
+  async executeSchedule() {
+    if (!RUN_CRON) {
+      return;
+    }
+    this.logger.log('Running execute schedule');
+
+    try {
+      const executeCron = cronParser.parseExpression(
+        STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+      );
+      const baseDate = dayjs(executeCron.prev().toDate());
+
+      const scoredDate = cronParser
+        .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+        .prev()
+        .toDate();
+      console.log('ExecuteSchedule target scoreDate: ', scoredDate);
+      const scores = await this.heatScoreRepository.find({
+        where: { date: scoredDate },
+      });
+
+      if (scores.length === 0) return;
+
+      const stream_end = executeCron.next().getTime() / 1000 - 1;
+      const stream_smartaccount =
+        await this.streamSmartAccountRepository.findOne({
+          where: {
+            stream_start: baseDate.unix(),
+            stream_end,
+          },
+        });
+      console.log('stream_smartaccount: ', stream_smartaccount.address);
+
+      if (!stream_smartaccount)
+        throw new Error('stream_smartaccount not found');
+
+      for (const score of scores) {
+        await this.executeCliffAndFlow(
+          score.address,
+          stream_smartaccount.address,
+        );
+      }
+
+      console.log('executedScores:', scores);
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  @Cron(STREAM_END_SCHEDULE_CRON_EXPRESSION)
+  async endSchedule() {
+    if (!RUN_CRON) {
+      return;
+    }
+
+    this.logger.log('Running end schedule');
+
+    const executeCron = cronParser.parseExpression(
+      STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+    );
+    const baseDate = dayjs(executeCron.prev().toDate());
+
+    try {
+      const scoredDate = cronParser.parseExpression(
+        STREAM_SCORING_CRON_EXPRESSION,
+      );
+      scoredDate.prev();
+      const targetScoreDate = scoredDate.prev().toDate();
+      console.log('EndSchedule target scoreDate: ', targetScoreDate);
+      const scores = await this.heatScoreRepository.find({
+        where: { date: targetScoreDate },
+      });
+
+      if (scores.length === 0) return;
+
+      const stream_end = executeCron.next().getTime() / 1000 - 1;
+      console.log('Stream start and end:', baseDate.unix(), stream_end);
+      const stream_smartaccount =
+        await this.streamSmartAccountRepository.findOne({
+          where: {
+            stream_start: baseDate.unix(),
+            stream_end,
+          },
+        });
+
+      if (!stream_smartaccount)
+        throw new Error('stream_smartaccount not found');
+
+      for (const score of scores) {
+        await this.executeEndVesting(
+          score.address,
+          stream_smartaccount.address,
+        );
+      }
+
+      // await this.withdrawAllDegenX(stream_smartaccount.address);
     } catch (error) {
       this.logger.error(error);
     }
@@ -318,6 +462,22 @@ export class CronService {
 
       if (exchangeSuperToken.error) throw exchangeSuperToken.error;
 
+      const approveSuperToken = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            SUPER_TOKEN,
+            createAccount.data.result.deployedAddress,
+          ),
+          body: {
+            functionName: 'approve',
+            args: [VESTING_SCHEDULE_ADDRESS, maxUint256.toString()],
+          },
+        },
+      );
+
+      if (approveSuperToken.error) throw approveSuperToken.error;
+
       // save to db
       await this.streamSmartAccountRepository.save({
         address: createAccount.data.result.deployedAddress,
@@ -326,6 +486,33 @@ export class CronService {
       });
 
       return createAccount.data.result.deployedAddress;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async authorizeFlowOperatorWithFullControl(
+    smartAccountAddress: string,
+  ) {
+    try {
+      const cfaV1CallData =
+        this.viemService.getCallData_cfaV1_authorizeFlowOperatorWithFullControl();
+
+      const { error } = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            STREAM_HOST_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'callAgreement',
+            args: [STREAM_CFAV1_ADDRESS, cfaV1CallData, '0x'],
+          },
+        },
+      );
+
+      if (error) throw error;
     } catch (error) {
       throw error;
     }
@@ -360,34 +547,91 @@ export class CronService {
       });
     } catch (error) {
       this.logger.error(error);
+      throw error;
     }
   }
 
-  private async executeCliffAndFlow(receiver: string) {
+  private async executeCliffAndFlow(
+    receiver: string,
+    smartAccountAddress: string,
+  ) {
     try {
-      await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
-        params: this.writeContractParams(VESTING_SCHEDULE_ADDRESS),
-        body: {
-          functionName: 'executeCliffAndFlow',
-          args: [SUPER_TOKEN, STREAM_BACKEND_WALLET, receiver],
+      const { error } = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            VESTING_SCHEDULE_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'executeCliffAndFlow',
+            args: [SUPER_TOKEN, smartAccountAddress, receiver],
+          },
         },
-      });
+      );
+
+      if (error) throw error;
     } catch (error) {
       this.logger.error(error);
+      throw error;
     }
   }
 
-  private async executeEndVesting(receiver: string) {
+  private async executeEndVesting(
+    receiver: string,
+    smartAccountAddress: string,
+  ) {
     try {
-      await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
-        params: this.writeContractParams(VESTING_SCHEDULE_ADDRESS),
-        body: {
-          functionName: 'executeEndVesting',
-          args: [SUPER_TOKEN, STREAM_BACKEND_WALLET, receiver],
+      const { error } = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            VESTING_SCHEDULE_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'executeEndVesting',
+            args: [SUPER_TOKEN, smartAccountAddress, receiver],
+          },
         },
-      });
+      );
+      if (error) throw error;
     } catch (error) {
       this.logger.error(error);
+      throw error;
+    }
+  }
+
+  private async withdrawAllDegenX(smartAccountAddress: string) {
+    try {
+      const { data } = await tweClient.GET(
+        '/contract/{chain}/{contractAddress}/read',
+        {
+          params: {
+            ...this.writeContractParams(SUPER_TOKEN, smartAccountAddress),
+            query: {
+              functionName: 'balanceOf',
+              args: smartAccountAddress,
+            },
+          },
+        },
+      );
+      if (Number(data.result) === 0) return;
+      const { error } = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(SUPER_TOKEN, smartAccountAddress),
+          body: {
+            functionName: 'transferFrom',
+            args: [smartAccountAddress, STREAM_BACKEND_WALLET, data.result],
+          },
+        },
+      );
+
+      if (error) throw error;
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
     }
   }
 
@@ -400,6 +644,7 @@ export class CronService {
       return data.result;
     } catch (error) {
       this.logger.error(error);
+      throw error;
     }
   }
 }

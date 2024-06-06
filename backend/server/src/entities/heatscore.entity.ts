@@ -18,7 +18,7 @@ export class HeatScoreEntity {
   @Column({ type: 'decimal', precision: 10, scale: 8 })
   score: number;
 
-  @Column({ type: 'date' })
+  @Column({ type: 'datetime' })
   date: Date;
 
   @CreateDateColumn()
