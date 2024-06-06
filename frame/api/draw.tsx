@@ -44,10 +44,10 @@ drawApp.frame('/', (c) => {
 drawApp.frame('/input', async (c) => {
   const numOfMint = Number(c.inputText);
 
-  const { verifyedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+  const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
   const amountOfDegen = formatEther(
     await getBalance(publicClient, {
-      address: verifyedAddresses[0],
+      address: verifiedAddresses[0],
     }),
   );
 
