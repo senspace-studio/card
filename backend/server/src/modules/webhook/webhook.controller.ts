@@ -120,6 +120,7 @@ export class WebhookController {
             ? `@${makerAccount.username}`
             : '???';
           // gameIdを元にゲームの情報を取得してBotからCast
+          // ToDo: URL追加
           await this.neynarService.publishCast(
             `[GameMade] maker: ${makerInMessageText}`,
           );
