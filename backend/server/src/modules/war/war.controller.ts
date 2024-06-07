@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
+import { Body, Controller, Get, Logger, Param, Post } from '@nestjs/common';
 import { WarService } from './war.service';
 import { NeynarService } from '../neynar/neynar.service';
 import { Address } from 'viem';
@@ -30,6 +30,15 @@ export class WarController {
   //     }
   //   }
   // }
+
+  @Get('/balanceOf/:address/:tokenId')
+  async balanceOf(
+    @Param('address') address: Address,
+    @Param('tokenId') tokenId: string,
+  ) {
+    const { balanceOfAll } = await this.warService.getCardBalanceOf(address);
+    return Number(balanceOfAll[Number(tokenId) - 1]);
+  }
 
   // 選んだTokenIDを認識して署名
   @Post('/sign')
