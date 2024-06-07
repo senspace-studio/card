@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Logger, Post } from '@nestjs/common';
 import { WarService } from './war.service';
 import { NeynarService } from '../neynar/neynar.service';
+import { Address } from 'viem';
 
 @Controller('war')
 export class WarController {
@@ -36,16 +37,19 @@ export class WarController {
     @Body('trustedData') trustedData: { messageBytes: string },
     @Body('messageBytes') messageBytes: string,
   ) {
-    // @Body('maker') maker: string, @Body('tokenId') tokenId: string
     this.logger.log(this.sign.name);
     const result = await this.neynarService.validateRequest(
-      trustedData.messageBytes || messageBytes,
+      messageBytes || trustedData.messageBytes,
     );
     if (!result.valid) {
       throw new Error('invalid message');
     }
     const maker = result.action.address;
     const tokenId = result.action.tapped_button.index;
+    const hasToken = await this.warService.hasCard(maker, tokenId);
+    if (!hasToken) {
+      throw new Error('Insufficient balance');
+    }
     for (let i = 0; i < 100; i++) {
       try {
         const seed = Math.floor(Math.random() * 1000000);

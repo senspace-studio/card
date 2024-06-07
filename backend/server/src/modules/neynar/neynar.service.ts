@@ -16,7 +16,7 @@ export class NeynarService {
       const users = await this.client.fetchBulkUsersByEthereumAddress([
         address,
       ]);
-      return users[address];
+      return users[address] || users[0] || [];
     } catch (error) {
       return [];
     }
