@@ -80,6 +80,9 @@ export class WarService {
     if (!game) {
       throw new Error('game not found');
     }
+    if (game.game_id) {
+      throw new Error('game id already linked');
+    }
     game.game_id = gameId;
     await this.warRepositry.save(game);
   }
