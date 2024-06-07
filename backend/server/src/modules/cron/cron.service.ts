@@ -50,15 +50,8 @@ export class CronService {
     private readonly streamSmartAccountRepository: Repository<StreamSmartAccountEntity>,
   ) {}
 
-  // @Cron('0 44 * * * *')
-  // async test() {
-  //   if (!RUN_CRON) {
-  //     return;
-  //   }
-  //   await this.authorizeFlowOperatorWithFullControl(
-  //     '0xB5517B61900d35E200a6101fd5e71FE10bD4fBD0',
-  //   );
-  // }
+  @Cron('*/10 * * * * *')
+  async test() {}
 
   @Cron(STREAM_SCORING_CRON_EXPRESSION)
   async updateScore() {
@@ -77,11 +70,19 @@ export class CronService {
     const startDate_game = baseDate.subtract(3, 'days');
 
     console.log('Scoring range', startDate_game.toDate(), baseDate.toDate());
-    const { height: fromBlock_game } = await (
-      await fetch(`https://coins.llama.fi/block/degen/${startDate_game.unix()}`)
+    const {
+      result: { blockNumber: fromBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDate_game.unix()}&closest=after`,
+      )
     ).json();
-    const { height: toBlock_game } = await (
-      await fetch(`https://coins.llama.fi/block/degen/${baseDate.unix()}`)
+    const {
+      result: { blockNumber: toBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${baseDate.unix()}&closest=after`,
+      )
     ).json();
 
     let { data: gameData } = (await tweClient.POST(
@@ -250,7 +251,7 @@ export class CronService {
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
       const h = 0.001;
       const k = 0.005;
-      const y = Number((h * (1 - Math.exp(-k * x))).toFixed(18));
+      const y = h * (1 - Math.exp(-k * x));
 
       const totalScoreArrayWithRatio = scores.map(({ address, score }) => {
         return {
@@ -262,7 +263,7 @@ export class CronService {
       const flowRates = totalScoreArrayWithRatio.map(({ address, ratio }) => {
         return {
           address,
-          amount: ((y * Number(ratio)) / (24 * 60 * 60)).toFixed(18),
+          amount: ((y * Number(ratio)) / (24 * 60 * 60)).toFixed(8),
         };
       });
 
@@ -272,8 +273,9 @@ export class CronService {
       const startDate_flow = executeCron.next().getTime() / 1000;
       const endDate_flow = executeCron.next().getTime() / 1000 - 1;
       console.log('Stream start and end:', startDate_flow, endDate_flow);
+      console.log(y);
       const smartAccountAddress = await this.createSmartAccount_SendDegenX(
-        (y / (24 * 60)) * Number(STREAM_INTERVAL_MINUTES),
+        (Number(y / (24 * 60)) * Number(STREAM_INTERVAL_MINUTES)).toFixed(18),
         startDate_flow,
         endDate_flow,
       );
@@ -328,10 +330,10 @@ export class CronService {
             stream_end,
           },
         });
-      console.log('stream_smartaccount: ', stream_smartaccount.address);
 
       if (!stream_smartaccount)
         throw new Error('stream_smartaccount not found');
+      console.log('stream_smartaccount: ', stream_smartaccount.address);
 
       for (const score of scores) {
         await this.executeCliffAndFlow(
@@ -417,7 +419,7 @@ export class CronService {
   }
 
   private async createSmartAccount_SendDegenX(
-    amount: number,
+    amount: string,
     startDate: number,
     endDate: number,
   ) {
@@ -455,7 +457,7 @@ export class CronService {
           body: {
             toAddress: SUPER_TOKEN,
             data: `0x7687d19b000000000000000000000000${createAccount.data.result.deployedAddress.slice(2)}`,
-            value: parseEther(amount.toString()).toString(),
+            value: parseEther(amount).toString(),
           },
         },
       );
