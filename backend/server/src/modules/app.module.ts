@@ -20,6 +20,8 @@ import { OgpModule } from './ogp/ogp.module';
 import { ScorecardEntity } from 'src/entities/scorecard';
 import { GashaModule } from './gasha/gasha.module';
 import { WebhookModule } from './webhook/webhook.module';
+import { WarEntity } from 'src/entities/war.entity';
+import { WarModule } from './war/war.module';
 
 @Module({
   imports: [
@@ -30,7 +32,7 @@ import { WebhookModule } from './webhook/webhook.module';
       username: DB_USERNAME,
       password: DB_PASSWORD,
       database: DB_NAME,
-      entities: [AccountEntity, TotalEntity, ScorecardEntity],
+      entities: [AccountEntity, TotalEntity, ScorecardEntity, WarEntity],
       synchronize: true,
     }),
     ScheduleModule.forRoot(),
@@ -41,6 +43,7 @@ import { WebhookModule } from './webhook/webhook.module';
     OgpModule,
     GashaModule,
     WebhookModule,
+    WarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
