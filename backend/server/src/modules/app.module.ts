@@ -22,7 +22,6 @@ import { GashaModule } from './gasha/gasha.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { WarEntity } from 'src/entities/war.entity';
 import { WarModule } from './war/war.module';
-import { EngineModule } from './engine/engine.module';
 
 @Module({
   imports: [
@@ -45,7 +44,6 @@ import { EngineModule } from './engine/engine.module';
     GashaModule,
     WebhookModule,
     WarModule,
-    EngineModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,15 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { JsonRpcProvider, Wallet, getBytes, keccak256 } from 'ethers';
-import { encodePacked } from 'viem';
+import { Address, encodePacked, keccak256 } from 'viem';
+import { http, createPublicClient } from 'viem';
+import { degen } from 'viem/chains';
+import { privateKeyToAccount } from 'viem/accounts';
 import { WarEntity } from 'src/entities/war.entity';
-import { DEALER_PRIVATE_KEY } from 'src/utils/env';
+import {
+  BLOCKCHAIN_API_DEGEN,
+  CARD_CONTRACT_ADDRESS,
+  DEALER_PRIVATE_KEY,
+} from 'src/utils/env';
 import { Repository } from 'typeorm';
+import { ERC1155ABI } from 'src/constants/ERC1155';
 
-const provider = new JsonRpcProvider(
-  'https://nitrorpc-degen-mainnet-1.t.conduit.xyz',
-);
-const dealar = new Wallet(DEALER_PRIVATE_KEY, provider);
+const dealar = privateKeyToAccount(DEALER_PRIVATE_KEY as `0x${string}`);
+const client = createPublicClient({
+  chain: degen,
+  transport: http(BLOCKCHAIN_API_DEGEN),
+});
 
 @Injectable()
 export class WarService {
@@ -17,6 +25,27 @@ export class WarService {
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
   ) {}
+
+  async getCardBalanceOf(owner: Address) {
+    const numOfToken = 14;
+    const ids = Array(numOfToken)
+      .fill('')
+      .map((_, i) => BigInt(i + 1));
+
+    const res = await client.readContract({
+      address: CARD_CONTRACT_ADDRESS as Address,
+      abi: ERC1155ABI,
+      functionName: 'balanceOfBatch',
+      args: [Array(numOfToken).fill(owner), ids],
+    });
+
+    return { balanceOfAll: res, ids };
+  }
+
+  async hasCard(owner: string, tokenId: number) {
+    const { balanceOfAll } = await this.getCardBalanceOf(owner as Address);
+    return 0n < balanceOfAll[tokenId - 1];
+  }
 
   async getWarGameBySignature(signature: string) {
     return await this.warRepositry.findOne({ where: { signature } });
@@ -29,8 +58,10 @@ export class WarService {
   async createNewGame(maker: string, tokenId: bigint, seed: bigint) {
     const messageHash = keccak256(
       encodePacked(['uint256', 'uint256'], [tokenId, seed]),
-    );
-    const signature = await dealar.signMessage(getBytes(messageHash));
+    ) as `0x${string}`;
+    const signature = await dealar.signMessage({
+      message: { raw: messageHash },
+    });
     const game = await this.getWarGameBySignature(signature);
     if (game) {
       throw new Error('signature already used');
