@@ -40,6 +40,22 @@ export class WarController {
     return Number(balanceOfAll[Number(tokenId) - 1]);
   }
 
+  // ToDo: 予約済のカード枚数を返す。
+  @Post('/getReservedCards')
+  async getReservedCard(
+    @Body('trustedData') trustedData: { messageBytes: string },
+    @Body('messageBytes') messageBytes: string,
+  ) {
+    const result = await this.neynarService.validateRequest(
+      messageBytes || trustedData.messageBytes,
+    );
+    if (!result.valid) {
+      throw new Error('invalid message');
+    }
+    const maker = result.action.address;
+    return await this.warService.getAllReservedCards(maker);
+  }
+
   // 選んだTokenIDを認識して署名
   @Post('/sign')
   async sign(
