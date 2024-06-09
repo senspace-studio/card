@@ -25,5 +25,3 @@ export const ENGINE_WEBHOOK_SECRET = process.env.ENGINE_WEBHOOK_SECRET || '';
 export const FARCASTER_SIGNER_UUID = process.env.FARCASTER_SIGNER_UUID || '';
 export const INVITATION_CONTRACT_ADDRESS =
   process.env.INVITATION_CONTRACT_ADDRESS || '';
-export const BLOCKCHAIN_API_DEGEN = process.env.BLOCKCHAIN_API_DEGEN || '';
-export const CARD_CONTRACT_ADDRESS = process.env.CARD_CONTRACT_ADDRESS || '';

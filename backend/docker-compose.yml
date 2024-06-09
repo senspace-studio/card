@@ -23,7 +23,7 @@ services:
     command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
 
   api:
-    image: node:18.17.0
+    image: node:20.12.2
     networks:
       - basic
     depends_on:
@@ -56,6 +56,4 @@ services:
       ENGINE_WEBHOOK_SECRET: ${ENGINE_WEBHOOK_SECRET}
       FARCASTER_SIGNER_UUID: ${FARCASTER_SIGNER_UUID}
       INVITATION_CONTRACT_ADDRESS: ${INVITATION_CONTRACT_ADDRESS}
-      BLOCKCHAIN_API_DEGEN: ${BLOCKCHAIN_API_DEGEN}
-      CARD_CONTRACT_ADDRESS: ${CARD_CONTRACT_ADDRESS}
     command: yarn start:dev
