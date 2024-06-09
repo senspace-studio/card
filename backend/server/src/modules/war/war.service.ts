@@ -47,6 +47,21 @@ export class WarService {
     return 0n < balanceOfAll[tokenId - 1];
   }
 
+  async getAllReservedGames(maker: string) {
+    const games = await this.warRepositry.find({ where: { maker } });
+    const reservedGamnes = games.filter((e) => !e.challenger);
+    return reservedGamnes;
+  }
+
+  async getAllReservedCards(maker: string) {
+    const games = await this.getAllReservedGames(maker);
+    const numOfCards: number[] = [...new Array(14)].fill(0);
+    for (const game of games) {
+      numOfCards[Number(game.maker_token_id) - 1]++;
+    }
+    return numOfCards;
+  }
+
   async getWarGameBySignature(signature: string) {
     return await this.warRepositry.findOne({ where: { signature } });
   }
