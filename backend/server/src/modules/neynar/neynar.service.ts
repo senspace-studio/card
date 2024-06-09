@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NeynarAPIClient, ReactionsType } from '@neynar/nodejs-sdk';
-import { NEYNER_API_KEY } from 'src/utils/env';
+import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { NEYNER_API_KEY, FARCASTER_SIGNER_UUID } from 'src/utils/env';
 
 @Injectable()
 export class NeynarService {
@@ -12,8 +12,15 @@ export class NeynarService {
 
   async getUserInfo(address: string) {
     this.logger.log('getUserInfo', address);
-    const users = await this.client.fetchBulkUsersByEthereumAddress([address]);
-    return users[0];
+    try {
+      const users = await this.client.fetchBulkUsersByEthereumAddress([
+        address,
+      ]);
+
+      return users ? users[address] || users[0] || [] : [];
+    } catch (error) {
+      return [];
+    }
   }
 
   async validateRequest(messageBytes: string) {
@@ -34,5 +41,10 @@ export class NeynarService {
       if (follower.fid == fid) return true;
     }
     return false;
+  }
+
+  async publishCast(text: string) {
+    this.logger.log(this.publishCast.name);
+    return await this.client.publishCast(FARCASTER_SIGNER_UUID, text);
   }
 }

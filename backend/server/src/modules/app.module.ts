@@ -22,6 +22,8 @@ import { ScorecardEntity } from 'src/entities/scorecard';
 import { GashaModule } from './gasha/gasha.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
+import { WarEntity } from 'src/entities/war.entity';
+import { WarModule } from './war/war.module';
 
 @Module({
   imports: [
@@ -38,6 +40,7 @@ import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
         ScorecardEntity,
         HeatScoreEntity,
         StreamSmartAccountEntity,
+        WarEntity,
       ],
       synchronize: true,
     }),
@@ -49,6 +52,7 @@ import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
     OgpModule,
     GashaModule,
     WebhookModule,
+    WarModule,
   ],
   controllers: [AppController],
   providers: [AppService],
