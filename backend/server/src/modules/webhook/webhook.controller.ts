@@ -94,7 +94,7 @@ export class WebhookController {
         JSON.stringify(body),
         timestampFromHeader,
         signatureFromHeader,
-        ENGINE_WEBHOOK_SECRET,
+        authorization.slice(7),
       )
     ) {
       throw new Error('Invalid signature');
