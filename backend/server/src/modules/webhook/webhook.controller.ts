@@ -78,14 +78,6 @@ export class WebhookController {
     @Headers('X-Engine-Timestamp') timestampFromHeader: string,
     @Body() body: EventLog | TransactionReceipt,
   ) {
-    // authorizationのヘッダーにSecret入れてくれてるのでこれ使えば復元できます。(てまえのBearer はいらないです)
-    // なので、ENGINE_WEBHOOK_SECRETは使わなくていいかも。
-
-    console.log(authorization, signatureFromHeader, timestampFromHeader);
-    console.log(body);
-    // const signatureFromHeader = headers['X-Engine-Signature'];
-    // const timestampFromHeader = headers['X-Engine-Timestamp']
-
     if (!signatureFromHeader || !timestampFromHeader) {
       throw new Error('Missing signature or timestamp header');
     }
@@ -94,17 +86,16 @@ export class WebhookController {
         JSON.stringify(body),
         timestampFromHeader,
         signatureFromHeader,
-        ENGINE_WEBHOOK_SECRET,
+        authorization.slice(7),
       )
     ) {
       throw new Error('Invalid signature');
     }
 
     if (isExpired(timestampFromHeader, 300)) {
-      // Assuming expiration time is 5 minutes (300 seconds)
       throw new Error('Request has expired');
     }
-    console.log(body.data);
+
     if (body.type === 'event-log') {
       switch (body.data.eventName) {
         case 'GameMade': {
