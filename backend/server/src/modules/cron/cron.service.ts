@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PointsService } from '../points/points.service';
 import { ViemService } from '../viem/viem.service';
-import { Cron } from '@nestjs/schedule';
+import { Cron, Interval } from '@nestjs/schedule';
 import {
   ACCOUNT_FACTORY_ADDRESS,
   INVITATION_CONTRACT_ADDRESS,
@@ -21,20 +21,14 @@ import {
 import tweClient, { tweClientPure } from 'src/lib/thirdweb-engine';
 import * as dayjs from 'dayjs';
 import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
-import {
-  Address,
-  bytesToHex,
-  getContract,
-  maxUint256,
-  parseEther,
-  zeroAddress,
-} from 'viem';
+import { bytesToHex, maxUint256, parseUnits, zeroAddress } from 'viem';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 import { randomBytes } from 'tweetnacl';
 import parser from 'cron-parser';
+import { chunk } from 'lodash';
 const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
@@ -128,13 +122,19 @@ export class CronService {
 
     const startDate_invite = baseDate.subtract(14, 'days');
 
-    const { height: fromBlock_invite } = await (
+    const {
+      result: { blockNumber: fromBlock_invite },
+    } = await (
       await fetch(
-        `https://coins.llama.fi/block/degen/${startDate_invite.unix()}`,
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDate_invite.unix()}&closest=after`,
       )
     ).json();
-    const { height: toBlock_invite } = await (
-      await fetch(`https://coins.llama.fi/block/degen/${baseDate.unix()}`)
+    const {
+      result: { blockNumber: toBlock_invite },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${baseDate.unix()}&closest=after`,
+      )
     ).json();
 
     let { data: inviteData } = (await tweClient.POST(
@@ -263,7 +263,7 @@ export class CronService {
       const flowRates = totalScoreArrayWithRatio.map(({ address, ratio }) => {
         return {
           address,
-          amount: ((y * Number(ratio)) / (24 * 60 * 60)).toFixed(8),
+          amount: ((y * Number(ratio)) / (24 * 60 * 60)).toFixed(18),
         };
       });
 
@@ -275,23 +275,27 @@ export class CronService {
       console.log('Stream start and end:', startDate_flow, endDate_flow);
       console.log(y);
       const smartAccountAddress = await this.createSmartAccount_SendDegenX(
-        (Number(y / (24 * 60)) * Number(STREAM_INTERVAL_MINUTES)).toFixed(18),
+        (y * Number(STREAM_INTERVAL_MINUTES)).toFixed(18),
         startDate_flow,
         endDate_flow,
       );
 
-      console.log('smartAccountAddress', smartAccountAddress);
-
       await this.authorizeFlowOperatorWithFullControl(smartAccountAddress);
 
-      for (const flowRate of flowRates) {
-        await this.createVestingSchedule(
-          smartAccountAddress,
-          flowRate.address,
-          Number(parseEther(flowRate.amount)),
-          startDate_flow,
-          endDate_flow,
+      const flowRatesChunks = chunk(flowRates, 10);
+      for (const flowRates of flowRatesChunks) {
+        await Promise.all(
+          flowRates.map((flowRate) =>
+            this.createVestingSchedule(
+              smartAccountAddress,
+              flowRate.address,
+              Number(parseUnits(flowRate.amount, 18)),
+              startDate_flow,
+              endDate_flow,
+            ),
+          ),
         );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     } catch (error) {
       this.logger.error(error);
@@ -335,11 +339,17 @@ export class CronService {
         throw new Error('stream_smartaccount not found');
       console.log('stream_smartaccount: ', stream_smartaccount.address);
 
-      for (const score of scores) {
-        await this.executeCliffAndFlow(
-          score.address,
-          stream_smartaccount.address,
+      const scoresChunks = chunk(scores, 10);
+      for (const scoresChunk of scoresChunks) {
+        await Promise.all(
+          scoresChunk.map((score) =>
+            this.executeCliffAndFlow(
+              score.address,
+              stream_smartaccount.address,
+            ),
+          ),
         );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       console.log('executedScores:', scores);
@@ -387,17 +397,46 @@ export class CronService {
       if (!stream_smartaccount)
         throw new Error('stream_smartaccount not found');
 
-      for (const score of scores) {
-        await this.executeEndVesting(
-          score.address,
-          stream_smartaccount.address,
+      const scoresChunks = chunk(scores, 10);
+      for (const scoresChunk of scoresChunks) {
+        await Promise.all(
+          scoresChunk.map((score) =>
+            this.executeEndVesting(score.address, stream_smartaccount.address),
+          ),
         );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
-
-      // await this.withdrawAllDegenX(stream_smartaccount.address);
     } catch (error) {
       this.logger.error(error);
     }
+  }
+
+  @Cron(STREAM_END_SCHEDULE_CRON_EXPRESSION)
+  async withdrawFromPrevSmartAccount() {
+    if (!RUN_CRON) {
+      return;
+    }
+    this.logger.log('Running withdraw from prev smartaccount');
+    const executeCron = cronParser.parseExpression(
+      STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+    );
+    executeCron.prev();
+    const baseDate = executeCron.prev().getTime() / 1000;
+    const endDate = executeCron.next().getTime() / 1000 - 1;
+
+    console.log('Withdraw range:', baseDate, endDate);
+
+    const stream_smartaccount = await this.streamSmartAccountRepository.findOne(
+      {
+        where: {
+          stream_start: baseDate,
+          stream_end: endDate,
+        },
+      },
+    );
+
+    console.log('WithdrawAccount: ', stream_smartaccount?.address);
+    await this.withdrawAllDegenX(stream_smartaccount?.address);
   }
 
   private writeContractParams(
@@ -457,7 +496,7 @@ export class CronService {
           body: {
             toAddress: SUPER_TOKEN,
             data: `0x7687d19b000000000000000000000000${createAccount.data.result.deployedAddress.slice(2)}`,
-            value: parseEther(amount).toString(),
+            value: parseUnits(amount, 18).toString(),
           },
         },
       );
@@ -558,6 +597,8 @@ export class CronService {
     smartAccountAddress: string,
   ) {
     try {
+      console.log('executeCliffAndFlow', smartAccountAddress, receiver);
+
       const { error } = await tweClient.POST(
         '/contract/{chain}/{contractAddress}/write',
         {

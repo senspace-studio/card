@@ -40,13 +40,12 @@ export class WarController {
     return Number(balanceOfAll[Number(tokenId) - 1]);
   }
 
-  // 選んだTokenIDを認識して署名
-  @Post('/sign')
-  async sign(
+  // ToDo: 予約済のカード枚数を返す。
+  @Post('/getReservedCards')
+  async getReservedCard(
     @Body('trustedData') trustedData: { messageBytes: string },
     @Body('messageBytes') messageBytes: string,
   ) {
-    this.logger.log(this.sign.name);
     const result = await this.neynarService.validateRequest(
       messageBytes || trustedData.messageBytes,
     );
@@ -54,8 +53,21 @@ export class WarController {
       throw new Error('invalid message');
     }
     const maker = result.action.address;
-    const tokenId = result.action.tapped_button.index;
-    const hasToken = await this.warService.hasCard(maker, tokenId);
+    return await this.warService.getAllReservedCards(maker);
+  }
+
+  // 選んだTokenIDを認識して署名
+  @Post('/sign')
+  async sign(@Body('messageBytes') messageBytes: string) {
+    this.logger.log(this.sign.name);
+    const result = await this.neynarService.validateRequest(messageBytes);
+    if (!result.valid) {
+      throw new Error('invalid message');
+    }
+    const maker = result.action.interactor.verified_addresses.eth_addresses[0];
+    const tokenId = result.action.input.text;
+
+    const hasToken = await this.warService.hasCard(maker, Number(tokenId));
     if (!hasToken) {
       throw new Error('Insufficient balance');
     }

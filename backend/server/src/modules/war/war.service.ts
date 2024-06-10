@@ -6,9 +6,9 @@ import { degen } from 'viem/chains';
 import { privateKeyToAccount } from 'viem/accounts';
 import { WarEntity } from 'src/entities/war.entity';
 import {
-  BLOCKCHAIN_API_DEGEN,
-  CARD_CONTRACT_ADDRESS,
+  BLOCKCHAIN_API,
   DEALER_PRIVATE_KEY,
+  ERC1155_ADDRESS,
 } from 'src/utils/env';
 import { Repository } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
@@ -16,7 +16,7 @@ import { ERC1155ABI } from 'src/constants/ERC1155';
 const dealar = privateKeyToAccount(DEALER_PRIVATE_KEY as `0x${string}`);
 const client = createPublicClient({
   chain: degen,
-  transport: http(BLOCKCHAIN_API_DEGEN),
+  transport: http(BLOCKCHAIN_API),
 });
 
 @Injectable()
@@ -33,7 +33,7 @@ export class WarService {
       .map((_, i) => BigInt(i + 1));
 
     const res = await client.readContract({
-      address: CARD_CONTRACT_ADDRESS as Address,
+      address: ERC1155_ADDRESS as Address,
       abi: ERC1155ABI,
       functionName: 'balanceOfBatch',
       args: [Array(numOfToken).fill(owner), ids],
@@ -45,6 +45,21 @@ export class WarService {
   async hasCard(owner: string, tokenId: number) {
     const { balanceOfAll } = await this.getCardBalanceOf(owner as Address);
     return 0n < balanceOfAll[tokenId - 1];
+  }
+
+  async getAllReservedGames(maker: string) {
+    const games = await this.warRepositry.find({ where: { maker } });
+    const reservedGamnes = games.filter((e) => !e.challenger);
+    return reservedGamnes;
+  }
+
+  async getAllReservedCards(maker: string) {
+    const games = await this.getAllReservedGames(maker);
+    const numOfCards: number[] = [...new Array(14)].fill(0);
+    for (const game of games) {
+      numOfCards[Number(game.maker_token_id) - 1]++;
+    }
+    return numOfCards;
   }
 
   async getWarGameBySignature(signature: string) {
