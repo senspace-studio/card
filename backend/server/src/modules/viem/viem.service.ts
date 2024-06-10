@@ -4,6 +4,8 @@ import {
   CHAIN_ID,
   ERC1155_ADDRESS,
   GASHA_ADDRESS,
+  SUPER_TOKEN,
+  VESTING_SCHEDULE_ADDRESS,
 } from 'src/utils/env';
 import {
   http,
@@ -13,6 +15,7 @@ import {
   getContract,
   createWalletClient,
   parseEther,
+  encodeFunctionData,
 } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { baseSepolia, base, hardhat, mainnet, degen } from 'viem/chains';
@@ -280,5 +283,16 @@ export class ViemService {
     });
 
     return;
+  }
+
+  getCallData_cfaV1_authorizeFlowOperatorWithFullControl() {
+    const data = encodeFunctionData({
+      abi: CFAv1ABI,
+      functionName: 'authorizeFlowOperatorWithFullControl',
+      args: [SUPER_TOKEN as Address, VESTING_SCHEDULE_ADDRESS as Address, '0x'],
+    });
+    console.log(data);
+
+    return data;
   }
 }

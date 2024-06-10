@@ -5,17 +5,21 @@ import {
   GASHA_CONTRACT_ADDRESS,
   GASHA_UNIT_PRICE,
 } from '../constant/config.js';
-import { decodeEventLog } from 'viem';
+import { decodeEventLog, formatEther } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
-import { gashaContract } from '../lib/contract.js';
+import { gashaContract, publicClient } from '../lib/contract.js';
 import sharp from 'sharp';
 import JSON from 'json-bigint';
+import { getFarcasterUserInfo } from '../lib/neynar.js';
+import { getBalance } from 'viem/actions';
 
 type State = {
   ids: number[];
   quantities: number[];
   transactionId: string;
 };
+
+const MINIMUM_NATIVE_TOKEN = 0;
 
 export const drawApp = new Frog<{ State: State }>({
   initialState: {
@@ -31,16 +35,35 @@ drawApp.frame('/', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/input">Start</Button>,
-      <Button action={`${BASE_URL}/war`}>war</Button>,
+      <Button action={`${BASE_URL}`}>Home</Button>,
+      <Button action="/mycards">My Cards</Button>,
     ],
   });
 });
 
-drawApp.frame('/input', (c) => {
+drawApp.frame('/input', async (c) => {
   const numOfMint = Number(c.inputText);
 
+  const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+  const amountOfDegen = formatEther(
+    await getBalance(publicClient, {
+      address: verifiedAddresses[0],
+    }),
+  );
+
+  if (Number(amountOfDegen) < MINIMUM_NATIVE_TOKEN) {
+    return c.res({
+      image: '/images/draw/bridge.png',
+      imageAspectRatio: '1:1',
+      intents: [
+        <Button.Link href="https://bridge.degen.tips">Bridge</Button.Link>,
+        <Button action="/">Back</Button>,
+      ],
+    });
+  }
+
   return c.res({
-    image: '/images/draw/draw.png',
+    image: '/images/draw/mint.png',
     imageAspectRatio: '1:1',
     action: '/score',
     intents: [
@@ -116,6 +139,7 @@ drawApp.frame('/score', async (c) => {
           <Button action={`/card/${getNextCard(ids, quantities, 15)}`}>
             Next
           </Button>,
+          <Button action={`/input`}>Draw Again</Button>,
           <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
         ],
       });
@@ -136,16 +160,17 @@ drawApp.frame('/card/:id', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       prevCard ? (
-        <Button action={`/card/${prevCard}`}>Back</Button>
+        <Button action={`/card/${prevCard}`}>{`＜ Back`}</Button>
       ) : (
-        <Button action="/score">Back</Button>
+        <Button action="/score">{`＜ Back`}</Button>
       ),
       nextCard ? (
-        <Button action={`/card/${nextCard}`}>Next</Button>
+        <Button action={`/card/${nextCard}`}>{`Next ＞`}</Button>
       ) : (
-        <Button action={`/`}>Top</Button>
+        <Button action={`/`}>Home 🏠</Button>
       ),
-      <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
+      <Button action={`/input`}>Draw Again</Button>,
+      <Button action={`${BASE_URL}/war`}>Battle ⚔</Button>,
     ],
   });
 });
@@ -200,32 +225,56 @@ drawApp.transaction('/transaction/:numOfMint', async (c) => {
 drawApp.hono.get('/image/score/:event', async (c) => {
   const event = JSON.parse(decodeURIComponent(c.req.param('event')));
 
-  const canvas = sharp('./public/images/draw/score.png').resize(1000, 1000);
-
-  const white = '#FFFFFF';
-
-  const eachQuantity = await Promise.all(
-    event.quantities.map(async (quantity: number, index: number) => {
-      const input = await sharp({
-        text: {
-          text: `<span foreground="${white}" font_weight="bold"
-          >x ${quantity}</span>`,
-          font: 'Bigelow Rules',
-          fontfile: './public/fonts/BigelowRules-Regular.ttf',
-          rgba: true,
-          width: 250,
-          height: 25,
-        },
-      })
-        .png()
-        .toBuffer();
-      return {
-        input,
-        left: (index > 8 ? 113 : 158) + index * (index > 8 ? 59 : 52),
-        top: 916,
-      };
-    }),
+  const baseImage = sharp('./public/images/war/pick_card.png').resize(
+    1000,
+    1000,
   );
+
+  const cardWidth = 144;
+  const cardHeight = 211;
+  const px = 19;
+  const py = 21;
+  const cols = 5;
+
+  const composites = event.quantities
+    .map((quantity: number, index: number) => {
+      const components = [];
+
+      // SVGテキストを生成
+      const svgText = Buffer.from(`
+    <svg width="100" height="100">
+      <text x="100" y="20" text-anchor="end" font-family="Arial" font-size="20" fill="white">x ${quantity}</text>
+    </svg>
+  `);
+
+      components.push({
+        input: svgText,
+        top: 907,
+        left: 120 + index * 52,
+      });
+
+      if (quantity < 1) {
+        const x = 100 + (index % cols) * cardWidth + (index % cols) * px;
+        const y =
+          127 +
+          Math.floor(index / cols) * cardHeight +
+          Math.floor(index / cols) * py;
+
+        const overlay = Buffer.from(`
+        <svg width="${cardWidth}" height="${cardHeight}">
+          <rect width="100%" height="100%" fill="rgba(0, 0, 0, 0.8)" rx="${10}" ry="${10}" />
+        </svg>
+      `);
+        components.push({
+          input: overlay,
+          top: y,
+          left: x,
+        });
+      }
+
+      return components;
+    })
+    .flat();
 
   const addressImage = await sharp({
     text: {
@@ -243,16 +292,10 @@ drawApp.hono.get('/image/score/:event', async (c) => {
     .png()
     .toBuffer();
 
-  canvas.composite([
-    ...eachQuantity,
-    {
-      input: addressImage,
-      left: 700,
-      top: 50,
-    },
-  ]);
+  const finalImage = await baseImage
+    .composite([...composites, { input: addressImage, top: 50, left: 700 }])
+    .png()
+    .toBuffer();
 
-  const png = await canvas.png().toBuffer();
-
-  return c.newResponse(png, 200);
+  return c.newResponse(finalImage, 200);
 });
