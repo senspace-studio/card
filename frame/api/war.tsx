@@ -1,9 +1,5 @@
-import { Button, Frog, TextInput, parseEther } from 'frog';
-import {
-  CARD_CONTRACT_ADDRESS,
-  NEYNAR_API_KEY,
-  WAR_CONTRACT_ADDRESS,
-} from '../constant/config.js';
+import { Button, Frog, TextInput } from 'frog';
+import { NEYNAR_API_KEY, WAR_CONTRACT_ADDRESS } from '../constant/config.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
 import { convertCardValue } from '../lib/convertCardValue.js';
 import {
@@ -22,8 +18,6 @@ import {
   decodeEventLog,
   Address,
 } from 'viem';
-import { generatePrivateKey, privateKeyToAccount } from 'viem/accounts';
-import { neynar } from 'frog/hubs';
 import { NeynarAPIClient, FeedType, FilterType } from '@neynar/nodejs-sdk';
 import {
   setGameInfo,
@@ -48,7 +42,6 @@ type State = {
   c_pfp_url?: string;
   c_userName?: string;
   c_card?: number;
-  isApprovedForAll: boolean;
   signature?: Address;
 };
 
@@ -61,7 +54,6 @@ export const warApp = new Frog<{ State: State }>({
     card: 0,
     wager: 0,
     gameId: '',
-    isApprovedForAll: false,
   },
   headers: {
     'cache-control': 'max-age=0',
@@ -166,43 +158,13 @@ warApp.frame('/make-duel', async (c) => {
     prevState.pfp_url = pfp_url;
   });
 
-  const isApprovedForAll = await cardContract.read.isApprovedForAll([
-    address,
-    WAR_CONTRACT_ADDRESS,
-  ]);
-
   return c.res({
     image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
     imageAspectRatio: '1:1',
-    intents: isApprovedForAll
-      ? [
-          <TextInput placeholder="11 or J or ..." />,
-          <Button action="/bet">Set</Button>,
-        ]
-      : [
-          <Button.Transaction target="/setApprovalForAll">
-            Approve
-          </Button.Transaction>,
-        ],
-  });
-});
-
-warApp.transaction('/setApprovalForAll', async (c) => {
-  const { address } = c.previousState;
-  const estimatedGas = await cardContract.estimateGas.setApprovalForAll(
-    [WAR_CONTRACT_ADDRESS, true],
-    {
-      account: address,
-    },
-  );
-
-  return c.contract({
-    chainId: 'eip155:666666666',
-    to: CARD_CONTRACT_ADDRESS,
-    abi: CARD_ABI,
-    functionName: 'setApprovalForAll',
-    args: [WAR_CONTRACT_ADDRESS, true],
-    gas: BigInt(Math.ceil(Number(estimatedGas) * 1.3)),
+    intents: [
+      <TextInput placeholder="11 or J or ..." />,
+      <Button action="/bet">Set</Button>,
+    ],
   });
 });
 
@@ -964,11 +926,6 @@ warApp.frame('/choose/:params', async (c) => {
 
   const quantities = await getQuantities(address);
 
-  const isApprovedForAll = await cardContract.read.isApprovedForAll([
-    address,
-    WAR_CONTRACT_ADDRESS,
-  ]);
-
   c.deriveState((prevState) => {
     prevState.quantities = quantities;
     prevState.userName = userName;
@@ -978,34 +935,18 @@ warApp.frame('/choose/:params', async (c) => {
     prevState.c_userName = c_userName;
     prevState.c_pfp_url = c_pfp_url;
     prevState.c_address = address;
-    prevState.isApprovedForAll = isApprovedForAll;
   });
 
-  console.log(
-    userName,
-    pfp_url,
-    wager,
-    gameId,
-    c_userName,
-    c_pfp_url,
-    address,
-    isApprovedForAll,
-  );
+  console.log(userName, pfp_url, wager, gameId, c_userName, c_pfp_url, address);
 
   return c.res({
     image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
     imageAspectRatio: '1:1',
     action: '/choose',
-    intents: isApprovedForAll
-      ? [
-          <TextInput placeholder="11 or J or ..." />,
-          <Button action="/duel">Set</Button>,
-        ]
-      : [
-          <Button.Transaction target="/setApprovalForAll">
-            Approve
-          </Button.Transaction>,
-        ],
+    intents: [
+      <TextInput placeholder="11 or J or ..." />,
+      <Button action="/duel">Set</Button>,
+    ],
   });
 });
 
