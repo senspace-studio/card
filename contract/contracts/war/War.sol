@@ -9,7 +9,6 @@ import '../interfaces/IWar.sol';
 import '../interfaces/IWarPool.sol';
 import '../interfaces/ICard.sol';
 import '../lib/SignatureVerifier.sol';
-import 'hardhat/console.sol';
 
 contract War is
     IWar,
@@ -25,6 +24,8 @@ contract War is
     ICard card;
 
     mapping(bytes8 => Game) public games;
+
+    uint64 expirationTime;
 
     modifier onlyDealer() {
         require(
@@ -52,14 +53,25 @@ contract War is
         _;
     }
 
+    modifier onlyExpiredGame(bytes8 gameId) {
+        GameStatus status = gameStatus(gameId);
+        require(
+            status == GameStatus.Expired,
+            'War: game status should be Expired'
+        );
+        _;
+    }
+
     function initialize(
         address _initialOwner,
-        address _dealerAddress
+        address _dealerAddress,
+        uint64 _expirationTime
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
         __ReentrancyGuard_init();
         dealerAddress = _dealerAddress;
+        expirationTime = _expirationTime;
     }
 
     function makeGame(
@@ -168,13 +180,16 @@ contract War is
             return;
         } else if (!makerHasCard) {
             winner = game.challenger;
-            rewardRateTop = 100;
+            rewardRateTop = 100000;
             card.burn(game.challenger, game.challengerCard, 1);
+            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
+            emit GameRevealed(gameId, address(0), game.challenger, winner);
         } else if (!challengerHasCard) {
             winner = game.maker;
-            rewardRateTop = 100;
+            rewardRateTop = 100000;
             card.burn(game.maker, makerCard, 1);
             warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
+            emit GameRevealed(gameId, game.maker, address(0), winner);
         } else {
             winner = makerCard > game.challengerCard
                 ? game.maker
@@ -197,12 +212,21 @@ contract War is
 
             card.burn(game.maker, makerCard, 1);
             card.burn(game.challenger, game.challengerCard, 1);
+            emit GameRevealed(gameId, game.maker, game.challenger, winner);
         }
 
         game.winner = winner;
         game.makerCard = makerCard;
+    }
 
-        emit GameRevealed(gameId, game.maker, game.challenger, winner);
+    function expireGame(
+        bytes8 gameId
+    ) public whenNotPaused nonReentrant onlyExpiredGame(gameId) {
+        Game memory game = games[gameId];
+
+        warPool.returnToMaker(gameId);
+
+        emit GameExpired(gameId, game.maker);
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
@@ -211,7 +235,7 @@ contract War is
         if (
             game.maker != address(0) &&
             game.challenger == address(0) &&
-            block.timestamp - game.createdAt > 1 days
+            block.timestamp - game.createdAt > expirationTime
         ) {
             return GameStatus.Expired;
         } else if (game.maker != address(0) && game.challenger == address(0)) {

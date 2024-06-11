@@ -8,6 +8,7 @@ interface IWarPool {
         DepositedByMaker,
         DepositedByChallenger,
         PayoutForWinner,
+        ReturnedToMaker,
         ReturnedToBoth,
         WithdrawnByAdmin
     }
@@ -35,6 +36,8 @@ interface IWarPool {
         uint256 returnAmount,
         uint256 commissionAmount
     );
+
+    event ReturnToMaker(bytes8 indexed gameId);
 
     event ReturnToBoth(bytes8 indexed gameId);
 
@@ -68,6 +71,8 @@ interface IWarPool {
         address winner,
         address loser
     ) external;
+
+    function returnToMaker(bytes8 gameId) external;
 
     function returnToBoth(bytes8 gameId) external;
 
