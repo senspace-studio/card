@@ -24,3 +24,15 @@ export const deployGashaContract = async (
   await gasha.waitForDeployment();
   return gasha;
 };
+
+export const upgradeGashaContract = async (address: string) => {
+  const gashaFactory = await ethers.getContractFactory('Gasha');
+  const gasha = (await upgrades.upgradeProxy(
+    address,
+    gashaFactory,
+  )) as any as Gasha;
+
+  await gasha.waitForDeployment();
+
+  return gasha;
+};

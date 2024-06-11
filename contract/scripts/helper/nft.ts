@@ -11,3 +11,12 @@ export const deployCardContract = async (initialOwner: string) => {
 
   return nft;
 };
+
+export const upgradeCardContract = async (address: string) => {
+  const nftFactory = await ethers.getContractFactory('Card');
+  const nft = (await upgrades.upgradeProxy(address, nftFactory)) as any as Card;
+
+  await nft.waitForDeployment();
+
+  return nft;
+};

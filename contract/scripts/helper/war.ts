@@ -64,3 +64,16 @@ export const upgradeWarContract = async (address: string) => {
 
   return war;
 };
+
+export const upgradeWarPoolContract = async (address: string) => {
+  const warPoolFactory = await ethers.getContractFactory('WarPool');
+
+  const warPool = (await upgrades.upgradeProxy(
+    address,
+    warPoolFactory,
+  )) as any as WarPool;
+
+  await warPool.waitForDeployment();
+
+  return warPool;
+};

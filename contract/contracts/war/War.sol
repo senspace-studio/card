@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IWar.sol';
 import '../interfaces/IWarPool.sol';
 import '../interfaces/ICard.sol';
@@ -17,11 +18,13 @@ contract War is
     ReentrancyGuardUpgradeable,
     SignatureVerifier
 {
-    address dealerAddress;
+    address public dealerAddress;
 
-    IWarPool warPool;
+    IWarPool public warPool;
 
-    ICard card;
+    ICard public card;
+
+    IERC721 public invitation;
 
     mapping(bytes8 => Game) public games;
 
@@ -31,6 +34,14 @@ contract War is
         require(
             dealerAddress == msg.sender,
             'War: only dealer can call this function'
+        );
+        _;
+    }
+
+    modifier onlyInvitationHolder() {
+        require(
+            invitation.balanceOf(msg.sender) > 0,
+            'War: only invitation holder can call this function'
         );
         _;
     }
@@ -79,7 +90,7 @@ contract War is
         uint256 betAmount,
         bool isNativeToken,
         bytes memory signature
-    ) external payable whenNotPaused nonReentrant {
+    ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
         bytes8 gameId = bytes8(
             keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
         );
@@ -113,7 +124,14 @@ contract War is
     function challengeGame(
         bytes8 gameId,
         uint256 cardTokenId
-    ) external payable whenNotPaused nonReentrant onlyCreatedGame(gameId) {
+    )
+        external
+        payable
+        whenNotPaused
+        nonReentrant
+        onlyInvitationHolder
+        onlyCreatedGame(gameId)
+    {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');
 
@@ -308,5 +326,17 @@ contract War is
 
     function setCardAddress(address _card) external onlyOwner {
         card = ICard(_card);
+    }
+
+    function setInvitationAddress(address _invitation) external onlyOwner {
+        invitation = IERC721(_invitation);
+    }
+
+    function togglePause() external onlyOwner {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
     }
 }
