@@ -25,4 +25,7 @@ export const WAR_CONTRACT_ADDRESS = process.env
 export const WAR_POOL_CONTRACT_ADDRESS = process.env
   .WAR_POOL_CONTRACT_ADDRESS as `0x${string}`;
 
+export const INVITATION_NFT_CONTRACT_ADDRESS = process.env
+  .INVITATION_NFT_CONTRACT_ADDRESS as `0x${string}`;
+
 export const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY as string;
