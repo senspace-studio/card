@@ -35,4 +35,6 @@ interface IWar {
         address indexed challenger,
         address winner
     );
+
+    event GameExpired(bytes8 indexed gameId, address indexed maker);
 }

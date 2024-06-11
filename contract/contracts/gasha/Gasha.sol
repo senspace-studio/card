@@ -5,12 +5,9 @@ import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import '../interfaces/IGasha.sol';
 import '../interfaces/ICard.sol';
-import '../interfaces/IHat.sol';
 
 contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     ICard public GashaItem;
-
-    IHat public Hat;
 
     SeriesItem[] public series;
 
@@ -26,8 +23,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     BonusPointDuration public bonusPoint;
 
-    mapping(address => bool) public operators;
-
     modifier isAvailableTime() {
         uint256 currentTime = block.timestamp;
         require(
@@ -37,22 +32,15 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
-    modifier onlyOperator() {
-        require(operators[msg.sender], 'Gasha: caller is not the operator');
-        _;
-    }
-
     function initialize(
         address _initialOwner,
         address _gashaItemERC1155,
-        address _hatERC404,
         uint256 _initialSeed,
         uint256 _unitPrice
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
         GashaItem = ICard(_gashaItemERC1155);
-        Hat = IHat(_hatERC404);
         seed = _initialSeed;
         unitPrice = _unitPrice;
         basePoint = [200, 600, 1800];
@@ -92,8 +80,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         _mint(msg.sender, ids, quantities);
 
         emit Spin(msg.sender, ids, quantities);
-
-        Hat.mint(msg.sender, earnedPoint);
     }
 
     function dropByOwner(
@@ -246,10 +232,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         } else {
             _pause();
         }
-    }
-
-    function setOperator(address _operator, bool _status) external onlyOwner {
-        operators[_operator] = _status;
     }
 
     function onERC1155Received(

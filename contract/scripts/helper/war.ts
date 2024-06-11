@@ -4,10 +4,12 @@ import { War, WarPool } from '../../typechain-types';
 export const deployWarAllContracts = async (
   initialOwnerAddress: string,
   dealerAddress: string,
+  expirationTime: number,
 ) => {
   const warContract = await deployWarContract(
     initialOwnerAddress,
     dealerAddress,
+    expirationTime,
   );
   const warPoolContract = await deployWarPoolContract(initialOwnerAddress);
 
@@ -20,12 +22,13 @@ export const deployWarAllContracts = async (
 export const deployWarContract = async (
   initialOwnerAddress: string,
   dealerAddress: string,
+  expirationTime: number,
 ) => {
   const warFactory = await ethers.getContractFactory('War');
 
   const war = (await upgrades.deployProxy(
     warFactory,
-    [initialOwnerAddress, dealerAddress],
+    [initialOwnerAddress, dealerAddress, expirationTime],
     {
       initializer: 'initialize',
     },

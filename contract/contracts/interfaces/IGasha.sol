@@ -77,6 +77,4 @@ interface IGasha {
         Rareness rareness,
         uint256 weight
     ) external;
-
-    function setOperator(address _operator, bool _status) external;
 }
