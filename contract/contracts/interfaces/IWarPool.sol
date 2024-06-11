@@ -30,7 +30,10 @@ interface IWarPool {
     event PayoutForWinner(
         bytes8 indexed gameId,
         address indexed winner,
-        address indexed loser
+        address indexed loser,
+        uint256 rewardAmount,
+        uint256 returnAmount,
+        uint256 commissionAmount
     );
 
     event ReturnToBoth(bytes8 indexed gameId);

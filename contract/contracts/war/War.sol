@@ -160,7 +160,7 @@ contract War is
         bool challengerHasCard = _hasCard(game.challenger, game.challengerCard);
 
         address winner;
-        uint256 rewardRate;
+        uint256 rewardRateTop;
 
         if (!makerHasCard && !challengerHasCard) {
             game.makerCard = makerCard;
@@ -168,21 +168,19 @@ contract War is
             return;
         } else if (!makerHasCard) {
             winner = game.challenger;
-            rewardRate = 100;
+            rewardRateTop = 100;
             card.burn(game.challenger, game.challengerCard, 1);
         } else if (!challengerHasCard) {
             winner = game.maker;
-            rewardRate = 100;
+            rewardRateTop = 100;
             card.burn(game.maker, makerCard, 1);
+            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
         } else {
             winner = makerCard > game.challengerCard
                 ? game.maker
                 : makerCard == game.challengerCard
                 ? address(0)
                 : game.challenger;
-            uint256 winnerCard = makerCard > game.challengerCard
-                ? makerCard
-                : game.challengerCard;
 
             if (winner == address(0)) {
                 warPool.returnToBoth(gameId);
@@ -190,8 +188,11 @@ contract War is
                 address loser = winner == game.maker
                     ? game.challenger
                     : game.maker;
-                rewardRate = _calcRewardRate(winnerCard);
-                warPool.payoutForWinner(gameId, rewardRate, winner, loser);
+                uint256 looserCard = winner == game.maker
+                    ? game.challengerCard
+                    : makerCard;
+                rewardRateTop = calcRewardRateTop(looserCard);
+                warPool.payoutForWinner(gameId, rewardRateTop, winner, loser);
             }
 
             card.burn(game.maker, makerCard, 1);
@@ -228,17 +229,39 @@ contract War is
         }
     }
 
-    function _calcRewardRate(
-        uint256 winnerCard
-    ) internal pure returns (uint256) {
-        if (winnerCard > 10) {
-            return 20;
-        } else if (winnerCard > 8) {
-            return 50;
-        } else if (winnerCard > 5) {
-            return 80;
+    function calcRewardRateTop(
+        uint256 looserCard
+    ) public pure returns (uint256) {
+        if (looserCard == 1) {
+            return 1095;
+        } else if (looserCard == 2) {
+            return 9529;
+        } else if (looserCard == 3) {
+            return 19058;
+        } else if (looserCard == 4) {
+            return 9529;
+        } else if (looserCard == 5) {
+            return 38116;
+        } else if (looserCard == 6) {
+            return 47645;
+        } else if (looserCard == 7) {
+            return 57174;
+        } else if (looserCard == 8) {
+            return 66703;
+        } else if (looserCard == 9) {
+            return 76232;
+        } else if (looserCard == 10) {
+            return 85761;
+        } else if (looserCard == 11) {
+            return 90625;
+        } else if (looserCard == 12) {
+            return 94792;
+        } else if (looserCard == 13) {
+            return 98958;
+        } else if (looserCard == 14) {
+            return 91212;
         } else {
-            return 100;
+            return 0;
         }
     }
 

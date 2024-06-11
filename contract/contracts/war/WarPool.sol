@@ -8,6 +8,8 @@ import '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '../interfaces/IWarPool.sol';
 
+import 'hardhat/console.sol';
+
 contract WarPool is
     IWarPool,
     OwnableUpgradeable,
@@ -15,6 +17,12 @@ contract WarPool is
     ReentrancyGuardUpgradeable
 {
     address warAddress;
+
+    uint256 commissionRateTop;
+
+    uint256 commissionRateBottom;
+
+    uint256 rewardRateBottom;
 
     modifier onlyWar() {
         require(
@@ -39,6 +47,9 @@ contract WarPool is
         __Ownable_init(_initialOwner);
         __Pausable_init();
         __ReentrancyGuard_init();
+        commissionRateTop = 1;
+        commissionRateBottom = 100;
+        rewardRateBottom = 100000;
     }
 
     function deposit(
@@ -49,6 +60,11 @@ contract WarPool is
         uint256 betAmount
     ) external payable onlyWar whenNotPaused nonReentrant {
         GameDeposit storage gameDeposit = gameDeposits[gameId];
+
+        require(
+            betAmount == 0 || betAmount >= rewardRateBottom,
+            'WarPool: invalid bet amount'
+        );
 
         if (gameDeposit.status == DepositStatus.NotExist) {
             gameDeposits[gameId] = GameDeposit({
@@ -86,7 +102,7 @@ contract WarPool is
 
     function payoutForWinner(
         bytes8 gameId,
-        uint256 rewardRate,
+        uint256 rewardRateTop,
         address winner,
         address loser
     )
@@ -100,11 +116,17 @@ contract WarPool is
 
         gameDeposit.status = DepositStatus.PayoutForWinner;
 
-        uint256 rewardAmount = (gameDeposit.betAmount * rewardRate) /
-            100 +
+        require(
+            rewardRateTop <= rewardRateBottom,
+            'WarPool: invalid reward rate'
+        );
+        uint256 winningAmount = (gameDeposit.betAmount * rewardRateTop) /
+            rewardRateBottom;
+        uint256 commissionAmount = _commissionAmount(winningAmount);
+        uint256 rewardAmount = winningAmount -
+            commissionAmount +
             gameDeposit.betAmount;
-        uint256 returnAmount = (gameDeposit.betAmount * (100 - rewardRate)) /
-            100;
+        uint256 returnAmount = gameDeposit.betAmount - winningAmount;
 
         if (gameDeposit.isNativeToken) {
             require(
@@ -127,7 +149,14 @@ contract WarPool is
             );
         }
 
-        emit PayoutForWinner(gameId, winner, loser);
+        emit PayoutForWinner(
+            gameId,
+            winner,
+            loser,
+            rewardAmount,
+            returnAmount,
+            commissionAmount
+        );
     }
 
     function returnToBoth(
@@ -204,6 +233,24 @@ contract WarPool is
         }
 
         emit WithdrawByAdmin(gameId);
+    }
+
+    function setCommission(
+        uint256 _commissionRateTop,
+        uint256 _commissionRateBottom
+    ) external onlyOwner {
+        require(
+            _commissionRateTop <= _commissionRateBottom &&
+                _commissionRateTop > 0 &&
+                _commissionRateTop > 0,
+            'WarPool: invalid commission'
+        );
+        commissionRateTop = _commissionRateTop;
+        commissionRateBottom = _commissionRateBottom;
+    }
+
+    function _commissionAmount(uint256 amount) private view returns (uint256) {
+        return (amount * commissionRateTop) / commissionRateBottom;
     }
 
     function _safeTransfer(address to, uint256 amount) private returns (bool) {
