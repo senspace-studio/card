@@ -325,4 +325,12 @@ contract WarPool is
     ) private returns (bool) {
         return token.transfer(to, amount);
     }
+
+    function togglePause() external onlyOwner {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
+    }
 }

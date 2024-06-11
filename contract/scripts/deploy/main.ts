@@ -4,7 +4,8 @@ import { deployCardContract } from '../helper/nft';
 import { deployWarAllContracts } from '../helper/war';
 
 const main = async () => {
-  const adminAddress = '0x807C69F16456F92ab2bFc9De8f14AF31051f9678';
+  const adminAddress = '0x777EE5eeEd30c3712bEE6C83260D786857d9C556';
+  const dealerAddress = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
   const gashaItemERC1155Contract = await deployCardContract(adminAddress);
 
@@ -58,7 +59,7 @@ const main = async () => {
   // deploy war
   const { warContract, warPoolContract } = await deployWarAllContracts(
     adminAddress,
-    adminAddress,
+    dealerAddress,
     24 * 60 * 60,
   );
   await new Promise((r) => setTimeout(r, 3000));

@@ -3,11 +3,14 @@ pragma solidity ^0.8.20;
 
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IGasha.sol';
 import '../interfaces/ICard.sol';
 
 contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     ICard public GashaItem;
+
+    IERC721 public invitation;
 
     SeriesItem[] public series;
 
@@ -32,6 +35,14 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         _;
     }
 
+    modifier onlyInvitationHolder() {
+        require(
+            invitation.balanceOf(msg.sender) > 0,
+            'War: only invitation holder can call this function'
+        );
+        _;
+    }
+
     function initialize(
         address _initialOwner,
         address _gashaItemERC1155,
@@ -48,7 +59,7 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     function spin(
         uint256 quantity
-    ) external payable isAvailableTime whenNotPaused {
+    ) external payable isAvailableTime whenNotPaused onlyInvitationHolder {
         require(quantity > 0 && quantity < 1000, 'Gasha: quantity is invalid');
         require(msg.value >= unitPrice * quantity, 'Gasha: insufficient funds');
 
@@ -224,6 +235,14 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         endTime = _endTime;
 
         emit SetAvailableTime(_startTime, _endTime);
+    }
+
+    function setInvitationAddress(address _invitation) external onlyOwner {
+        invitation = IERC721(_invitation);
+    }
+
+    function setUnitPrice(uint256 _unitPrice) external onlyOwner {
+        unitPrice = _unitPrice;
     }
 
     function togglePause() external onlyOwner {

@@ -5,9 +5,9 @@ import {
   GASHA_CONTRACT_ADDRESS,
   GASHA_UNIT_PRICE,
 } from '../constant/config.js';
-import { decodeEventLog, formatEther } from 'viem';
+import { decodeEventLog, formatEther, parseUnits } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
-import { gashaContract, publicClient } from '../lib/contract.js';
+import { cardContract, gashaContract, publicClient } from '../lib/contract.js';
 import sharp from 'sharp';
 import JSON from 'json-bigint';
 import { getFarcasterUserInfo } from '../lib/neynar.js';
@@ -175,6 +175,18 @@ drawApp.frame('/card/:id', (c) => {
   });
 });
 
+drawApp.frame('/mycards', async (c) => {
+  const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+
+  const quantities = await getQuantities(verifiedAddresses[0]);
+
+  return c.res({
+    image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
+    imageAspectRatio: '1:1',
+    intents: [<Button action="/">Back</Button>],
+  });
+});
+
 const getPrevCard = (
   ids: number[],
   quantities: number[],
@@ -199,6 +211,34 @@ const getNextCard = (
   return nextId;
 };
 
+const getQuantities = async (address: string) => {
+  const addressList: `0x${string}`[] = Array(14).fill(address);
+  const allCardIds: bigint[] = [
+    1n,
+    2n,
+    3n,
+    4n,
+    5n,
+    6n,
+    7n,
+    8n,
+    9n,
+    10n,
+    11n,
+    12n,
+    13n,
+    14n,
+  ];
+
+  const data = await cardContract.read.balanceOfBatch([
+    addressList,
+    allCardIds,
+  ]);
+
+  const quantities = data.map((quantity) => Number(quantity));
+  return quantities;
+};
+
 drawApp.transaction('/transaction/:numOfMint', async (c) => {
   const numOfMint = Number(c.req.param('numOfMint'));
   const requiredDegen = numOfMint * GASHA_UNIT_PRICE;
@@ -206,7 +246,7 @@ drawApp.transaction('/transaction/:numOfMint', async (c) => {
   const estimatedGas = await gashaContract.estimateGas.spin(
     [BigInt(numOfMint)],
     {
-      value: parseEther(requiredDegen.toString()),
+      value: BigInt(requiredDegen),
       account: '0x807C69F16456F92ab2bFc9De8f14AF31051f9678',
     },
   );
@@ -217,7 +257,7 @@ drawApp.transaction('/transaction/:numOfMint', async (c) => {
     abi: GASHA_ABI,
     functionName: 'spin',
     args: [BigInt(numOfMint)],
-    value: parseEther(requiredDegen.toString()),
+    value: BigInt(requiredDegen),
     gas: BigInt(Math.ceil(Number(estimatedGas) * 1.3)),
   });
 });
@@ -297,5 +337,5 @@ drawApp.hono.get('/image/score/:event', async (c) => {
     .png()
     .toBuffer();
 
-  return c.newResponse(finalImage, 200);
+  return c.newResponse(finalImage, 200, { 'Content-Type': 'image/png' });
 });
