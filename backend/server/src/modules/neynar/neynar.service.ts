@@ -14,10 +14,10 @@ export class NeynarService {
     this.logger.log('getUserInfo', address);
     try {
       const users = await this.client.fetchBulkUsersByEthereumAddress([
-        address,
+        address.toLowerCase(),
       ]);
 
-      return users ? users[address] || users[0] || [] : [];
+      return users ? users[address.toLowerCase()] || users[0] || [] : [];
     } catch (error) {
       return [];
     }
