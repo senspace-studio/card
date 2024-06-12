@@ -1,31 +1,18 @@
 import { deployGashaContract } from '../helper/gasha';
-import { deployForwarderContract, deployHatContract } from '../helper/hat';
 import { ContractTransactionResponse } from 'ethers';
 import { deployCardContract } from '../helper/nft';
 import { deployWarAllContracts } from '../helper/war';
 
 const main = async () => {
-  const adminAddress = '0x807C69F16456F92ab2bFc9De8f14AF31051f9678';
-  const syndicateAddresses = [
-    '0x6A835d6bd3d5fE1D1Ac8dB2Ce2f707f95892Ea28',
-    '0xe79B0AF60EECd70eb738C113734483D9D14959Ae',
-  ];
+  const adminAddress = '0x777EE5eeEd30c3712bEE6C83260D786857d9C556';
+  const dealerAddress = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
 
   const gashaItemERC1155Contract = await deployCardContract(adminAddress);
-
-  const hatContract = await deployHatContract(adminAddress);
 
   const gashaContract = await deployGashaContract(
     adminAddress,
     await gashaItemERC1155Contract.getAddress(),
-    await hatContract.getAddress(),
     0,
-  );
-
-  const forwarderContract = await deployForwarderContract(
-    adminAddress,
-    await hatContract.getAddress(),
-    '0x1E81450b1b7c550708b659cA6AF6fADeA3c4B4A4',
   );
 
   for (const tokenId of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
@@ -54,12 +41,6 @@ const main = async () => {
     await tx.wait();
   }
 
-  // Set syndicate as Operator of Gasha
-  for (const syndicateAddress of syndicateAddresses) {
-    let tx = await gashaContract.setOperator(syndicateAddress, true);
-    await tx.wait();
-  }
-
   // Set available time for gasha
   let tx = await gashaContract.setAvailableTime(1711000000, 1912300400);
   await tx.wait();
@@ -75,25 +56,11 @@ const main = async () => {
   );
   await tx.wait();
 
-  // Set syndicate as operator of Forwarder
-  for (const syndicateAddress of syndicateAddresses) {
-    tx = await forwarderContract.setOperator(syndicateAddress, true);
-    await tx.wait();
-  }
-
-  // set forwarder of hat
-  tx = await hatContract.setForwarder(await gashaContract.getAddress(), true);
-  await tx.wait();
-  tx = await hatContract.setForwarder(
-    await forwarderContract.getAddress(),
-    true,
-  );
-  await tx.wait();
-
   // deploy war
   const { warContract, warPoolContract } = await deployWarAllContracts(
     adminAddress,
-    adminAddress,
+    dealerAddress,
+    24 * 60 * 60,
   );
   await new Promise((r) => setTimeout(r, 3000));
   tx = await warContract.setCardAddress(
@@ -117,8 +84,6 @@ const main = async () => {
     await gashaItemERC1155Contract.getAddress(),
   );
   console.log('Gasha deployed to:', await gashaContract.getAddress());
-  console.log('Hat deployed to:', await hatContract.getAddress());
-  console.log('Forwarder deployed to:', await forwarderContract.getAddress());
   console.log('War deployed to:', await warContract.getAddress());
   console.log('WarPool deployed to:', await warPoolContract.getAddress());
 

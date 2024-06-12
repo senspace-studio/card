@@ -5,11 +5,11 @@ pragma solidity ^0.8.20;
 import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol';
 import '@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import '../interfaces/IWar.sol';
 import '../interfaces/IWarPool.sol';
 import '../interfaces/ICard.sol';
 import '../lib/SignatureVerifier.sol';
-import 'hardhat/console.sol';
 
 contract War is
     IWar,
@@ -18,18 +18,30 @@ contract War is
     ReentrancyGuardUpgradeable,
     SignatureVerifier
 {
-    address dealerAddress;
+    address public dealerAddress;
 
-    IWarPool warPool;
+    IWarPool public warPool;
 
-    ICard card;
+    ICard public card;
+
+    IERC721 public invitation;
 
     mapping(bytes8 => Game) public games;
+
+    uint64 expirationTime;
 
     modifier onlyDealer() {
         require(
             dealerAddress == msg.sender,
             'War: only dealer can call this function'
+        );
+        _;
+    }
+
+    modifier onlyInvitationHolder() {
+        require(
+            invitation.balanceOf(msg.sender) > 0,
+            'War: only invitation holder can call this function'
         );
         _;
     }
@@ -52,14 +64,25 @@ contract War is
         _;
     }
 
+    modifier onlyExpiredGame(bytes8 gameId) {
+        GameStatus status = gameStatus(gameId);
+        require(
+            status == GameStatus.Expired,
+            'War: game status should be Expired'
+        );
+        _;
+    }
+
     function initialize(
         address _initialOwner,
-        address _dealerAddress
+        address _dealerAddress,
+        uint64 _expirationTime
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
         __ReentrancyGuard_init();
         dealerAddress = _dealerAddress;
+        expirationTime = _expirationTime;
     }
 
     function makeGame(
@@ -67,7 +90,7 @@ contract War is
         uint256 betAmount,
         bool isNativeToken,
         bytes memory signature
-    ) external payable whenNotPaused nonReentrant {
+    ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
         bytes8 gameId = bytes8(
             keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
         );
@@ -95,13 +118,20 @@ contract War is
             createdAt: uint64(block.timestamp)
         });
 
-        emit GameMade(gameId, msg.sender);
+        emit GameMade(gameId, msg.sender, signature);
     }
 
     function challengeGame(
         bytes8 gameId,
         uint256 cardTokenId
-    ) external payable whenNotPaused nonReentrant onlyCreatedGame(gameId) {
+    )
+        external
+        payable
+        whenNotPaused
+        nonReentrant
+        onlyInvitationHolder
+        onlyCreatedGame(gameId)
+    {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');
 
@@ -160,7 +190,7 @@ contract War is
         bool challengerHasCard = _hasCard(game.challenger, game.challengerCard);
 
         address winner;
-        uint256 rewardRate;
+        uint256 rewardRateTop;
 
         if (!makerHasCard && !challengerHasCard) {
             game.makerCard = makerCard;
@@ -168,21 +198,22 @@ contract War is
             return;
         } else if (!makerHasCard) {
             winner = game.challenger;
-            rewardRate = 100;
+            rewardRateTop = 100000;
             card.burn(game.challenger, game.challengerCard, 1);
+            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
+            emit GameRevealed(gameId, address(0), game.challenger, winner);
         } else if (!challengerHasCard) {
             winner = game.maker;
-            rewardRate = 100;
+            rewardRateTop = 100000;
             card.burn(game.maker, makerCard, 1);
+            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
+            emit GameRevealed(gameId, game.maker, address(0), winner);
         } else {
             winner = makerCard > game.challengerCard
                 ? game.maker
                 : makerCard == game.challengerCard
                 ? address(0)
                 : game.challenger;
-            uint256 winnerCard = makerCard > game.challengerCard
-                ? makerCard
-                : game.challengerCard;
 
             if (winner == address(0)) {
                 warPool.returnToBoth(gameId);
@@ -190,18 +221,30 @@ contract War is
                 address loser = winner == game.maker
                     ? game.challenger
                     : game.maker;
-                rewardRate = _calcRewardRate(winnerCard);
-                warPool.payoutForWinner(gameId, rewardRate, winner, loser);
+                uint256 looserCard = winner == game.maker
+                    ? game.challengerCard
+                    : makerCard;
+                rewardRateTop = calcRewardRateTop(looserCard);
+                warPool.payoutForWinner(gameId, rewardRateTop, winner, loser);
             }
 
             card.burn(game.maker, makerCard, 1);
             card.burn(game.challenger, game.challengerCard, 1);
+            emit GameRevealed(gameId, game.maker, game.challenger, winner);
         }
 
         game.winner = winner;
         game.makerCard = makerCard;
+    }
 
-        emit GameRevealed(gameId, game.maker, game.challenger, winner);
+    function expireGame(
+        bytes8 gameId
+    ) public whenNotPaused nonReentrant onlyExpiredGame(gameId) {
+        Game memory game = games[gameId];
+
+        warPool.returnToMaker(gameId);
+
+        emit GameExpired(gameId, game.maker);
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
@@ -210,7 +253,7 @@ contract War is
         if (
             game.maker != address(0) &&
             game.challenger == address(0) &&
-            block.timestamp - game.createdAt > 1 days
+            block.timestamp - game.createdAt > expirationTime
         ) {
             return GameStatus.Expired;
         } else if (game.maker != address(0) && game.challenger == address(0)) {
@@ -228,17 +271,39 @@ contract War is
         }
     }
 
-    function _calcRewardRate(
-        uint256 winnerCard
-    ) internal pure returns (uint256) {
-        if (winnerCard > 10) {
-            return 20;
-        } else if (winnerCard > 8) {
-            return 50;
-        } else if (winnerCard > 5) {
-            return 80;
+    function calcRewardRateTop(
+        uint256 looserCard
+    ) public pure returns (uint256) {
+        if (looserCard == 1) {
+            return 1095;
+        } else if (looserCard == 2) {
+            return 9529;
+        } else if (looserCard == 3) {
+            return 19058;
+        } else if (looserCard == 4) {
+            return 9529;
+        } else if (looserCard == 5) {
+            return 38116;
+        } else if (looserCard == 6) {
+            return 47645;
+        } else if (looserCard == 7) {
+            return 57174;
+        } else if (looserCard == 8) {
+            return 66703;
+        } else if (looserCard == 9) {
+            return 76232;
+        } else if (looserCard == 10) {
+            return 85761;
+        } else if (looserCard == 11) {
+            return 90625;
+        } else if (looserCard == 12) {
+            return 94792;
+        } else if (looserCard == 13) {
+            return 98958;
+        } else if (looserCard == 14) {
+            return 91212;
         } else {
-            return 100;
+            return 0;
         }
     }
 
@@ -261,5 +326,17 @@ contract War is
 
     function setCardAddress(address _card) external onlyOwner {
         card = ICard(_card);
+    }
+
+    function setInvitationAddress(address _invitation) external onlyOwner {
+        invitation = IERC721(_invitation);
+    }
+
+    function togglePause() external onlyOwner {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
     }
 }

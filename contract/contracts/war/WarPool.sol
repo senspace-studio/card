@@ -16,10 +16,25 @@ contract WarPool is
 {
     address warAddress;
 
+    uint256 commissionRateTop;
+
+    uint256 commissionRateBottom;
+
+    uint256 rewardRateBottom;
+
     modifier onlyWar() {
         require(
             warAddress == msg.sender,
             'WarPool: only war contract can call this function'
+        );
+        _;
+    }
+
+    modifier onlyDepositedByMaker(bytes8 gameId) {
+        GameDeposit memory gameDeposit = gameDeposits[gameId];
+        require(
+            gameDeposit.status == DepositStatus.DepositedByMaker,
+            'WarPool: only DepositedByMaker'
         );
         _;
     }
@@ -39,6 +54,9 @@ contract WarPool is
         __Ownable_init(_initialOwner);
         __Pausable_init();
         __ReentrancyGuard_init();
+        commissionRateTop = 1;
+        commissionRateBottom = 100;
+        rewardRateBottom = 100000;
     }
 
     function deposit(
@@ -49,6 +67,11 @@ contract WarPool is
         uint256 betAmount
     ) external payable onlyWar whenNotPaused nonReentrant {
         GameDeposit storage gameDeposit = gameDeposits[gameId];
+
+        require(
+            betAmount == 0 || betAmount >= rewardRateBottom,
+            'WarPool: invalid bet amount'
+        );
 
         if (gameDeposit.status == DepositStatus.NotExist) {
             gameDeposits[gameId] = GameDeposit({
@@ -86,7 +109,7 @@ contract WarPool is
 
     function payoutForWinner(
         bytes8 gameId,
-        uint256 rewardRate,
+        uint256 rewardRateTop,
         address winner,
         address loser
     )
@@ -100,11 +123,17 @@ contract WarPool is
 
         gameDeposit.status = DepositStatus.PayoutForWinner;
 
-        uint256 rewardAmount = (gameDeposit.betAmount * rewardRate) /
-            100 +
+        require(
+            rewardRateTop <= rewardRateBottom,
+            'WarPool: invalid reward rate'
+        );
+        uint256 winningAmount = (gameDeposit.betAmount * rewardRateTop) /
+            rewardRateBottom;
+        uint256 commissionAmount = _commissionAmount(winningAmount);
+        uint256 rewardAmount = winningAmount -
+            commissionAmount +
             gameDeposit.betAmount;
-        uint256 returnAmount = (gameDeposit.betAmount * (100 - rewardRate)) /
-            100;
+        uint256 returnAmount = gameDeposit.betAmount - winningAmount;
 
         if (gameDeposit.isNativeToken) {
             require(
@@ -127,7 +156,41 @@ contract WarPool is
             );
         }
 
-        emit PayoutForWinner(gameId, winner, loser);
+        emit PayoutForWinner(
+            gameId,
+            winner,
+            loser,
+            rewardAmount,
+            returnAmount,
+            commissionAmount
+        );
+    }
+
+    function returnToMaker(
+        bytes8 gameId
+    ) external onlyWar whenNotPaused nonReentrant onlyDepositedByMaker(gameId) {
+        GameDeposit storage gameDeposit = gameDeposits[gameId];
+
+        gameDeposit.status = DepositStatus.ReturnedToMaker;
+
+        if (gameDeposit.isNativeToken) {
+            require(
+                _safeTransfer(gameDeposit.maker, gameDeposit.betAmount),
+                'WarPool: failed to return bet amount to maker'
+            );
+        } else {
+            IERC20 token = IERC20(gameDeposit.currency);
+            require(
+                _safeTransferToken(
+                    token,
+                    gameDeposit.maker,
+                    gameDeposit.betAmount
+                ),
+                'WarPool: failed to return bet amount to maker'
+            );
+        }
+
+        emit ReturnToMaker(gameId);
     }
 
     function returnToBoth(
@@ -192,7 +255,7 @@ contract WarPool is
 
         if (gameDeposit.isNativeToken) {
             require(
-                _safeTransfer(owner(), gameDeposit.betAmount),
+                _safeTransfer(owner(), gameDeposit.betAmount * 2),
                 'WarPool: failed to withdraw'
             );
         } else {
@@ -204,6 +267,48 @@ contract WarPool is
         }
 
         emit WithdrawByAdmin(gameId);
+    }
+
+    function setWarAddress(address _warAddress) external onlyOwner {
+        warAddress = _warAddress;
+    }
+
+    function withdraw(address currency, uint256 amount) external onlyOwner {
+        if (currency == address(0)) {
+            require(
+                _safeTransfer(owner(), amount),
+                'WarPool: failed to withdraw'
+            );
+        } else {
+            IERC20 token = IERC20(currency);
+            require(
+                _safeTransferToken(token, owner(), amount),
+                'WarPool: failed to withdraw'
+            );
+        }
+    }
+
+    function setCommission(
+        uint256 _commissionRateTop,
+        uint256 _commissionRateBottom
+    ) external onlyOwner {
+        require(
+            _commissionRateTop <= _commissionRateBottom &&
+                _commissionRateTop > 0 &&
+                _commissionRateTop > 0,
+            'WarPool: invalid commission'
+        );
+        commissionRateTop = _commissionRateTop;
+        commissionRateBottom = _commissionRateBottom;
+    }
+
+    function setRewardRate(uint256 _rewardRateBottom) external onlyOwner {
+        require(_rewardRateBottom > 0, 'WarPool: invalid reward rate');
+        rewardRateBottom = _rewardRateBottom;
+    }
+
+    function _commissionAmount(uint256 amount) private view returns (uint256) {
+        return (amount * commissionRateTop) / commissionRateBottom;
     }
 
     function _safeTransfer(address to, uint256 amount) private returns (bool) {
@@ -221,7 +326,11 @@ contract WarPool is
         return token.transfer(to, amount);
     }
 
-    function setWarAddress(address _warAddress) external onlyOwner {
-        warAddress = _warAddress;
+    function togglePause() external onlyOwner {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
     }
 }
