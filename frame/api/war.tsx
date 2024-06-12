@@ -1,5 +1,9 @@
 import { Button, Frog, TextInput } from 'frog';
-import { NEYNAR_API_KEY, WAR_CONTRACT_ADDRESS } from '../constant/config.js';
+import {
+  BASE_URL,
+  NEYNAR_API_KEY,
+  WAR_CONTRACT_ADDRESS,
+} from '../constant/config.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
 import { convertCardValue } from '../lib/convertCardValue.js';
 import {
@@ -469,7 +473,7 @@ warApp.frame('/find', async (c) => {
     }),
   );
 
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/challenge/${gameId}`;
+  const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/challenge/${gameId}`;
   console.log(shareLink);
 
   return c.res({
