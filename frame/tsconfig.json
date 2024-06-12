@@ -12,11 +12,13 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
 
-    "types": ["frog/client"]
+    "types": ["frog/client"],
+
+    "outDir": "dist"
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.mtsx"]
 }

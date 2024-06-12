@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "frog vercel-build",
     "dev": "frog dev",
-    "deploy": "vercel"
+    "serve": "tsx api/index.tsx",
+    "build": "tsc",
+    "start": "node dist/api/index.js"
   },
   "dependencies": {
     "@neynar/nodejs-sdk": "^1.28.0",
