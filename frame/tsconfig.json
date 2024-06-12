@@ -1,24 +1,17 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
-    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "types": ["node"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
 
-    "moduleResolution": "NodeNext",
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
-    "jsxImportSource": "frog/jsx",
-
-    /* Linting */
-    "strict": true,
-    // "noUnusedLocals": true,
-    // "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-
-    "types": ["frog/client"],
-
     "outDir": "dist"
-  },
-  "include": ["**/*.ts", "**/*.tsx", "**/*.mtsx"]
+  }
 }
