@@ -116,11 +116,11 @@ drawApp.frame('/score', async (c) => {
           return;
         }
       })
-      .find((l) => l?.eventName === 'Spin');
+      .find((l) => l?.eventName === 'Spin') as any;
 
     if (spinEvent) {
-      const ids = spinEvent.args.ids.map((id) => Number(id));
-      const quantities = spinEvent.args.quantities.map((quantity) =>
+      const ids = spinEvent.args.ids.map((id: BigInt) => Number(id));
+      const quantities = spinEvent.args.quantities.map((quantity: BigInt) =>
         Number(quantity),
       );
       c.deriveState((prevState) => {
