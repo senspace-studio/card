@@ -47,7 +47,7 @@ const main = async () => {
   const receipt = await tx.wait();
   const logs = receipt?.logs as EventLog[];
   const gameId = logs.find((log) => log.eventName === 'GameMade')
-    ?.args[0] as string;
+    ?.args[1] as string;
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
