@@ -2096,6 +2096,24 @@ export const WAR_POOL_ABI = [
         name: 'loser',
         type: 'address',
       },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'rewardAmount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'returnAmount',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'commissionAmount',
+        type: 'uint256',
+      },
     ],
     name: 'PayoutForWinner',
     type: 'event',
@@ -2111,6 +2129,19 @@ export const WAR_POOL_ABI = [
       },
     ],
     name: 'ReturnToBoth',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes8',
+        name: 'gameId',
+        type: 'bytes8',
+      },
+    ],
+    name: 'ReturnToMaker',
     type: 'event',
   },
   {
@@ -2264,7 +2295,7 @@ export const WAR_POOL_ABI = [
       },
       {
         internalType: 'uint256',
-        name: 'rewardRate',
+        name: 'rewardRateTop',
         type: 'uint256',
       },
       {
@@ -2306,12 +2337,63 @@ export const WAR_POOL_ABI = [
   {
     inputs: [
       {
+        internalType: 'bytes8',
+        name: 'gameId',
+        type: 'bytes8',
+      },
+    ],
+    name: 'returnToMaker',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_commissionRateTop',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_commissionRateBottom',
+        type: 'uint256',
+      },
+    ],
+    name: 'setCommission',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '_rewardRateBottom',
+        type: 'uint256',
+      },
+    ],
+    name: 'setRewardRate',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: '_warAddress',
         type: 'address',
       },
     ],
     name: 'setWarAddress',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'togglePause',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2332,6 +2414,24 @@ export const WAR_POOL_ABI = [
   {
     inputs: [
       {
+        internalType: 'address',
+        name: 'currency',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'withdraw',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'bytes8',
         name: 'gameId',
         type: 'bytes8',
@@ -2342,7 +2442,7 @@ export const WAR_POOL_ABI = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
-];
+] as const;
 
 export const INVITATION_NFT_ABI = [
   {
