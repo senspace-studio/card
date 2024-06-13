@@ -619,11 +619,7 @@ warApp.frame('/choose/:params', async (c) => {
   const status = await warContract.read.gameStatus([gameId]);
 
   if (status > 1) {
-    return c.res({
-      image: `/images/war/expired.png`,
-      imageAspectRatio: '1:1',
-      intents: [<Button action="/">Create Battle</Button>],
-    });
+    return c.error({ message: 'Game is expired' });
   }
 
   const { frameData } = c;
