@@ -11,21 +11,21 @@ export class WarController {
     private readonly neynarService: NeynarService,
   ) {}
 
-  // // ToDo: 開発用なので削除
-  @Get('/sign')
-  async signGet() {
+  // ToDo: 開発用なので削除
+  @Get('/sign/:tokenId')
+  async signGet(@Param('tokenId') tokenId: string) {
     for (let i = 0; i < 100; i++) {
       try {
         const seed = Math.floor(Math.random() * 1000000);
         const signature = await this.warService.createNewGame(
           '0xD0575cA24D907b35d39383a53c3300D510446BaE',
-          BigInt(3),
+          BigInt(tokenId),
           BigInt(seed),
         );
         return signature;
       } catch (error) {
         if (error.message !== 'signature already used') {
-          throw new Error('signature already used');
+          throw new Error(error);
         }
       }
     }

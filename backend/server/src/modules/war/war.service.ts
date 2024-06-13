@@ -56,7 +56,7 @@ export class WarService {
         } else if (game.cast_hash_made) {
           const now = new Date().getTime();
           const expiration = 24 * 60 * 60 * 1e3;
-          if (game.created + expiration < now) {
+          if (Number(game.created) + expiration < now) {
             return GAME_STATUS.MADE;
           } else {
             return GAME_STATUS.EXPIRED;
@@ -133,11 +133,14 @@ export class WarService {
     const messageHash = keccak256(
       encodePacked(['uint256', 'uint256'], [tokenId, seed]),
     ) as `0x${string}`;
+    this.logger.debug({ messageHash });
     const signature = await dealar.signMessage({
       message: { raw: messageHash },
     });
+    this.logger.debug({ signature });
     const game = await this.getWarGameBySignature(signature);
     if (game) {
+      this.logger.debug({ game });
       throw new Error('signature already used');
     }
     await this.warRepositry.save({
@@ -145,7 +148,7 @@ export class WarService {
       maker,
       maker_token_id: tokenId.toString(),
       signature: signature,
-      created: new Date().getTime(),
+      created: new Date().getTime().toString(),
     });
     return signature;
   }

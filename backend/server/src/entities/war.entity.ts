@@ -35,5 +35,5 @@ export class WarEntity {
   cast_hash_revealed: string;
 
   @Column({ nullable: false })
-  created: number;
+  created: string;
 }
