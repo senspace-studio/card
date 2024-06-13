@@ -23,39 +23,43 @@ const connectToDatabase = async () => {
     throw new Error('DB_HOST or DB_PORT is not defined');
   }
 
-  return new Promise<mysql.Connection>(async (resolve, reject) => {
-    sshClient
-      .on('ready', async () => {
-        sshClient.forwardOut(
-          '127.0.0.1', // ローカルアドレス
-          0, // ローカルポート
-          dbConfig.host, // リモートのMySQLサーバーのホスト
-          dbConfig.port, // リモートのMySQLサーバーのポート
-          async (err, stream) => {
-            if (err) {
-              console.log(err);
-              reject(err);
-              return;
-            }
+  if (process.env.NODE_ENV === 'production') {
+    return mysql.createConnection(dbConfig);
+  } else {
+    return new Promise<mysql.Connection>(async (resolve, reject) => {
+      sshClient
+        .on('ready', async () => {
+          sshClient.forwardOut(
+            '127.0.0.1', // ローカルアドレス
+            0, // ローカルポート
+            dbConfig.host, // リモートのMySQLサーバーのホスト
+            dbConfig.port, // リモートのMySQLサーバーのポート
+            async (err, stream) => {
+              if (err) {
+                console.log(err);
+                reject(err);
+                return;
+              }
 
-            try {
-              const connection = await mysql.createConnection({
-                ...dbConfig,
-                stream,
-              });
-              resolve(connection);
-            } catch (error) {
-              reject(error);
-            }
-          },
-        );
-      })
-      .connect(sshConfig);
+              try {
+                const connection = await mysql.createConnection({
+                  ...dbConfig,
+                  stream,
+                });
+                resolve(connection);
+              } catch (error) {
+                reject(error);
+              }
+            },
+          );
+        })
+        .connect(sshConfig);
 
-    sshClient.on('error', (err) => {
-      reject(err);
+      sshClient.on('error', (err) => {
+        reject(err);
+      });
     });
-  });
+  }
 };
 
 export const getGameInfoByGameId = async (id: string) => {
