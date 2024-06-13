@@ -5,6 +5,7 @@ import {
   Post,
   Req,
   RawBodyRequest,
+  Logger,
 } from '@nestjs/common';
 import { EventLog, TransactionReceipt } from 'src/lib/thirdweb-engine/types';
 import { NeynarService } from '../neynar/neynar.service';
@@ -66,6 +67,7 @@ type GameRevealedEvent = {
 
 @Controller('webhook')
 export class WebhookController {
+  private readonly logger = new Logger(WebhookController.name);
   constructor(
     private readonly neynarService: NeynarService,
     private readonly warService: WarService,
@@ -79,6 +81,7 @@ export class WebhookController {
     @Headers('X-Engine-Timestamp') timestampFromHeader: string,
     @Body() body: EventLog | TransactionReceipt,
   ) {
+    this.logger.log(this.webhook.name, JSON.stringify({ authorization, body }));
     if (!signatureFromHeader || !timestampFromHeader) {
       throw new Error('Missing signature or timestamp header');
     }
@@ -106,7 +109,7 @@ export class WebhookController {
       };
       switch (body.data.eventName) {
         case 'GameMade': {
-          console.log('GameMade');
+          this.logger.log('GameMade');
           const { maker, signature, gameId } = body.data
             .decodedLog as GameMadeEvent;
           // gameIdとsignatureを紐づける
@@ -114,13 +117,13 @@ export class WebhookController {
           let botMessageText = '';
           botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
           botMessageText += '\n';
-          botMessageText += `${FRAME_BASE_URL}/challenge/${gameId}`;
+          botMessageText += `${FRAME_BASE_URL}/challenge/${gameId.value}`;
           const res = await this.neynarService.publishCast(botMessageText);
           await this.warService.onGameMade(gameId.value, signature.value, res.hash);
           break;
         }
         case 'GameChallenged': {
-          console.log('GameChallenged');
+          this.logger.log('GameChallenged');
           const { challenger, gameId } = body.data
             .decodedLog as GameChallengedEvent;
           const game = await this.warService.getWarGameByGameId(gameId.value);
@@ -139,14 +142,10 @@ export class WebhookController {
           break;
         }
         case 'GameRevealed': {
-          console.log('GameRevealed');
+          this.logger.log('GameRevealed');
           // ゲーム結果を取得
           const { gameId, maker, challenger, winner } = body.data
             .decodedLog as GameRevealedEvent;
-          const game = await this.warService.getWarGameByGameId(gameId.value);
-          // const game = await this.warService.getWarGameByGameId(gameId.value);
-          // const { maker, challenger } = game;
-          // ToDo: GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
           let botMessageText = '';
           if (winner.value === zeroAddress) {
             // 引き分けの場合
@@ -175,6 +174,8 @@ export class WebhookController {
           } else {
             throw new Error('unexpected error');
           }
+          // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
+          const game = await this.warService.getWarGameByGameId(gameId.value);
           const res = await this.neynarService.publishCast(botMessageText, { replyTo: game.cast_hash_challenged });
           await this.warService.onGameRevealed(gameId.value, res.hash);
           break;
