@@ -1,7 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
 import { EmbeddedCast } from '@neynar/nodejs-sdk/build/neynar-api/v2';
-import { NEYNER_API_KEY, FARCASTER_SIGNER_UUID } from 'src/utils/env';
+import {
+  NEYNER_API_KEY,
+  FARCASTER_SIGNER_UUID,
+  FARCASTER_USER_NAME,
+} from 'src/utils/env';
 
 @Injectable()
 export class NeynarService {
@@ -43,6 +47,7 @@ export class NeynarService {
     }
     return false;
   }
+
   async publishCast(
     text: string,
     options?: {
@@ -55,5 +60,13 @@ export class NeynarService {
   ) {
     this.logger.log(this.publishCast.name);
     return await this.client.publishCast(FARCASTER_SIGNER_UUID, text, options);
+  }
+
+  async lookupCast(hash: string) {
+    this.logger.log(this.lookupCast.name);
+    return await this.client.lookUpCastByHashOrWarpcastUrl(
+      `https://warpcast.com/${FARCASTER_USER_NAME}/${hash.slice(0, 10)}`,
+      'url',
+    );
   }
 }

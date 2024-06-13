@@ -67,7 +67,9 @@ export class WarController {
       throw new Error('invalid message');
     }
     const maker = result.action.interactor.verified_addresses.eth_addresses[0];
-    const tokenId = result.action.input.text;
+    const cardInput = result.action.input.text;
+
+    const tokenId = this.warService.convertCardValue(cardInput);
 
     const hasToken = await this.warService.hasCard(maker, Number(tokenId));
     if (!hasToken) {

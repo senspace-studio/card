@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "frog dev",
-    "serve": "tsx api/index.tsx",
+    "serve": "tsx watch api/index.tsx",
     "build": "tsc",
     "start": "node dist/api/index.js"
   },

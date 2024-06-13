@@ -1,5 +1,6 @@
 import { Button, Frog, TextInput } from 'frog';
 import {
+  BACKEND_URL,
   BASE_URL,
   NEYNAR_API_KEY,
   WAR_CONTRACT_ADDRESS,
@@ -38,7 +39,7 @@ import {
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
-const shareText = encodeURIComponent('To challenge?');
+const shareText = encodeURIComponent('Wanna battle?');
 
 type State = {
   quantities: number[];
@@ -66,7 +67,7 @@ export const warApp = new Frog<{ State: State }>({
     gameId: '',
   },
   headers: {
-    'cache-control': 'max-age=0',
+    'Cache-Control': 'max-age=60',
   },
 });
 
@@ -75,9 +76,9 @@ warApp.frame('/', (c) => {
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/make-duel">make duel</Button>,
-      <Button.Link href="https://google.com">find match</Button.Link>,
-      <Button.Link href="https://google.com">follow</Button.Link>,
+      <Button action="/make-duel">Create Battle</Button>,
+      <Button.Link href="https://google.com">Find Match</Button.Link>,
+      <Button.Link href="https://google.com">Rules</Button.Link>,
     ],
   });
 });
@@ -136,7 +137,7 @@ warApp.frame('/make-duel', async (c) => {
       encodeURIComponent(JSON.stringify({ quantities, address })),
     imageAspectRatio: '1:1',
     intents: [
-      <TextInput placeholder="11 or J or ..." />,
+      <TextInput placeholder="1,2....11,12,13 or J " />,
       // <Button action="/bet">Set</Button>,
       <Button action="/preview">Set</Button>,
     ],
@@ -229,7 +230,7 @@ warApp.frame('/preview', async (c) => {
       imageAspectRatio: '1:1',
       intents: [
         <Button action="/make-duel">Back</Button>,
-        <Button.Link href="https://google.com">go to</Button.Link>,
+        <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
   }
@@ -294,10 +295,8 @@ warApp.frame('/preview', async (c) => {
     imageAspectRatio: '1:1',
     action: '/find',
     intents: [
-      <Button.Transaction target="/duel-letter">
-        duel letter
-      </Button.Transaction>,
-      <Button action="/">quit</Button>,
+      <Button.Transaction target="/duel-letter">Battle</Button.Transaction>,
+      <Button action="/">Quit</Button>,
     ],
   });
 });
@@ -396,7 +395,7 @@ warApp.frame('/find', async (c) => {
     browserLocation: '/war/image/find/' + params,
 
     imageAspectRatio: '1:1',
-    intents: [<Button.Link href={shareLink}>Find a duel partner</Button.Link>],
+    intents: [<Button.Link href={shareLink}>Find A Duel Partner</Button.Link>],
   });
 });
 
@@ -560,7 +559,7 @@ warApp.frame('/challenge/:gameId', async (c) => {
     return c.res({
       image: `/war/image/expired/${params}`,
       imageAspectRatio: '1:1',
-      intents: [<Button action="/">Back</Button>],
+      intents: [<Button action="/">Create Battle</Button>],
     });
   }
 
@@ -616,6 +615,16 @@ warApp.frame('/choose', async (c) => {
 warApp.frame('/choose/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, wager, gameId } = params;
+
+  const status = await warContract.read.gameStatus([gameId]);
+
+  if (status > 1) {
+    return c.res({
+      image: `/images/war/expired.png`,
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Create Battle</Button>],
+    });
+  }
 
   const { frameData } = c;
   const fid = frameData?.fid;
@@ -704,7 +713,7 @@ warApp.frame('/duel', async (c) => {
       imageAspectRatio: '1:1',
       intents: [
         <Button action="/choose">Back</Button>,
-        <Button.Link href="https://google.com">go to</Button.Link>,
+        <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
   }
@@ -730,8 +739,8 @@ warApp.frame('/duel', async (c) => {
     imageAspectRatio: '1:1',
     action: '/loading',
     intents: [
-      <Button.Transaction target="/challengeGame">duel</Button.Transaction>,
-      <Button action={`/challenge/${gameId}`}>quit</Button>,
+      <Button.Transaction target="/challengeGame">Battle</Button.Transaction>,
+      <Button action={`/challenge/${gameId}`}>Quit</Button>,
     ],
   });
 });
@@ -1052,7 +1061,7 @@ const getSignature = async (c: any): Promise<string> => {
     const body = await c.req.json();
     const { trustedData } = body;
 
-    const response = await fetch(`${process.env.BACKEND_URL!}/war/sign`, {
+    const response = await fetch(`${BACKEND_URL!}/war/sign`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1453,33 +1462,36 @@ const generatePreviewImage = async (
   wager: number,
 ) => {
   const isBet = wager > 0;
-  // const imageName = isBet ? 'tx_make_bet.png' : 'tx_make.png';
-  const imageName = 'tx_make.png';
+
+  const imageName = isBet ? 'tx_make_bet.png' : 'tx_make.png';
 
   const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
 
-  // const pfpSize = 42;
-  // const userNameFontSize = 20;
+  const pfpSize = 42;
+  const userNameFontSize = 20;
 
-  // const circleMask = Buffer.from(
-  //   `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
-  //     pfpSize / 2
-  //   }" /></svg>`,
-  // );
+  const circleMask = Buffer.from(
+    `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
+      pfpSize / 2
+    }" /></svg>`,
+  );
 
-  // const pfpImage = await sharp(pfpBuffer)
-  //   .resize(pfpSize, pfpSize) // アイコン画像のサイズを指定
-  //   .composite([{ input: circleMask, blend: 'dest-in' }])
-  //   .png()
-  //   .toBuffer();
+  const response = await fetch(pfp_url);
+  const pfpBuffer = await response.arrayBuffer();
 
-  // const svgText = `
-  //   <svg width="500" height="${pfpSize}">
-  //     <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
-  //   </svg>
-  // `;
+  const pfpImage = await sharp(pfpBuffer)
+    .resize(pfpSize, pfpSize) // アイコン画像のサイズを指定
+    .composite([{ input: circleMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
 
-  // const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
+  const svgText = `
+    <svg width="500" height="${pfpSize}">
+      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
+    </svg>
+  `;
+
+  const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
 
   const cardImage = await sharp(`./public/images/war/card/${card}.png`)
     .resize(185)
@@ -1501,20 +1513,20 @@ const generatePreviewImage = async (
     .toBuffer();
 
   canvas.composite([
-    // {
-    //   input: pfpImage,
-    //   left: 94,
-    //   top: isBet ? 486 : 486 + 48,
-    // },
-    // {
-    //   input: userNameImage,
-    //   left: 94 + pfpSize + 10,
-    //   top: isBet ? 486 : 486 + 48,
-    // },
+    {
+      input: pfpImage,
+      left: 94,
+      top: isBet ? 486 : 486 + 48,
+    },
+    {
+      input: userNameImage,
+      left: 94 + pfpSize + 10,
+      top: isBet ? 486 : 486 + 48,
+    },
     {
       input: cardImage,
       left: 290,
-      top: 366,
+      top: isBet ? 366 : 366 + 48,
     },
     ...(isBet
       ? [

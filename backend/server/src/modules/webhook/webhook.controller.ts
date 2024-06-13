@@ -117,9 +117,13 @@ export class WebhookController {
           // gameIdを元にゲームの情報を取得してBotからCast
           let botMessageText = '';
           botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
-          botMessageText += '\n';
-          botMessageText += `${FRAME_BASE_URL}/challenge/${gameId.value}`;
-          const res = await this.neynarService.publishCast(botMessageText);
+          const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
+          const res = await this.neynarService.publishCast(botMessageText, {
+            embeds: [{ url: frameURL }],
+          });
+
+          await this.neynarService.lookupCast(res.hash);
+
           await this.warService.onGameMade(
             gameId.value,
             signature.value,
@@ -149,6 +153,7 @@ export class WebhookController {
           const res = await this.neynarService.publishCast(botMessageText, {
             replyTo: game.cast_hash_made,
           });
+          await this.neynarService.lookupCast(res.hash);
           await this.warService.onGameChallengedCasted(gameId.value, res.hash);
           break;
         }
@@ -187,7 +192,7 @@ export class WebhookController {
               botMessageText += 'Opponent hold the game and you won!';
             } else if (winner.value === maker.value || winner.value) {
               // 勝敗が付いた場合
-              botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(maker.value)}`;
+              botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
               botMessageText += '\n';
               botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
             }
@@ -199,6 +204,7 @@ export class WebhookController {
           const res = await this.neynarService.publishCast(botMessageText, {
             replyTo: game.cast_hash_made,
           });
+          await this.neynarService.lookupCast(res.hash);
           await this.warService.onGameRevealed(gameId.value, res.hash);
           break;
         }
