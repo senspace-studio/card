@@ -6,6 +6,7 @@ import {
   cardContract,
   warContract,
   inivtationNFTContracrt,
+  warPoolContract,
 } from '../lib/contract.js';
 
 import sharp from 'sharp';
@@ -15,6 +16,7 @@ import {
   zeroAddress,
   encodePacked,
   keccak256,
+  parseEther,
   decodeEventLog,
   Address,
 } from 'viem';
@@ -25,6 +27,10 @@ import {
   updateResult,
   getGameInfoByGameId,
 } from '../lib/database.js';
+import {
+  getFarcasterUserInfo,
+  getFarcasterUserInfoByAddress,
+} from '../lib/neynar';
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -60,76 +66,38 @@ export const warApp = new Frog<{ State: State }>({
   },
 });
 
-// Common
-const getUserData = async (fid: string) => {
-  const userInfo = await fetch(
-    `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}&viewer_fid=3`,
-    {
-      method: 'GET',
-      headers: { accept: 'application/json', api_key: NEYNAR_API_KEY },
-    },
-  );
-  const userData = await userInfo.json();
-  const pfp_url = userData.users[0].pfp_url;
-  const userName = userData.users[0].username;
-  const verifyedAddresses = userData.users[0].verified_addresses.eth_addresses;
-  const verifyedAddress = verifyedAddresses[0];
-
-  return { pfp_url, userName, verifyedAddress };
-};
-
-const getQuantities = async (address: string) => {
-  const addressList: `0x${string}`[] = Array(14).fill(address);
-  const allCardIds: bigint[] = [
-    1n,
-    2n,
-    3n,
-    4n,
-    5n,
-    6n,
-    7n,
-    8n,
-    9n,
-    10n,
-    11n,
-    12n,
-    13n,
-    14n,
-  ];
-
-  const data = await cardContract.read.balanceOfBatch([
-    addressList,
-    allCardIds,
-  ]);
-
-  const quantities = data.map((quantity) => Number(quantity));
-  return quantities;
-};
-
 warApp.frame('/', (c) => {
   return c.res({
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/make-duel">make duel</Button>,
-      <Button action="/rule">Rule</Button>,
+      <Button.Link href="https://google.com">find match</Button.Link>,
+      <Button.Link href="https://google.com">follow</Button.Link>,
     ],
   });
 });
 
-const checkInvitation = async (address: `0x${string}`) => {
-  const balance = await inivtationNFTContracrt.read.balanceOf([address]);
-  console.log(balance);
-  return Number(balance) > 0;
-};
+warApp.frame('/rule', (c) => {
+  // TODO 画像が出来たら差し替える
+  return c.res({
+    image: '/images/war/bet.png',
+    imageAspectRatio: '1:1',
+    intents: [<Button action={`/`}>Back</Button>],
+  });
+});
 
 warApp.frame('/make-duel', async (c) => {
   const { frameData } = c;
-  const fid = frameData?.fid !== undefined ? frameData.fid.toString() : '';
-  const { pfp_url, userName, verifyedAddress } = await getUserData(fid);
+  const fid = frameData?.fid;
+  const { pfp_url, userName, verifiedAddresses } = await getFarcasterUserInfo(
+    fid,
+  );
+
+  const verifyedAddress = verifiedAddresses[0];
 
   // Check Verifyed Address
-  if (!verifyedAddress) {
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({
       image: '/images/verify.png',
       imageAspectRatio: '1:1',
@@ -149,7 +117,7 @@ warApp.frame('/make-duel', async (c) => {
     });
   }
 
-  const quantities = await getQuantities(address);
+  const quantities = await getQuantities(address, c);
 
   c.deriveState((prevState) => {
     prevState.quantities = quantities;
@@ -159,39 +127,87 @@ warApp.frame('/make-duel', async (c) => {
   });
 
   return c.res({
-    image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
+    image:
+      '/war/image/score/' +
+      encodeURIComponent(JSON.stringify({ quantities, address })),
     imageAspectRatio: '1:1',
     intents: [
       <TextInput placeholder="11 or J or ..." />,
-      <Button action="/bet">Set</Button>,
+      // <Button action="/bet">Set</Button>,
+      <Button action="/preview">Set</Button>,
     ],
   });
 });
 
-const checkCardNumber = (card: number, quantities: number[]) => {
-  if (card < 1 || 14 < card) {
-    return 'Invalid Card Number.';
-  }
+// warApp.frame('/bet', async (c) => {
+//   const { inputText } = c;
 
-  if (quantities[card - 1] === 0) {
-    const message = "You Don't have\n this card."
-      .replace(/'/g, '&apos;')
-      .replace('\n', '%0A');
-    return message;
-  }
+//   const { quantities, card } = c.previousState;
 
-  return '';
-};
+//   const inputCardNumber = inputText || card;
 
-warApp.frame('/bet', async (c) => {
+//   const cardNumber = convertCardValue(inputCardNumber as string);
+
+//   const errorMessage = checkCardNumber(cardNumber, quantities);
+
+//   if (errorMessage) {
+//     const params = encodeURIComponent(
+//       JSON.stringify({
+//         message: errorMessage,
+//         quantities: quantities,
+//       }),
+//     );
+
+//     return c.res({
+//       image: `/war/image/error/${params}`,
+//       imageAspectRatio: '1:1',
+//       intents: [
+//         <Button action="/make-duel">Back</Button>,
+//         <Button.Link href="https://google.com">go to</Button.Link>,
+//       ],
+//     });
+//   }
+
+//   // make signature
+//   const signature = await getSignature(c);
+
+//   if (!signature) {
+//     const params = encodeURIComponent(
+//       JSON.stringify({
+//         message: 'Faild get signature',
+//       }),
+//     );
+
+//     return c.res({
+//       image: `/war/image/error/${params}`,
+//       imageAspectRatio: '1:1',
+//       intents: [<Button action="/make-duel">Back</Button>],
+//     });
+//   }
+
+//   c.deriveState((prevState) => {
+//     prevState.card = cardNumber;
+//     prevState.signature = signature as Address;
+//   });
+
+//   return c.res({
+//     image: '/images/war/bet.png',
+//     imageAspectRatio: '1:1',
+//     intents: [
+//       <TextInput placeholder="999" />,
+//       <Button action="/preview">Bet</Button>,
+//     ],
+//   });
+// });
+
+warApp.frame('/preview', async (c) => {
   const { inputText } = c;
+  const { userName, pfp_url, card, quantities, address } = c.previousState;
 
-  const { quantities, card } = c.previousState;
-
+  // bet機能をリリースする時は/bet frameで行うためこの辺はスキップ
   const inputCardNumber = inputText || card;
 
   const cardNumber = convertCardValue(inputCardNumber as string);
-  console.log('card:', cardNumber);
 
   const errorMessage = checkCardNumber(cardNumber, quantities);
 
@@ -200,6 +216,7 @@ warApp.frame('/bet', async (c) => {
       JSON.stringify({
         message: errorMessage,
         quantities: quantities,
+        address,
       }),
     );
 
@@ -219,7 +236,9 @@ warApp.frame('/bet', async (c) => {
   if (!signature) {
     const params = encodeURIComponent(
       JSON.stringify({
-        message: 'Faild get signature',
+        message: 'Failed get signature',
+        quantities: quantities,
+        address,
       }),
     );
 
@@ -235,104 +254,26 @@ warApp.frame('/bet', async (c) => {
     prevState.signature = signature as Address;
   });
 
-  return c.res({
-    image: '/images/war/bet.png',
-    imageAspectRatio: '1:1',
-    intents: [
-      <TextInput placeholder="999" />,
-      <Button action="/preview">Bet</Button>,
-    ],
-  });
-});
+  // bet機能が出来たらコメントを外す
+  // if (safeIsNaN(inputText)) {
+  //   const params = encodeURIComponent(
+  //     JSON.stringify({
+  //       message: 'Invalid Number',
+  //       quantities: quantities,
+  //     }),
+  //   );
 
-async function getSignature(c: any): Promise<string> {
-  try {
-    const body = await c.req.json();
-    const { trustedData } = body;
+  //   return c.res({
+  //     image: `/war/image/error/${params}`,
+  //     imageAspectRatio: '1:1',
+  //     intents: [<Button action="/bet">Back</Button>],
+  //   });
+  // }
+  // const wager = Number(inputText) || 0;
 
-    console.log('A');
-    console.time('fetch signature');
-    const response = await fetch(`${process.env.BACKEND_URL!}/war/sign`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        messageBytes: trustedData.messageBytes,
-      }),
-    });
-    console.timeEnd('fetch signature');
-
-    console.log('b');
-    console.log(response.ok);
-    if (!response.ok) {
-      console.error('Failed to fetch the signature:', response.statusText);
-      return '';
-    }
-
-    const responseText = await response.text();
-    console.log(responseText);
-
-    try {
-      const signature = responseText;
-
-      if (!signature) {
-        console.error('Invalid response structure:', signature);
-        return '';
-      }
-
-      return signature;
-    } catch (jsonError) {
-      console.error('Failed to parse response as JSON:', responseText);
-      return '';
-    }
-  } catch (error) {
-    console.error('Error occurred while fetching the signature:', error);
-    return '';
-  }
-}
-
-function safeIsNaN(inputText: string | undefined): boolean {
-  if (inputText === undefined || inputText === '') {
-    return false;
-  }
-
-  const number = Number(inputText); // 文字列を数値に変換
-  return isNaN(number); // 変換された数値が NaN であるかどうかをチェック
-}
-
-warApp.frame('/preview', async (c) => {
-  const { inputText } = c;
-  const { userName, pfp_url, card, quantities } = c.previousState;
-  console.log(c.previousState);
-
-  console.log(inputText, safeIsNaN(inputText));
-
-  if (safeIsNaN(inputText)) {
-    const params = encodeURIComponent(
-      JSON.stringify({
-        message: 'Invalid Number',
-        quantities: quantities,
-      }),
-    );
-
-    return c.res({
-      image: `/war/image/error/${params}`,
-      imageAspectRatio: '1:1',
-      intents: [<Button action="/bet">Back</Button>],
-    });
-  }
-
-  const wager = Number(inputText) || 0;
+  const wager = 0;
   c.deriveState((prevState) => {
     prevState.wager = wager;
-  });
-
-  console.log({
-    userName,
-    pfp_url,
-    card,
-    wager,
   });
 
   return c.res({
@@ -342,7 +283,7 @@ warApp.frame('/preview', async (c) => {
         JSON.stringify({
           userName,
           pfp_url,
-          card,
+          card: cardNumber,
           wager,
         }),
       ),
@@ -358,26 +299,8 @@ warApp.frame('/preview', async (c) => {
 });
 
 warApp.transaction('/duel-letter', async (c) => {
-  const { address, card, wager, signature } = c.previousState;
+  const { address, signature, wager } = c.previousState;
 
-  const salt = Math.floor(Math.random() * 1000000);
-
-  const messageHash = keccak256(
-    encodePacked(['uint256', 'uint256'], [BigInt(card), BigInt(salt)]),
-  );
-
-  // TODO APIとかからサインするようにする
-  // const privateKey = generatePrivateKey();
-  // const privateKey =
-  //   '0xfd95fb2325d5462ebe5832fb969e06ca4d66c944404b323475e60df4402e0451';
-
-  // const account = privateKeyToAccount(privateKey);
-  // const signature = (await account.signMessage({
-  //   message: messageHash,
-  // })) as `0x${string}`;
-
-  // currency, betAmount, isNaitiveToken, signature
-  // const args = [zeroAddress, 0, true, signature];
   const args: readonly [`0x${string}`, bigint, boolean, `0x${string}`] = [
     zeroAddress,
     0n,
@@ -396,6 +319,7 @@ warApp.transaction('/duel-letter', async (c) => {
     functionName: 'makeGame',
     args: args,
     gas: BigInt(Math.ceil(Number(estimatedGas) * 1.3)),
+    value: parseEther(wager.toString()),
   });
 });
 
@@ -415,10 +339,6 @@ warApp.frame('/find', async (c) => {
     },
   );
 
-  console.log(receipt);
-
-  console.log('A');
-
   const gameMadeEvent = await receipt?.result?.logs
     ?.map((log: any) => {
       try {
@@ -433,20 +353,16 @@ warApp.frame('/find', async (c) => {
     })
     .find((l) => l?.eventName === 'GameMade');
 
-  console.log(gameMadeEvent);
-  console.log('B');
-  console.log(gameMadeEvent?.args);
   const gameId =
     gameMadeEvent?.args && 'gameId' in gameMadeEvent.args
       ? gameMadeEvent.args.gameId
       : null;
-  console.log(gameId);
-  console.log('C');
 
   if (!gameId) {
     const params = encodeURIComponent(
       JSON.stringify({
         message: 'GameId retribe error',
+        address,
       }),
     );
     return c.res({
@@ -470,7 +386,6 @@ warApp.frame('/find', async (c) => {
   );
 
   const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/challenge/${gameId}`;
-  console.log(shareLink);
 
   return c.res({
     image: '/war/image/find/' + params,
@@ -481,7 +396,790 @@ warApp.frame('/find', async (c) => {
   });
 });
 
-const generateOwnCard = async (quantities: number[]) => {
+const generateErrorImage = async (
+  message: string,
+  quantities: any,
+  address: string,
+) => {
+  const backgroundImage = await generateOwnCard(quantities, address);
+
+  // const svgOverlay = Buffer.from(`
+  //   <svg width="1000" height="1000" >
+  //     <rect width="1000" height="1000" fill="rgba(0, 0, 0, 0.5)" />
+  //     <text x="500" y="200" font-family="Bigelow Rules" font-size="40" fill="white" text-anchor="middle">
+  //       ${message
+  //         .split('\n')
+  //         .map(
+  //           (line: string, index: number) =>
+  //             `<tspan x="500" dy="${index * 50}">${line}</tspan>`,
+  //         )
+  //         .join('')}
+  //     </text>
+  //   </svg>
+  // `);
+
+  const svgOverlay = await sharp('./public/images/war/error.png')
+    .resize(1000, 1000)
+    .png()
+    .toBuffer();
+  const canvas = await sharp(backgroundImage);
+
+  const finalImage = await canvas
+    .composite([
+      {
+        input: backgroundImage,
+        top: 0,
+        left: 0,
+      },
+      {
+        input: svgOverlay,
+        top: 0,
+        left: 0,
+      },
+    ])
+    .png()
+    .toBuffer();
+
+  return finalImage;
+};
+
+warApp.frame('/error/address', (c) => {
+  return c.res({
+    image: '/images/war/address_error.png',
+    imageAspectRatio: '1:1',
+    intents: [<Button action={`/`}>Back</Button>],
+  });
+});
+
+// Challenge
+warApp.frame('/challenge/:gameId', async (c) => {
+  const gameId = c.req.param('gameId') as `0x${string}`;
+  // const { userName, pfp_url, wager, gameId } = params;
+
+  // status check
+  let gameInfo = await getGameInfoByGameId(gameId);
+
+  if (!gameInfo) {
+    // get gameInfo from onchain and neynar
+
+    try {
+      const game = await warContract.read.games([gameId]);
+
+      const makerAddress = game[0];
+      if (!makerAddress || makerAddress === zeroAddress) {
+        throw Error();
+      }
+
+      const createdAt = game[6];
+      const gameDeposits = await warPoolContract.read.gameDeposits([gameId]);
+      const wager = Number(gameDeposits[4]);
+
+      const { pfp_url, userName, verifiedAddresses } =
+        await getFarcasterUserInfoByAddress(makerAddress);
+
+      await setGameInfo(
+        gameId,
+        makerAddress,
+        userName,
+        pfp_url,
+        wager,
+        createdAt,
+      );
+
+      let challengerAddress = game[1];
+
+      if (challengerAddress !== zeroAddress) {
+        const { pfp_url, userName } = await getFarcasterUserInfoByAddress(
+          challengerAddress,
+        );
+
+        await updateChallenger(gameId, challengerAddress, userName, pfp_url);
+      }
+
+      let makerCard = Number(game[3]);
+      if (makerCard !== 0) {
+        let winner = game[2];
+        let challengerCard = Number(game[4]);
+        await updateResult(gameId, makerCard, challengerCard, winner);
+      }
+    } catch (e) {
+      const params = encodeURIComponent(
+        JSON.stringify({
+          message: 'Invalid Game Id',
+          quantities: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+          address: '0x00000000000000000000000000000000000000000000',
+        }),
+      );
+      return c.res({
+        image: `/war/image/error/${params}`,
+        imageAspectRatio: '1:1',
+        intents: [],
+      });
+    }
+
+    gameInfo = await getGameInfoByGameId(gameId);
+  }
+
+  if (!gameInfo) {
+    const params = encodeURIComponent(
+      JSON.stringify({
+        message: 'Invalid Game Id',
+        quantities: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        address: '0x00000000000000000000000000000000000000000000',
+      }),
+    );
+    return c.res({
+      image: `/war/image/error/${params}`,
+      imageAspectRatio: '1:1',
+      intents: [],
+    });
+  }
+
+  const status = await warContract.read.gameStatus([gameId]);
+  if (status > 1) {
+    const { userName, pfp_url, card, wager, c_userName, c_pfp_url, c_card } =
+      gameInfo;
+
+    const params = encodeURIComponent(
+      JSON.stringify({
+        userName,
+        pfp_url,
+        wager,
+        card: card || '',
+        c_userName: c_userName || '',
+        c_pfp_url: c_pfp_url || '',
+        c_card: c_card || '',
+        status,
+      }),
+    );
+
+    return c.res({
+      image: `/war/image/expired/${params}`,
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const { userName, pfp_url, wager } = gameInfo;
+
+  const params = encodeURIComponent(
+    JSON.stringify({
+      userName,
+      pfp_url,
+      wager,
+      gameId,
+    }),
+  );
+
+  c.deriveState((prevState) => {
+    prevState.userName = userName;
+    prevState.pfp_url = pfp_url;
+    prevState.wager = wager;
+    prevState.gameId = gameId;
+  });
+
+  return c.res({
+    image:
+      '/war/image/challenge/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          wager,
+        }),
+      ),
+    imageAspectRatio: '1:1',
+    intents: [<Button action={`/choose/${params}`}>Start</Button>],
+  });
+});
+
+warApp.frame('/choose', async (c) => {
+  const { quantities, c_address } = c.previousState;
+
+  return c.res({
+    image:
+      '/war/image/score/' +
+      encodeURIComponent(JSON.stringify({ quantities, address: c_address })),
+    imageAspectRatio: '1:1',
+    action: '/choose',
+    intents: [
+      <TextInput placeholder="11 or J or ..." />,
+      <Button action="/duel">Set</Button>,
+    ],
+  });
+});
+
+warApp.frame('/choose/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, wager, gameId } = params;
+
+  const { frameData } = c;
+  const fid = frameData?.fid;
+
+  const {
+    pfp_url: c_pfp_url,
+    userName: c_userName,
+    verifiedAddresses,
+  } = await getFarcasterUserInfo(fid);
+
+  const verifyedAddress = verifiedAddresses[0];
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
+    return c.res({
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const address = verifyedAddress as `0x${string}`;
+
+  const hasNFT = await checkInvitation(address);
+  if (!hasNFT) {
+    return c.res({
+      image: '/images/war/no_invi.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
+    });
+  }
+
+  const quantities = await getQuantities(address, c);
+
+  c.deriveState((prevState) => {
+    prevState.quantities = quantities;
+    prevState.userName = userName;
+    prevState.pfp_url = pfp_url;
+    prevState.wager = wager;
+    prevState.gameId = gameId;
+    prevState.c_userName = c_userName;
+    prevState.c_pfp_url = c_pfp_url;
+    prevState.c_address = address;
+  });
+
+  return c.res({
+    image:
+      '/war/image/score/' +
+      encodeURIComponent(JSON.stringify({ quantities, address })),
+    imageAspectRatio: '1:1',
+    action: '/choose',
+    intents: [
+      <TextInput placeholder="11 or J or ..." />,
+      <Button action="/duel">Set</Button>,
+    ],
+  });
+});
+
+warApp.frame('/duel', async (c) => {
+  const { inputText } = c;
+  const {
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+    quantities,
+    gameId,
+    c_address,
+  } = c.previousState;
+
+  const inputCardNumber = inputText;
+
+  const c_card = convertCardValue(inputCardNumber as string);
+  const errorMessage = checkCardNumber(c_card, quantities);
+
+  if (errorMessage) {
+    const params = encodeURIComponent(
+      JSON.stringify({
+        message: errorMessage,
+        quantities: quantities,
+        address: c_address,
+      }),
+    );
+
+    return c.res({
+      image: `/war/image/error/${params}`,
+      imageAspectRatio: '1:1',
+      intents: [
+        <Button action="/choose">Back</Button>,
+        <Button.Link href="https://google.com">go to</Button.Link>,
+      ],
+    });
+  }
+
+  c.deriveState((prevState) => {
+    prevState.c_card = c_card;
+  });
+
+  return c.res({
+    image:
+      '/war/image/duel/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          wager,
+          c_userName,
+          c_pfp_url,
+          c_card,
+        }),
+      ),
+
+    imageAspectRatio: '1:1',
+    action: '/loading',
+    intents: [
+      <Button.Transaction target="/challengeGame">duel</Button.Transaction>,
+      <Button action={`/challenge/${gameId}`}>quit</Button>,
+    ],
+  });
+});
+
+warApp.transaction('/challengeGame', async (c) => {
+  const { gameId, c_address, c_card } = c.previousState;
+
+  try {
+    if (gameId === undefined || c_card === undefined) {
+      throw new Error('gameId or c_card is undefined');
+    }
+
+    const args: readonly [`0x${string}`, bigint] = [gameId, BigInt(c_card)];
+
+    const estimatedGas = await warContract.estimateGas.challengeGame(args, {
+      account: c_address,
+    });
+
+    return c.contract({
+      chainId: 'eip155:666666666',
+      to: WAR_CONTRACT_ADDRESS,
+      abi: WAR_ABI,
+      functionName: 'challengeGame',
+      args: args,
+      gas: BigInt(Math.ceil(Number(estimatedGas) * 1.3)),
+    });
+  } catch (e: any) {
+    return c.error({ message: e.shortMessage });
+  }
+});
+
+warApp.frame('/loading', async (c) => {
+  const { userName, pfp_url, wager, c_address, c_userName, c_pfp_url, gameId } =
+    c.previousState;
+
+  await updateChallenger(gameId, String(c_address), c_userName!, c_pfp_url!);
+
+  return c.res({
+    image:
+      '/war/image/loading/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          wager,
+          c_userName,
+          c_pfp_url,
+        }),
+      ),
+    imageAspectRatio: '1:1',
+    action: '/loading',
+    intents: [<Button action={`/result/${gameId}`}>Check Result</Button>],
+  });
+});
+
+warApp.frame('/result/:gameId', async (c) => {
+  const gameId = c.req.param('gameId') as `0x${string}`;
+
+  const gameInfo = await getGameInfoByGameId(gameId);
+  if (!gameInfo) {
+    const params = encodeURIComponent(
+      JSON.stringify({
+        message: 'Invalid Game Id',
+      }),
+    );
+    return c.res({
+      image: `/war/image/error/${params}`,
+      imageAspectRatio: '1:1',
+      intents: [],
+    });
+  }
+
+  let {
+    userName,
+    pfp_url,
+    wager,
+    c_address,
+    c_userName,
+    c_pfp_url,
+    card,
+    c_card,
+    winner,
+  } = gameInfo;
+
+  if (!winner || winner === zeroAddress) {
+    const result = await warContract.read.games([gameId]);
+    // const result = [0, 0, '0xa989173a1545eedF7a0eBE49AC51Dd1383F7EbC8', 2, 6];
+
+    winner = result[2];
+    if (winner === zeroAddress) {
+      return c.error({ message: 'Please wait …' });
+    }
+
+    card = result[3];
+    c_card = result[4];
+
+    await updateResult(gameId, card, c_card, winner);
+  }
+
+  const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/result/${gameId}`;
+  const isWin = winner.toLowerCase() === c_address;
+
+  return c.res({
+    image:
+      '/war/image/result/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          card,
+          wager,
+          c_userName,
+          c_pfp_url,
+          c_card,
+          isWin: isWin,
+        }),
+      ),
+    imageAspectRatio: '1:1',
+    browserLocation:
+      '/war/image/result/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          card,
+          wager,
+          c_userName,
+          c_pfp_url,
+          c_card,
+          isWin: isWin,
+        }),
+      ),
+    intents: [
+      <Button.Link href={shareLink}>share</Button.Link>,
+      <Button action={`/`}>make duel</Button>,
+    ],
+  });
+});
+
+const generateLoadingImage = async (
+  userName: string,
+  pfp_url: string,
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+) => {
+  const backgroundImageBuffer = await generateDuelImage(
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+  );
+
+  const backgroundImage = sharp(backgroundImageBuffer);
+
+  const overlayImage = await sharp('./public/images/war/loading_overlay.png')
+    .resize(1000, 1000)
+    .toBuffer();
+
+  const finalImage = await backgroundImage
+    .composite([
+      { input: overlayImage, gravity: 'center' }, // 画像を中央に重ねる
+    ])
+    .toBuffer();
+
+  return finalImage;
+};
+
+warApp.hono.get('/image/error/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+
+  const { message, quantities, address } = params;
+
+  const image = await generateErrorImage(message, quantities, address);
+
+  return c.newResponse(image, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/challenge/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, wager } = params;
+  const png = await generateChallengeImage(true, userName, pfp_url, wager);
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/duel/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
+
+  const png = await generateDuelImage(
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+  );
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/loading/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
+
+  const png = await generateLoadingImage(
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+  );
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+// ///////////////////
+// Common Function
+// ///////////////////
+// Common
+// const getUserData = async (fid: string) => {
+//   const userInfo = await fetch(
+//     `https://api.neynar.com/v2/farcaster/user/bulk?fids=${fid}&viewer_fid=3`,
+//     {
+//       method: 'GET',
+//       headers: { accept: 'application/json', api_key: NEYNAR_API_KEY },
+//     },
+//   );
+//   const userData = await userInfo.json();
+//   const pfp_url = userData.users[0].pfp_url;
+//   const userName = userData.users[0].username;
+//   const verifyedAddresses = userData.users[0].verified_addresses.eth_addresses;
+//   const verifyedAddress = verifyedAddresses[0];
+
+//   return { pfp_url, userName, verifyedAddress };
+// };
+
+const getQuantities = async (address: string, c: any) => {
+  const addressList: `0x${string}`[] = Array(14).fill(address);
+  const allCardIds: bigint[] = [
+    1n,
+    2n,
+    3n,
+    4n,
+    5n,
+    6n,
+    7n,
+    8n,
+    9n,
+    10n,
+    11n,
+    12n,
+    13n,
+    14n,
+  ];
+
+  const data = await cardContract.read.balanceOfBatch([
+    addressList,
+    allCardIds,
+  ]);
+
+  // get used cards
+  // const body = await c.req.json();
+  // const { trustedData } = body;
+
+  // const response = await fetch(
+  //   `${process.env.BACKEND_URL!}/war/getReservedCards`,
+  //   {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     body: JSON.stringify({
+  //       messageBytes: trustedData.messageBytes,
+  //     }),
+  //   },
+  // );
+
+  // if (!response.ok) {
+  //   console.error('Failed to fetch the signature:', response.statusText);
+  //   return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  // }
+
+  // const usedQuantities = await response.json();
+
+  // console.log(data);
+  // console.log(usedQuantities);
+  const usedQuantities = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+  const quantities = data.map((quantity, index) => {
+    const remainingQuantity =
+      Number(quantity) - (Number(usedQuantities[index]) || 0);
+    return remainingQuantity < 0 ? 0 : remainingQuantity;
+  });
+  return quantities;
+};
+
+const checkInvitation = async (address: `0x${string}`) => {
+  const balance = await inivtationNFTContracrt.read.balanceOf([address]);
+  return Number(balance) > 0;
+};
+
+const checkCardNumber = (card: number, quantities: number[]) => {
+  if (card < 1 || 14 < card) {
+    return 'Invalid Card Number.';
+  }
+
+  if (quantities[card - 1] === 0) {
+    const message = "You Don't have\n this card."
+      .replace(/'/g, '&apos;')
+      .replace('\n', '%0A');
+    return message;
+  }
+
+  return '';
+};
+
+const getSignature = async (c: any): Promise<string> => {
+  try {
+    const body = await c.req.json();
+    const { trustedData } = body;
+
+    const response = await fetch(`${process.env.BACKEND_URL!}/war/sign`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messageBytes: trustedData.messageBytes,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Failed to fetch the signature:', response.statusText);
+      return '';
+    }
+
+    const responseText = await response.text();
+
+    try {
+      const signature = responseText;
+
+      if (!signature) {
+        console.error('Invalid response structure:', signature);
+        return '';
+      }
+
+      return signature;
+    } catch (jsonError) {
+      console.error('Failed to parse response as JSON:', responseText);
+      return '';
+    }
+  } catch (error) {
+    console.error('Error occurred while fetching the signature:', error);
+    return '';
+  }
+};
+
+const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
+  if (inputText === undefined || inputText === '') {
+    return false;
+  }
+
+  const number = Number(inputText); // 文字列を数値に変換
+  return isNaN(number); // 変換された数値が NaN であるかどうかをチェック
+};
+
+warApp.hono.get('/image/score/:quantities', async (c) => {
+  const { quantities, address } = JSON.parse(
+    decodeURIComponent(c.req.param('quantities')),
+  );
+
+  const finalImage = await generateOwnCard(quantities, address);
+
+  return c.newResponse(finalImage, 200, {
+    'Content-Type': 'image/png',
+  });
+});
+
+warApp.hono.get('/image/preview/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, card, wager } = params;
+  const png = await generatePreviewImage(userName, pfp_url, card, wager);
+
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/find/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const { userName, pfp_url, wager } = params;
+
+  const png = await generateChallengeImage(false, userName, pfp_url, wager);
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/expired/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const {
+    userName,
+    pfp_url,
+    card,
+    wager,
+    c_userName,
+    c_pfp_url,
+    c_card,
+    status,
+  } = params;
+
+  const png = await generateExpiredImage({
+    userName,
+    pfp_url,
+    card,
+    wager,
+    c_userName,
+    c_pfp_url,
+    c_card,
+    status,
+  });
+
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+warApp.hono.get('/image/result/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+
+  const {
+    userName,
+    pfp_url,
+    card,
+    wager,
+    c_userName,
+    c_pfp_url,
+    c_card,
+    isWin,
+  } = params;
+
+  const png = await generateResultImage(
+    userName,
+    pfp_url,
+    card,
+    wager,
+    c_userName,
+    c_pfp_url,
+    c_card,
+    isWin,
+  );
+
+  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+});
+
+////////////////////////////////////////
+// Image Generate Functions
+// /////////////////////////////////////
+const generateOwnCard = async (quantities: number[], address: string) => {
   const baseImage = sharp('./public/images/war/pick_card.png').resize(
     1000,
     1000,
@@ -508,9 +1206,10 @@ const generateOwnCard = async (quantities: number[]) => {
       components.push({
         input: svgText,
         top: 907,
-        left: 120 + index * 52,
+        left: 120 + index * 52 - (index > 8 ? 6 : 0),
       });
 
+      // 未保有のカードへのオーバーレイ
       if (quantity < 1) {
         const x = 100 + (index % cols) * cardWidth + (index % cols) * px;
         const y =
@@ -534,106 +1233,29 @@ const generateOwnCard = async (quantities: number[]) => {
     })
     .flat();
 
-  const finalImage = await baseImage.composite(composites).png().toBuffer();
-
-  return finalImage;
-};
-
-warApp.hono.get('/image/score/:quantities', async (c) => {
-  const quantities = JSON.parse(decodeURIComponent(c.req.param('quantities')));
-
-  const finalImage = await generateOwnCard(quantities);
-
-  return c.newResponse(finalImage, 200, {
-    'Content-Type': 'image/png',
-  });
-});
-
-warApp.hono.get('/image/preview/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, card, wager } = params;
-
-  const response = await fetch(pfp_url);
-  const pfpBuffer = await response.arrayBuffer();
-
-  const isBet = wager > 0;
-  const imageName = isBet ? 'tx_make_bet.png' : 'tx_make.png';
-
-  const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
-
-  const pfpSize = 42;
-  const userNameFontSize = 20;
-
-  const circleMask = Buffer.from(
-    `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
-      pfpSize / 2
-    }" /></svg>`,
-  );
-
-  const pfpImage = await sharp(pfpBuffer)
-    .resize(pfpSize, pfpSize) // アイコン画像のサイズを指定
-    .composite([{ input: circleMask, blend: 'dest-in' }])
-    .png()
-    .toBuffer();
-
-  const svgText = `
-    <svg width="500" height="${pfpSize}">
-      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
-    </svg>
-  `;
-
-  const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
-
-  const cardImage = await sharp(`./public/images/war/card/${card}.png`)
-    .resize(185)
-    .png()
-    .toBuffer();
-
-  const wagerImage = await sharp({
+  const addressImage = await sharp({
     text: {
-      text: `<span foreground="white" letter_spacing="1000">${wager} DEGEN</span>`,
+      text: `<span foreground="white" letter_spacing="1000">${
+        address.slice(0, 6) + '...' + address.slice(-4)
+      }</span>`,
       font: 'Bigelow Rules',
       fontfile: './public/fonts/BigelowRules-Regular.ttf',
       rgba: true,
       width: 550,
-      height: 68,
+      height: 40,
       align: 'left',
     },
   })
     .png()
     .toBuffer();
 
-  canvas.composite([
-    {
-      input: pfpImage,
-      left: 94,
-      top: isBet ? 486 : 486 + 48,
-    },
-    {
-      input: userNameImage,
-      left: 94 + pfpSize + 10,
-      top: isBet ? 486 : 486 + 48,
-    },
-    {
-      input: cardImage,
-      left: 290,
-      top: isBet ? 366 : 366 + 48,
-    },
-    ...(isBet
-      ? [
-          {
-            input: wagerImage,
-            left: 490,
-            top: 845,
-          },
-        ]
-      : []),
-  ]);
+  const finalImage = await baseImage
+    .composite([...composites, { input: addressImage, top: 50, left: 700 }])
+    .png()
+    .toBuffer();
 
-  const png = await canvas.png().toBuffer();
-
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
-});
+  return finalImage;
+};
 
 const generateChallengeImage = async (
   share: boolean,
@@ -656,11 +1278,19 @@ const generateChallengeImage = async (
 
   const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
 
+  let leftUserTop = 488;
+  if (!isBet) {
+    leftUserTop += 48;
+  }
+  if (share) {
+    leftUserTop -= 6;
+  }
+
   const pfpSize = 42;
   const userNameFontSize = 20;
 
   const topPfpSize = 75;
-  const topUserNameFontSize = 48;
+  const topUserNameFontSize = 40;
 
   const circleMask = Buffer.from(
     `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
@@ -721,12 +1351,12 @@ const generateChallengeImage = async (
     {
       input: pfpImage,
       left: 94,
-      top: isBet ? 486 : 486 + 42,
+      top: leftUserTop,
     },
     {
       input: userNameImage,
       left: 94 + pfpSize + 10,
-      top: isBet ? 486 : 486 + 42,
+      top: leftUserTop,
     },
 
     {
@@ -754,281 +1384,6 @@ const generateChallengeImage = async (
 
   return png;
 };
-
-warApp.hono.get('/image/find/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager } = params;
-
-  const png = await generateChallengeImage(false, userName, pfp_url, wager);
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
-});
-
-warApp.hono.get('/image/error/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-
-  const { message, quantities } = params;
-
-  const backgroundImage = await generateOwnCard(quantities);
-
-  const svgOverlay = Buffer.from(`
-  <svg width="1000" height="1000">
-    <rect width="1000" height="1000" fill="rgba(0, 0, 0, 0.5)" />
-    <text x="500" y="450" font-family="Bigelow Rules" font-size="150" fill="white" text-anchor="middle">
-      ${message
-        .split('\n')
-        .map(
-          (line: string, index: number) =>
-            `<tspan x="500" dy="${index * 120}">${line}</tspan>`,
-        )
-        .join('')}
-    </text>
-  </svg>
-`);
-
-  const canvas = await sharp(backgroundImage);
-
-  const finalImage = await canvas
-    .composite([
-      {
-        input: backgroundImage,
-        top: 0,
-        left: 0,
-      },
-      {
-        // input:  messageImage,
-        input: svgOverlay,
-        top: 0,
-        left: 0,
-      },
-    ])
-    .png()
-    .toBuffer();
-
-  return c.newResponse(finalImage, 200, { 'Content-Type': 'image/png' });
-});
-
-warApp.frame('/rule', (c) => {
-  return c.res({
-    image: '/rule.png',
-    imageAspectRatio: '1:1',
-    intents: [<Button action={`/`}>Back</Button>],
-  });
-});
-
-warApp.frame('/error/address', (c) => {
-  return c.res({
-    image: '/images/war/address_error.png',
-    imageAspectRatio: '1:1',
-    intents: [<Button action={`/`}>Back</Button>],
-  });
-});
-
-// Challenge
-warApp.frame('/challenge/:gameId', async (c) => {
-  const gameId = c.req.param('gameId') as `0x${string}`;
-  // const { userName, pfp_url, wager, gameId } = params;
-
-  const gameInfo = await getGameInfoByGameId(gameId);
-  if (!gameInfo) {
-    const params = encodeURIComponent(
-      JSON.stringify({
-        message: 'Invalid Game Id',
-      }),
-    );
-    return c.res({
-      image: `/war/image/error/${params}`,
-      imageAspectRatio: '1:1',
-      intents: [],
-    });
-  }
-
-  const { userName, pfp_url, wager } = gameInfo;
-
-  // const userName = 'ytenden';
-  // const pfp_url =
-  //   'https://imagedelivery.net/BXluQx4ige9GuW0Ia56BHw/a32e3541-f87b-4814-fee5-5ec1cee3c600/original';
-  // const wager = 0;
-
-  const params = encodeURIComponent(
-    JSON.stringify({
-      userName,
-      pfp_url,
-      wager,
-      gameId,
-    }),
-  );
-
-  c.deriveState((prevState) => {
-    prevState.userName = userName;
-    prevState.pfp_url = pfp_url;
-    prevState.wager = wager;
-    prevState.gameId = gameId;
-  });
-
-  return c.res({
-    image:
-      '/war/image/challenge/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          wager,
-        }),
-      ),
-    imageAspectRatio: '1:1',
-    intents: [<Button action={`/choose/${params}`}>Start</Button>],
-  });
-});
-
-warApp.hono.get('/image/challenge/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager } = params;
-  const png = await generateChallengeImage(true, userName, pfp_url, wager);
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
-});
-
-warApp.frame('/choose', async (c) => {
-  const { quantities } = c.previousState;
-
-  return c.res({
-    image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
-    imageAspectRatio: '1:1',
-    action: '/choose',
-    intents: [
-      <TextInput placeholder="11 or J or ..." />,
-      <Button action="/duel">Set</Button>,
-    ],
-  });
-});
-
-warApp.frame('/choose/:params', async (c) => {
-  console.log('choooose');
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, gameId } = params;
-
-  const { frameData } = c;
-  const fid = frameData?.fid !== undefined ? frameData.fid.toString() : '';
-  const {
-    pfp_url: c_pfp_url,
-    userName: c_userName,
-    verifyedAddress,
-  } = await getUserData(fid);
-
-  if (!verifyedAddress) {
-    return c.res({
-      image: '/error_address.png',
-      imageAspectRatio: '1:1',
-      intents: [<Button action="/">Back</Button>],
-    });
-  }
-
-  const address = verifyedAddress as `0x${string}`;
-
-  const quantities = await getQuantities(address);
-
-  c.deriveState((prevState) => {
-    prevState.quantities = quantities;
-    prevState.userName = userName;
-    prevState.pfp_url = pfp_url;
-    prevState.wager = wager;
-    prevState.gameId = gameId;
-    prevState.c_userName = c_userName;
-    prevState.c_pfp_url = c_pfp_url;
-    prevState.c_address = address;
-  });
-
-  console.log(userName, pfp_url, wager, gameId, c_userName, c_pfp_url, address);
-
-  return c.res({
-    image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
-    imageAspectRatio: '1:1',
-    action: '/choose',
-    intents: [
-      <TextInput placeholder="11 or J or ..." />,
-      <Button action="/duel">Set</Button>,
-    ],
-  });
-});
-
-warApp.frame('/duel', async (c) => {
-  const { inputText } = c;
-  const {
-    userName,
-    pfp_url,
-    wager,
-    c_userName,
-    c_pfp_url,
-    quantities,
-    gameId,
-  } = c.previousState;
-
-  console.log('duel start');
-
-  const inputCardNumber = inputText;
-
-  const c_card = convertCardValue(inputCardNumber as string);
-  const errorMessage = checkCardNumber(c_card, quantities);
-
-  console.log(errorMessage);
-
-  if (errorMessage) {
-    const params = encodeURIComponent(
-      JSON.stringify({
-        message: errorMessage,
-        quantities: quantities,
-      }),
-    );
-
-    return c.res({
-      image: `/war/image/error/${params}`,
-      imageAspectRatio: '1:1',
-      intents: [
-        <Button action="/choose">Back</Button>,
-        <Button.Link href="https://google.com">go to</Button.Link>,
-      ],
-    });
-  }
-
-  c.deriveState((prevState) => {
-    prevState.c_card = c_card;
-  });
-
-  return c.res({
-    image:
-      '/war/image/duel/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          wager,
-          c_userName,
-          c_pfp_url,
-          c_card,
-        }),
-      ),
-
-    imageAspectRatio: '1:1',
-    action: '/loading',
-    intents: [
-      <Button.Transaction target="/challengeGame">duel</Button.Transaction>,
-      <Button action={`/challenge/${gameId}`}>quit</Button>,
-    ],
-  });
-});
-
-warApp.hono.get('/image/duel/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
-
-  const png = await generateDuelImage(
-    userName,
-    pfp_url,
-    wager,
-    c_userName,
-    c_pfp_url,
-  );
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
-});
 
 const generateUserComponent = async (userName: string, pfp_url: string) => {
   const response = await fetch(pfp_url);
@@ -1087,6 +1442,159 @@ const generateUserComponent = async (userName: string, pfp_url: string) => {
   return combinedImage;
 };
 
+const generatePreviewImage = async (
+  userName: string,
+  pfp_url: string,
+  card: number,
+  wager: number,
+) => {
+  const isBet = wager > 0;
+  // const imageName = isBet ? 'tx_make_bet.png' : 'tx_make.png';
+  const imageName = 'tx_make.png';
+
+  const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
+
+  // const pfpSize = 42;
+  // const userNameFontSize = 20;
+
+  // const circleMask = Buffer.from(
+  //   `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
+  //     pfpSize / 2
+  //   }" /></svg>`,
+  // );
+
+  // const pfpImage = await sharp(pfpBuffer)
+  //   .resize(pfpSize, pfpSize) // アイコン画像のサイズを指定
+  //   .composite([{ input: circleMask, blend: 'dest-in' }])
+  //   .png()
+  //   .toBuffer();
+
+  // const svgText = `
+  //   <svg width="500" height="${pfpSize}">
+  //     <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
+  //   </svg>
+  // `;
+
+  // const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
+
+  const cardImage = await sharp(`./public/images/war/card/${card}.png`)
+    .resize(185)
+    .png()
+    .toBuffer();
+
+  const wagerImage = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="1000">${wager} DEGEN</span>`,
+      font: 'Bigelow Rules',
+      fontfile: './public/fonts/BigelowRules-Regular.ttf',
+      rgba: true,
+      width: 550,
+      height: 68,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  canvas.composite([
+    // {
+    //   input: pfpImage,
+    //   left: 94,
+    //   top: isBet ? 486 : 486 + 48,
+    // },
+    // {
+    //   input: userNameImage,
+    //   left: 94 + pfpSize + 10,
+    //   top: isBet ? 486 : 486 + 48,
+    // },
+    {
+      input: cardImage,
+      left: 290,
+      top: 366,
+    },
+    ...(isBet
+      ? [
+          {
+            input: wagerImage,
+            left: 490,
+            top: 845,
+          },
+        ]
+      : []),
+  ]);
+
+  const png = await canvas.png().toBuffer();
+  return png;
+};
+
+const generateExpiredImage = async ({
+  userName,
+  pfp_url,
+  card,
+  wager,
+  c_userName,
+  c_pfp_url,
+  c_card,
+  status,
+}: {
+  userName: string;
+  pfp_url: string;
+  card?: number;
+  wager: number;
+  c_userName?: string;
+  c_pfp_url?: string;
+  c_card?: number;
+  status?: number;
+}) => {
+  let backgroundImageBuffer;
+  if (status === 2) {
+    // challenged
+    backgroundImageBuffer = await generateChallengeImage(
+      true,
+      userName,
+      pfp_url,
+      wager,
+    );
+  } else if (status === 3) {
+    // gamEnded
+    backgroundImageBuffer = await generateResultBgImage(
+      userName,
+      pfp_url,
+      card || 0,
+      wager,
+      c_userName!,
+      c_pfp_url!,
+      c_card || 0,
+    );
+  } else if (status === 4) {
+    // timeup
+
+    backgroundImageBuffer = await generateChallengeImage(
+      true,
+      userName,
+      pfp_url,
+      wager,
+    );
+  }
+
+  const backgroundImage = sharp(backgroundImageBuffer);
+
+  const overlayImage = await sharp('./public/images/war/expired_overlay.png')
+    .resize(1000, 1000)
+    .toBuffer();
+
+  const finalImage = await backgroundImage
+    .composite([
+      {
+        input: overlayImage,
+        gravity: 'center',
+      },
+    ])
+    .toBuffer();
+
+  return finalImage;
+};
+
 const generateDuelImage = async (
   userName: string,
   pfp_url: string,
@@ -1138,90 +1646,79 @@ const generateDuelImage = async (
   return finalImage;
 };
 
-warApp.transaction('/challengeGame', async (c) => {
-  const { gameId, c_address, c_card } = c.previousState;
+const generateResultBgImage = async (
+  userName: string,
+  pfp_url: string,
+  card: number,
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+  c_card: number,
+) => {
+  const imageName = 'result.png';
 
-  try {
-    if (gameId === undefined || c_card === undefined) {
-      throw new Error('gameId or c_card is undefined');
-    }
-
-    const args: readonly [`0x${string}`, bigint] = [gameId, BigInt(c_card)];
-
-    const estimatedGas = await warContract.estimateGas.challengeGame(args, {
-      account: c_address,
-    });
-
-    return c.contract({
-      chainId: 'eip155:666666666',
-      to: WAR_CONTRACT_ADDRESS,
-      abi: WAR_ABI,
-      functionName: 'challengeGame',
-      args: args,
-      gas: BigInt(Math.ceil(Number(estimatedGas) * 1.3)),
-    });
-  } catch (e: any) {
-    return c.error({ message: e.shortMessage });
-  }
-});
-
-warApp.frame('/loading', async (c) => {
-  const { userName, pfp_url, wager, c_address, c_userName, c_pfp_url, gameId } =
-    c.previousState;
-
-  console.log(gameId, String(c_address), c_userName!, c_pfp_url!);
-  await updateChallenger(gameId, String(c_address), c_userName!, c_pfp_url!);
-
-  return c.res({
-    image:
-      '/war/image/loading/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          wager,
-          c_userName,
-          c_pfp_url,
-        }),
-      ),
-    imageAspectRatio: '1:1',
-    action: '/loading',
-    intents: [<Button action={`/result/${gameId}`}>Check Result</Button>],
-  });
-});
-
-warApp.hono.get('/image/loading/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
-
-  const backgroundImageBuffer = await generateDuelImage(
-    userName,
-    pfp_url,
-    wager,
-    c_userName,
-    c_pfp_url,
+  const baseImage = sharp('./public/images/war/' + imageName).resize(
+    1000,
+    1000,
   );
 
-  const backgroundImage = sharp(backgroundImageBuffer);
+  let cardImage;
+  let c_cardImage;
+  if (card !== 0) {
+    cardImage = await sharp(`./public/images/war/card/${card}.png`)
+      .resize(185)
+      .png()
+      .toBuffer();
+  }
+  if (c_card !== 0) {
+    c_cardImage = await sharp(`./public/images/war/card/${c_card}.png`)
+      .resize(185)
+      .png()
+      .toBuffer();
+  }
 
-  const overlayImage = await sharp('./public/images/war/loading_overlay.png')
-    .resize(1000, 1000)
-    .toBuffer();
+  const userComponent = await generateUserComponent(userName, pfp_url);
+  const opponentComponent = await generateUserComponent(c_userName, c_pfp_url);
 
-  const finalImage = await backgroundImage
-    .composite([
-      { input: overlayImage, gravity: 'center' }, // 画像を中央に重ねる
-    ])
-    .toBuffer();
-  return c.newResponse(finalImage, 200, { 'Content-Type': 'image/png' });
-});
+  const composites = [
+    { input: userComponent, top: 533, left: 100 },
+    { input: opponentComponent, top: 533, left: 740 },
+    ...(cardImage
+      ? [
+          {
+            input: cardImage,
+            left: 289,
+            top: 420,
+          },
+        ]
+      : []),
+    ...(c_cardImage
+      ? [
+          {
+            input: c_cardImage,
+            left: 527,
+            top: 420,
+          },
+        ]
+      : []),
+  ];
 
-warApp.hono.get('/image/result/:params', async (c) => {
-  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const finalImage = await baseImage.composite(composites).png().toBuffer();
 
-  console.log(params);
+  return finalImage;
+};
 
-  const {
+const generateResultImage = async (
+  userName: string,
+  pfp_url: string,
+  card: number,
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+  c_card: number,
+  isWin: boolean,
+) => {
+  let backgroundImageBuffer = await generateResultBgImage(
     userName,
     pfp_url,
     card,
@@ -1229,26 +1726,6 @@ warApp.hono.get('/image/result/:params', async (c) => {
     c_userName,
     c_pfp_url,
     c_card,
-    isWin,
-  } = params;
-  console.log('genereate result');
-  console.log({
-    userName,
-    pfp_url,
-    card,
-    wager,
-    c_userName,
-    c_pfp_url,
-    c_card,
-    isWin,
-  });
-
-  const backgroundImageBuffer = await generateDuelImage(
-    userName,
-    pfp_url,
-    wager,
-    c_userName,
-    c_pfp_url,
   );
 
   const backgroundImage = sharp(backgroundImageBuffer);
@@ -1329,107 +1806,5 @@ warApp.hono.get('/image/result/:params', async (c) => {
     ])
     .toBuffer();
 
-  return c.newResponse(finalImage, 200, { 'Content-Type': 'image/png' });
-});
-
-warApp.frame('/result/:gameId', async (c) => {
-  const gameId = c.req.param('gameId') as `0x${string}`;
-
-  const gameInfo = await getGameInfoByGameId(gameId);
-  if (!gameInfo) {
-    const params = encodeURIComponent(
-      JSON.stringify({
-        message: 'Invalid Game Id',
-      }),
-    );
-    return c.res({
-      image: `/war/image/error/${params}`,
-      imageAspectRatio: '1:1',
-      intents: [],
-    });
-  }
-
-  console.log('get db');
-
-  let {
-    userName,
-    pfp_url,
-    wager,
-    c_address,
-    c_userName,
-    c_pfp_url,
-    card,
-    c_card,
-    winner,
-  } = gameInfo;
-
-  if (!winner || winner === zeroAddress) {
-    const result = await warContract.read.games([gameId]);
-    // const result = [0, 0, '0xa989173a1545eedF7a0eBE49AC51Dd1383F7EbC8', 2, 6];
-
-    winner = result[2];
-    if (winner === zeroAddress) {
-      return c.error({ message: 'Please wait …' });
-    }
-
-    card = result[3];
-    c_card = result[4];
-
-    await updateResult(gameId, card, c_card, winner);
-  }
-
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/result/${gameId}`;
-  const isWin = winner.toLowerCase() === c_address;
-
-  console.log(
-    JSON.stringify({
-      userName,
-      pfp_url,
-      card,
-      wager,
-      c_userName,
-      c_pfp_url,
-      c_card,
-      isWin: isWin,
-    }),
-  );
-
-  console.log(c_card);
-  console.log(c_card);
-  console.log(c_card);
-  return c.res({
-    image:
-      '/war/image/result/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          card,
-          wager,
-          c_userName,
-          c_pfp_url,
-          c_card,
-          isWin: isWin,
-        }),
-      ),
-    imageAspectRatio: '1:1',
-    browserLocation:
-      '/war/image/result/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          card,
-          wager,
-          c_userName,
-          c_pfp_url,
-          c_card,
-          isWin: isWin,
-        }),
-      ),
-    intents: [
-      <Button.Link href={shareLink}>share</Button.Link>,
-      <Button action={`/`}>make duel</Button>,
-    ],
-  });
-});
+  return finalImage;
+};
