@@ -44,10 +44,19 @@ DB のシークレット情報を secret manager に保存しているが、ARN 
 
 ### Docker Image を push
 
+#### Frame
+
 1. `aws ecr get-login-password --region ap-northeast-1 --profile senspace | docker login --username AWS --password-stdin 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com`
-2. `docker build -t gasha-repository:latest -f ./Dockerfile.test .`
-3. `docker tag gasha-repository:latest 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/gasha:latest`
-4. `docker push 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/gasha:latest`
+2. `docker build -t card-frame:latest -f ./Dockerfile .`
+3. `docker tag card-frame:latest 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/test-card-frame:latest`
+4. `docker push 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/test-card-frame:latest`
+
+### Backend
+
+1. `aws ecr get-login-password --region ap-northeast-1 --profile senspace | docker login --username AWS --password-stdin 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com`
+2. `docker build -t card-backend:latest -f ./Dockerfile.test .`
+3. `docker tag card-backend:latest 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/test-card:latest`
+4. `docker push 726394863183.dkr.ecr.ap-northeast-1.amazonaws.com/test-card:latest`
 
 ## AppStack のデプロイ
 
