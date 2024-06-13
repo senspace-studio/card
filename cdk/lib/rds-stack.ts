@@ -13,6 +13,7 @@ interface AppProps {
 
 export class RdsStack extends Stack {
   readonly appRunnerSecurityGroup: ec2.SecurityGroup;
+  readonly frameAppRunnerSecurityGroup: ec2.SecurityGroup;
 
   constructor(
     scope: Construct,
@@ -24,15 +25,15 @@ export class RdsStack extends Stack {
 
     const { vpc, config, ec2BastionSecurityGroup } = appProps;
 
-    const { appRunnerSecurityGroup, dbSecurityGroup } = new SecurityGroup(
-      this,
-      'SecurityGroup',
-      {
-        vpc,
-        config,
-        ec2BastionSecurityGroup,
-      },
-    );
+    const {
+      appRunnerSecurityGroup,
+      frameAppRunnerSecurityGroup,
+      dbSecurityGroup,
+    } = new SecurityGroup(this, 'SecurityGroup', {
+      vpc,
+      config,
+      ec2BastionSecurityGroup,
+    });
 
     new Rds(this, 'Rds', {
       vpc,
@@ -41,5 +42,6 @@ export class RdsStack extends Stack {
     });
 
     this.appRunnerSecurityGroup = appRunnerSecurityGroup;
+    this.frameAppRunnerSecurityGroup = frameAppRunnerSecurityGroup;
   }
 }

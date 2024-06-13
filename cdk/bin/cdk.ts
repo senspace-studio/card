@@ -34,7 +34,7 @@ const { vpc, ec2BastionSecurityGroup } = new GashaInitStack(
   },
 );
 
-const { appRunnerSecurityGroup } = new RdsStack(
+const { appRunnerSecurityGroup, frameAppRunnerSecurityGroup } = new RdsStack(
   app,
   `${stage}${serviceName}RdsStack`,
   {
@@ -84,6 +84,6 @@ new FrameAppStack(
   {
     vpc,
     config,
-    appRunnerSecurityGroup,
+    appRunnerSecurityGroup: frameAppRunnerSecurityGroup,
   },
 );

@@ -261,6 +261,7 @@ export class FrameAppRunner extends Construct {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }).subnetIds,
         securityGroups: [appRunnerSecurityGroup.securityGroupId],
+
         vpcConnectorName: `${
           props.config.stage
         }-${props.config.serviceName.toLowerCase()}-frame-apprunner-vpc-connector`,
@@ -309,6 +310,10 @@ export class FrameAppRunner extends Construct {
                   value: props.config.blockchain.contract_addresses.gasha,
                 },
                 {
+                  name: 'CARD_CONTRACT_ADDRESS',
+                  value: props.config.blockchain.contract_addresses.erc1155,
+                },
+                {
                   name: 'WAR_CONTRACT_ADDRESS',
                   value: props.config.blockchain.contract_addresses.war,
                 },
@@ -329,7 +334,7 @@ export class FrameAppRunner extends Construct {
                   value: props.config.thirdweb.engine_access_token,
                 },
                 {
-                  name: 'BACKEDN_URL',
+                  name: 'BACKEND_URL',
                   value: props.config.backend.url,
                 },
                 {

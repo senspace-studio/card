@@ -10,6 +10,7 @@ interface SecurityGroupProps {
 
 export class SecurityGroup extends Construct {
   readonly appRunnerSecurityGroup: ec2.SecurityGroup;
+  readonly frameAppRunnerSecurityGroup: ec2.SecurityGroup;
   readonly dbSecurityGroup: ec2.SecurityGroup;
 
   constructor(scope: Construct, id: string, props: SecurityGroupProps) {
@@ -41,10 +42,26 @@ export class SecurityGroup extends Construct {
       },
     );
 
+    this.frameAppRunnerSecurityGroup = new ec2.SecurityGroup(
+      scope,
+      `${props.config.stage}-${props.config.serviceName}-Frame-AppRunner-SG`,
+      {
+        allowAllOutbound: true,
+        securityGroupName: `${props.config.stage}-${props.config.serviceName}-Frame-AppRunner-SG`,
+        vpc: props.vpc,
+      },
+    );
+
     this.dbSecurityGroup.addIngressRule(
       this.appRunnerSecurityGroup!,
       ec2.Port.tcp(3306),
       'Allow AppRunner to access the database',
+    );
+
+    this.dbSecurityGroup.addIngressRule(
+      this.frameAppRunnerSecurityGroup!,
+      ec2.Port.tcp(3306),
+      'Allow Frame AppRunner to access the database',
     );
   }
 }
