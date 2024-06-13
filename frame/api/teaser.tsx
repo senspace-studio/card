@@ -44,6 +44,8 @@ teaserApp.frame('/invitation', async (c) => {
     },
   );
 
+  console.log(data);
+
   if (Number(data?.result) === 0) {
     return c.res({
       image: '/images/teaser/no_invite.png',
