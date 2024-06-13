@@ -13,6 +13,23 @@ import {
 import { Repository } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 
+export enum GAME_STATUS {
+  // データが存在しない
+  NOT_FOUND,
+  // DB上に作成されていてブロックチェーンには登録されていない
+  CREATED,
+  // ゲームがブロックチェーン上に登録されてチャレンジャー待ち
+  MADE,
+  // チャレンジャーが現れた
+  CHALLENGED,
+  // 結果が公開された
+  REVEALED,
+  // DB上には存在するが期限切れ
+  EXPIRED,
+  // その他
+  UNEXPECTED,
+}
+
 const dealar = privateKeyToAccount(DEALER_PRIVATE_KEY as `0x${string}`);
 const client = createPublicClient({
   chain: degen,
@@ -25,6 +42,32 @@ export class WarService {
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
   ) {}
+
+  getGameStatus(game: WarEntity) {
+    if (game) {
+      if (game.game_id) {
+        if (game.cast_hash_revealed) {
+          return GAME_STATUS.REVEALED;
+        } else if (game.cast_hash_challenged) {
+          return GAME_STATUS.CHALLENGED;
+        } else if (game.cast_hash_made) {
+          const now = new Date().getTime();
+          const expiration = 24 * 60 * 60 * 1e3;
+          if (game.created + expiration < now) {
+            return GAME_STATUS.MADE;
+          } else {
+            return GAME_STATUS.EXPIRED;
+          }
+        } else {
+          return GAME_STATUS.UNEXPECTED;
+        }
+      } else {
+        return GAME_STATUS.CREATED;
+      }
+    } else {
+      return GAME_STATUS.NOT_FOUND;
+    }
+  }
 
   async getCardBalanceOf(owner: Address) {
     const numOfToken = 14;
@@ -49,7 +92,9 @@ export class WarService {
 
   async getAllReservedGames(maker: string) {
     const games = await this.warRepositry.find({ where: { maker } });
-    const reservedGamnes = games.filter((e) => !e.challenger);
+    const reservedGamnes = games.filter(
+      (e) => this.getGameStatus(e) === GAME_STATUS.MADE,
+    );
     return reservedGamnes;
   }
 
@@ -86,35 +131,37 @@ export class WarService {
       maker,
       maker_token_id: tokenId.toString(),
       signature: signature,
+      created: new Date().getTime(),
     });
     return signature;
   }
 
-  async onGameMade(gameId: string, signature: string) {
+  async onGameMade(gameId: string, signature: string, cashHash: string) {
     const game = await this.getWarGameBySignature(signature);
-    if (!game) {
-      throw new Error('game not found');
-    }
-    if (game.game_id) {
-      throw new Error('game id already linked');
+    if (this.getGameStatus(game) !== GAME_STATUS.CREATED) {
+      throw new Error('invalid game status');
     }
     game.game_id = gameId;
+    game.cast_hash_made = cashHash;
     await this.warRepositry.save(game);
   }
 
-  async onGameChallenged(
-    gameId: string,
-    challenger: string,
-    // challengerTokenId: bigint,
-  ) {
+  async onGameChallenged(gameId: string, challenger: string, cashHash: string) {
     const game = await this.getWarGameByGameId(gameId);
-    if (!game) {
-      throw new Error('game not found');
+    if (this.getGameStatus(game) !== GAME_STATUS.MADE) {
+      throw new Error('invalid game status');
     }
     game.challenger = challenger;
-    // game.challenger_token_id = challengerTokenId.toString();
+    game.cast_hash_challenged = cashHash;
     await this.warRepositry.save(game);
   }
 
-  // async onGameRevealed(gameId: string) {}
+  async onGameRevealed(gameId: string, cashHash: string) {
+    const game = await this.getWarGameByGameId(gameId);
+    if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
+      throw new Error('invalid game status');
+    }
+    game.cast_hash_revealed = cashHash;
+    await this.warRepositry.save(game);
+  }
 }

@@ -25,6 +25,15 @@ export class WarEntity {
   @Column({ nullable: true })
   challenger: string;
 
-  // @Column({ nullable: true })
-  // challenger_token_id: string;
+  @Column({ nullable: true })
+  cast_hash_made: string;
+
+  @Column({ nullable: true })
+  cast_hash_challenged: string;
+
+  @Column({ nullable: true })
+  cast_hash_revealed: string;
+
+  @Column({ nullable: false })
+  created: number;
 }

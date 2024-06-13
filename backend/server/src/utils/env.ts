@@ -26,6 +26,7 @@ export const FARCASTER_SIGNER_UUID = process.env.FARCASTER_SIGNER_UUID || '';
 export const INVITATION_CONTRACT_ADDRESS =
   process.env.INVITATION_CONTRACT_ADDRESS || '';
 
+export const FRAME_BASE_URL = process.env.FRAME_BASE_URL || '';
 // Stream
 export const STREAM_INTERVAL_MINUTES =
   process.env.STREAM_INTERVAL_MINUTES || 1440;
