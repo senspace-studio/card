@@ -1,11 +1,11 @@
-import { Button, Frog, parseEther, TextInput } from 'frog';
+import { Button, Frog, TextInput } from 'frog';
 import { GASHA_ABI } from '../constant/abi.js';
 import {
   BASE_URL,
   GASHA_CONTRACT_ADDRESS,
   GASHA_UNIT_PRICE,
 } from '../constant/config.js';
-import { decodeEventLog, formatEther, parseUnits } from 'viem';
+import { decodeEventLog, formatEther } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
 import { cardContract, gashaContract, publicClient } from '../lib/contract.js';
 import sharp from 'sharp';
@@ -181,7 +181,11 @@ drawApp.frame('/mycards', async (c) => {
   const quantities = await getQuantities(verifiedAddresses[0]);
 
   return c.res({
-    image: '/war/image/score/' + encodeURIComponent(JSON.stringify(quantities)),
+    image:
+      '/war/image/score/' +
+      encodeURIComponent(
+        JSON.stringify({ quantities, address: verifiedAddresses[0] }),
+      ),
     imageAspectRatio: '1:1',
     intents: [<Button action="/">Back</Button>],
   });

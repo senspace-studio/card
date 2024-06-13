@@ -166,7 +166,8 @@ export class WebhookController {
           if (winner.value === zeroAddress) {
             // 引き分けの場合
             // イベントのwinnerがzeroAddressかつ、makerとchallenger両方がzeroAddressでないもの
-            botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(maker.value)}`;
+            botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
+            botMessageText += '\n';
             botMessageText += 'The game was draw.';
           } else if (
             winner.value === challenger.value ||

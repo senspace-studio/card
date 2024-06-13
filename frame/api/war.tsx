@@ -2,7 +2,6 @@ import { Button, Frog, TextInput } from 'frog';
 import {
   BACKEND_URL,
   BASE_URL,
-  NEYNAR_API_KEY,
   WAR_CONTRACT_ADDRESS,
 } from '../constant/config.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
@@ -16,16 +15,8 @@ import {
 
 import sharp from 'sharp';
 import JSON from 'json-bigint';
-import { CARD_ABI, WAR_ABI } from '../constant/abi.js';
-import {
-  zeroAddress,
-  encodePacked,
-  keccak256,
-  parseEther,
-  decodeEventLog,
-  Address,
-} from 'viem';
-import { NeynarAPIClient, FeedType, FilterType } from '@neynar/nodejs-sdk';
+import { WAR_ABI } from '../constant/abi.js';
+import { zeroAddress, parseEther, decodeEventLog, Address } from 'viem';
 import {
   setGameInfo,
   updateChallenger,
@@ -35,7 +26,7 @@ import {
 import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
-} from '../lib/neynar';
+} from '../lib/neynar.js';
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -55,6 +46,12 @@ type State = {
   c_card?: number;
   signature?: Address;
 };
+
+enum Result {
+  Win = 'Win',
+  Lose = 'Lose',
+  Draw = 'Draw',
+}
 
 export const warApp = new Frog<{ State: State }>({
   initialState: {
@@ -123,6 +120,8 @@ warApp.frame('/make-duel', async (c) => {
   }
 
   const quantities = await getQuantities(address, c);
+
+  console.log(quantities);
 
   c.deriveState((prevState) => {
     prevState.quantities = quantities;
@@ -652,6 +651,7 @@ warApp.frame('/choose/:params', async (c) => {
   }
 
   const quantities = await getQuantities(address, c);
+  const totalBalance = quantities.reduce((acc, cur) => acc + cur, 0);
 
   c.deriveState((prevState) => {
     prevState.quantities = quantities;
@@ -673,6 +673,9 @@ warApp.frame('/choose/:params', async (c) => {
     intents: [
       <TextInput placeholder="11 or J or ..." />,
       <Button action="/duel">Set</Button>,
+      totalBalance === 0 && (
+        <Button action={BASE_URL + '/draw'}>Draw Card</Button>
+      ),
     ],
   });
 });
@@ -824,13 +827,15 @@ warApp.frame('/result/:gameId', async (c) => {
   if (!winner || winner === zeroAddress) {
     const result = await warContract.read.games([gameId]);
     // const result = [0, 0, '0xa989173a1545eedF7a0eBE49AC51Dd1383F7EbC8', 2, 6];
+    card = Number(result[3]);
+
+    console.log(card);
 
     winner = result[2];
-    if (winner === zeroAddress) {
+    if (winner === zeroAddress && card === 0) {
       return c.error({ message: 'Please wait …' });
     }
 
-    card = result[3];
     c_card = result[4];
 
     await updateResult(gameId, card, c_card, winner);
@@ -838,6 +843,8 @@ warApp.frame('/result/:gameId', async (c) => {
 
   const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/result/${gameId}`;
   const isWin = winner.toLowerCase() === c_address;
+  const result =
+    card == c_card ? Result.Draw : isWin ? Result.Win : Result.Lose;
 
   return c.res({
     image:
@@ -851,7 +858,7 @@ warApp.frame('/result/:gameId', async (c) => {
           c_userName,
           c_pfp_url,
           c_card,
-          isWin: isWin,
+          result,
         }),
       ),
     imageAspectRatio: '1:1',
@@ -866,7 +873,7 @@ warApp.frame('/result/:gameId', async (c) => {
           c_userName,
           c_pfp_url,
           c_card,
-          isWin: isWin,
+          result,
         }),
       ),
     intents: [
@@ -1168,7 +1175,7 @@ warApp.hono.get('/image/result/:params', async (c) => {
     c_userName,
     c_pfp_url,
     c_card,
-    isWin,
+    result,
   } = params;
 
   const png = await generateResultImage(
@@ -1179,7 +1186,7 @@ warApp.hono.get('/image/result/:params', async (c) => {
     c_userName,
     c_pfp_url,
     c_card,
-    isWin,
+    result,
   );
 
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
@@ -1728,7 +1735,7 @@ const generateResultImage = async (
   c_userName: string,
   c_pfp_url: string,
   c_card: number,
-  isWin: boolean,
+  result: Result,
 ) => {
   let backgroundImageBuffer = await generateResultBgImage(
     userName,
@@ -1742,9 +1749,13 @@ const generateResultImage = async (
 
   const backgroundImage = sharp(backgroundImageBuffer);
 
-  const overlayImageName = isWin
-    ? 'result_victory_overlay.png'
-    : 'result_defeat_overlay.png';
+  const overlayImageName =
+    result === Result.Win
+      ? 'result_victory_overlay.png'
+      : result === Result.Lose
+      ? 'result_defeat_overlay.png'
+      : 'result_draw_overlay.png';
+
   const overlayImage = await sharp('./public/images/war/' + overlayImageName)
     .resize(1000, 1000)
     .toBuffer();

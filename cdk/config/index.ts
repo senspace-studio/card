@@ -23,6 +23,7 @@ export function getConfig(stage: string) {
     farcaster: {
       neynar_api_key: process.env.NEYNAR_API_KEY!,
       signer_uuid: process.env.FARCASTER_SIGNER_UUID!,
+      username: process.env.FARCASTER_USER_NAME!,
     },
     blockchain: {
       chain_id: process.env.CHAIN_ID!,
@@ -47,6 +48,7 @@ export function getConfig(stage: string) {
     },
     frontend: {
       client_url: process.env.CLIENT_URL!,
+      frame_base_url: process.env.FRAME_BASE_URL!,
       ssh_host: process.env.SSH_HOST!,
       ssh_user: process.env.SSH_USER!,
       ssh_key: process.env.SSH_KEY!,

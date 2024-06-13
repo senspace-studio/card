@@ -152,8 +152,16 @@ export class AppRunner extends Construct {
                   value: props.config.farcaster.signer_uuid,
                 },
                 {
+                  name: 'FARCASTER_USER_NAME',
+                  value: props.config.farcaster.username,
+                },
+                {
                   name: 'CLIENT_URL',
                   value: props.config.frontend.client_url,
+                },
+                {
+                  name: 'FRAME_BASE_URL',
+                  value: props.config.frontend.frame_base_url,
                 },
                 {
                   name: 'CHAIN_ID',
@@ -372,6 +380,10 @@ export class FrameAppRunner extends Construct {
                 {
                   name: 'NODE_ENV',
                   value: props.config.frontend.node_env,
+                },
+                {
+                  name: 'PORT',
+                  value: '3000',
                 },
               ],
             },
