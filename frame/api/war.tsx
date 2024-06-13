@@ -1,5 +1,9 @@
 import { Button, Frog, TextInput } from 'frog';
-import { NEYNAR_API_KEY, WAR_CONTRACT_ADDRESS } from '../constant/config.js';
+import {
+  BASE_URL,
+  NEYNAR_API_KEY,
+  WAR_CONTRACT_ADDRESS,
+} from '../constant/config.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
 import { convertCardValue } from '../lib/convertCardValue.js';
 import {
@@ -385,7 +389,7 @@ warApp.frame('/find', async (c) => {
     }),
   );
 
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/challenge/${gameId}`;
+  const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/challenge/${gameId}`;
 
   return c.res({
     image: '/war/image/find/' + params,
@@ -827,7 +831,7 @@ warApp.frame('/result/:gameId', async (c) => {
     await updateResult(gameId, card, c_card, winner);
   }
 
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${process.env.SITE_URL}/war/result/${gameId}`;
+  const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/result/${gameId}`;
   const isWin = winner.toLowerCase() === c_address;
 
   return c.res({

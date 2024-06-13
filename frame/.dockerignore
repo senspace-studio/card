@@ -1,0 +1,9 @@
+.vscode
+.env
+.git
+.gitignore
+.gitattributes
+**/.gitkeep
+**/Dockerfile
+docker-compose.yml
+docker-compose.override.yml
