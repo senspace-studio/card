@@ -71,8 +71,8 @@ function bootstrapCluster() {
   }
 }
 
-const clastering = false;
-if (clastering) {
+const clustering = false;
+if (clustering) {
   bootstrapCluster();
 } else {
   bootstrap();
