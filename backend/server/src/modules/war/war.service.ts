@@ -22,6 +22,8 @@ export enum GAME_STATUS {
   MADE,
   // チャレンジャーが現れた
   CHALLENGED,
+  // 公開待ち
+  WAITING_REVEAL,
   // 結果が公開された
   REVEALED,
   // DB上には存在するが期限切れ
@@ -52,11 +54,13 @@ export class WarService {
         if (game.cast_hash_revealed) {
           return GAME_STATUS.REVEALED;
         } else if (game.cast_hash_challenged) {
+          return GAME_STATUS.WAITING_REVEAL;
+        } else if (game.challenger) {
           return GAME_STATUS.CHALLENGED;
         } else if (game.cast_hash_made) {
           const now = new Date().getTime();
           const expiration = 24 * 60 * 60 * 1e3;
-          if (Number(game.created) + expiration < now) {
+          if (now < Number(game.created) + expiration) {
             return GAME_STATUS.MADE;
           } else {
             return GAME_STATUS.EXPIRED;
@@ -145,9 +149,12 @@ export class WarService {
     });
     this.logger.debug(JSON.stringify({ signature }));
     const game = await this.getWarGameBySignature(signature);
-    if (game) {
-      this.logger.debug({ game });
-      throw new Error('signature already used');
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.NOT_FOUND;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
     }
     await this.warRepositry.save({
       seed: seed.toString(),
@@ -159,55 +166,93 @@ export class WarService {
     return signature;
   }
 
-  async onGameMade(gameId: string, signature: string, cashHash: string) {
+  async onGameMade(gameId: string, signature: string, castHash: string) {
     this.logger.log(
       this.getWarGameByGameId.name,
       JSON.stringify({
         gameId,
         signature,
-        cashHash,
+        castHash,
       }),
     );
     const game = await this.getWarGameBySignature(signature);
-    if (this.getGameStatus(game) !== GAME_STATUS.CREATED) {
-      throw new Error('invalid game status');
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.CREATED;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
     }
     game.game_id = gameId;
-    game.cast_hash_made = cashHash;
+    game.cast_hash_made = castHash;
     await this.warRepositry.save(game);
   }
 
-  async onGameChallenged(gameId: string, challenger: string, cashHash: string) {
+  async onGameChallenged(gameId: string, challenger: string) {
     this.logger.log(
       this.onGameChallenged.name,
       JSON.stringify({
         gameId,
         challenger,
-        cashHash,
       }),
     );
     const game = await this.getWarGameByGameId(gameId);
-    if (this.getGameStatus(game) !== GAME_STATUS.MADE) {
-      throw new Error('invalid game status');
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.MADE;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
     }
     game.challenger = challenger;
-    game.cast_hash_challenged = cashHash;
     await this.warRepositry.save(game);
   }
 
-  async onGameRevealed(gameId: string, cashHash: string) {
+  async onGameChallengedCasted(gameId: string, castHash: string) {
+    this.logger.log(
+      this.onGameChallenged.name,
+      JSON.stringify({
+        gameId,
+        castHash,
+      }),
+    );
+    // const game = await this.getWarGameByGameId(gameId);
+    // if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
+    //   throw new Error('invalid game status');
+    // }
+    const game = await this.getWarGameByGameId(gameId);
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.CHALLENGED;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
+    }
+    game.cast_hash_challenged = castHash;
+    await this.warRepositry.save(game);
+  }
+
+  async onGameRevealed(gameId: string, castHash: string) {
     this.logger.log(
       this.onGameRevealed.name,
       JSON.stringify({
         gameId,
-        cashHash,
+        castHash,
       }),
     );
+    // const game = await this.getWarGameByGameId(gameId);
+    // if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
+    //   throw new Error('invalid game status');
+    // }
     const game = await this.getWarGameByGameId(gameId);
-    if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
-      throw new Error('invalid game status');
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.WAITING_REVEAL;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
     }
-    game.cast_hash_revealed = cashHash;
+    game.cast_hash_revealed = castHash;
     await this.warRepositry.save(game);
   }
 }

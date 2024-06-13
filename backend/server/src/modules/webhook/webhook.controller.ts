@@ -31,8 +31,7 @@ const isValidSignature = (
   secret: string,
 ): boolean => {
   const expectedSignature = generateSignature(body, timestamp, secret);
-  console.log(expectedSignature);
-  console.log(signature);
+  console.log(JSON.stringify({ signature, expectedSignature }));
   return crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
     Buffer.from(signature),
@@ -127,6 +126,7 @@ export class WebhookController {
           const { challenger, gameId } = body.data
             .decodedLog as GameChallengedEvent;
           const game = await this.warService.getWarGameByGameId(gameId.value);
+          await this.warService.onGameChallenged(gameId.value, challenger.value);
           // revealトランザクションをEngine経由で実行
           // bytes8 gameId,
           // uint256 makerCard,
@@ -138,7 +138,7 @@ export class WebhookController {
           ]);
           let botMessageText = `${await getNeynarUserName(challenger.value)} challenged!`;
           const res = await this.neynarService.publishCast(botMessageText, { replyTo: game.cast_hash_made });
-          await this.warService.onGameChallenged(gameId.value, challenger.value, res.hash);
+          await this.warService.onGameChallengedCasted(gameId.value, res.hash);
           break;
         }
         case 'GameRevealed': {
