@@ -5,13 +5,19 @@ import {
   Post,
   Req,
   RawBodyRequest,
+  Logger,
 } from '@nestjs/common';
 import { EventLog, TransactionReceipt } from 'src/lib/thirdweb-engine/types';
 import { NeynarService } from '../neynar/neynar.service';
 import { WarService } from '../war/war.service';
 import { sendTransaction } from 'src/lib/thirdweb-engine/send-transaction';
-import { ENGINE_WEBHOOK_SECRET, WAR_CONTRACT_ADDRESS } from 'src/utils/env';
+import {
+  // ENGINE_WEBHOOK_SECRET,
+  FRAME_BASE_URL,
+  WAR_CONTRACT_ADDRESS,
+} from 'src/utils/env';
 import * as crypto from 'node:crypto';
+import { zeroAddress } from 'viem';
 
 const generateSignature = (
   body: string,
@@ -29,8 +35,7 @@ const isValidSignature = (
   secret: string,
 ): boolean => {
   const expectedSignature = generateSignature(body, timestamp, secret);
-  console.log(expectedSignature);
-  console.log(signature);
+  console.log(JSON.stringify({ signature, expectedSignature }));
   return crypto.timingSafeEqual(
     Buffer.from(expectedSignature),
     Buffer.from(signature),
@@ -65,6 +70,7 @@ type GameRevealedEvent = {
 
 @Controller('webhook')
 export class WebhookController {
+  private readonly logger = new Logger(WebhookController.name);
   constructor(
     private readonly neynarService: NeynarService,
     private readonly warService: WarService,
@@ -78,6 +84,7 @@ export class WebhookController {
     @Headers('X-Engine-Timestamp') timestampFromHeader: string,
     @Body() body: EventLog | TransactionReceipt,
   ) {
+    this.logger.log(this.webhook.name, JSON.stringify({ authorization, body }));
     if (!signatureFromHeader || !timestampFromHeader) {
       throw new Error('Missing signature or timestamp header');
     }
@@ -97,35 +104,38 @@ export class WebhookController {
     }
 
     if (body.type === 'event-log') {
+      const getNeynarUserName = async (address: string) => {
+        const account = (await this.neynarService.getUserInfo(address))[0];
+        return account ? `@${account.username}` : '???';
+      };
       switch (body.data.eventName) {
         case 'GameMade': {
-          console.log('GameMade');
+          this.logger.log('GameMade');
           const { maker, signature, gameId } = body.data
             .decodedLog as GameMadeEvent;
           // gameIdとsignatureを紐づける
-          await this.warService.onGameMade(gameId.value, signature.value);
-          const makerAccount = (
-            await this.neynarService.getUserInfo(maker.value)
-          )[0];
-          const makerInMessageText = makerAccount
-            ? `@${makerAccount.username}`
-            : '???';
           // gameIdを元にゲームの情報を取得してBotからCast
-          // ToDo: URL追加
-          await this.neynarService.publishCast(
-            `[GameMade] maker: ${makerInMessageText}`,
+          let botMessageText = '';
+          botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
+          botMessageText += '\n';
+          botMessageText += `${FRAME_BASE_URL}/challenge/${gameId.value}`;
+          const res = await this.neynarService.publishCast(botMessageText);
+          await this.warService.onGameMade(
+            gameId.value,
+            signature.value,
+            res.hash,
           );
           break;
         }
         case 'GameChallenged': {
-          console.log('GameChallenged');
+          this.logger.log('GameChallenged');
           const { challenger, gameId } = body.data
             .decodedLog as GameChallengedEvent;
+          const game = await this.warService.getWarGameByGameId(gameId.value);
           await this.warService.onGameChallenged(
             gameId.value,
             challenger.value,
           );
-          const game = await this.warService.getWarGameByGameId(gameId.value);
           // revealトランザクションをEngine経由で実行
           // bytes8 gameId,
           // uint256 makerCard,
@@ -135,45 +145,61 @@ export class WebhookController {
             game.maker_token_id,
             game.seed,
           ]);
-          const challengerAccount = (
-            await this.neynarService.getUserInfo(challenger.value)
-          )[0];
-          const challengerInMessageText = challengerAccount
-            ? `@${challengerAccount.username}`
-            : '???';
-          await this.neynarService.publishCast(
-            `[GameChallenged] challenger: ${challengerInMessageText}`,
-          );
+          const botMessageText = `${await getNeynarUserName(challenger.value)} challenged!`;
+          const res = await this.neynarService.publishCast(botMessageText, {
+            replyTo: game.cast_hash_made,
+          });
+          await this.warService.onGameChallengedCasted(gameId.value, res.hash);
           break;
         }
         case 'GameRevealed': {
-          console.log('GameRevealed');
+          this.logger.log('GameRevealed');
           // ゲーム結果を取得
           const { gameId, maker, challenger, winner } = body.data
             .decodedLog as GameRevealedEvent;
-          // const game = await this.warService.getWarGameByGameId(gameId.value);
-          // const { maker, challenger } = game;
-          // BotからCast
-          console.log(gameId);
-          const makerAccount = (
-            await this.neynarService.getUserInfo(maker.value)
-          )[0];
-          const challengerAccount = (
-            await this.neynarService.getUserInfo(challenger.value)
-          )[0];
-          const makerInMessageText = makerAccount
-            ? `@${makerAccount.username}`
-            : '???';
-          const challengerInMessageText = challengerAccount
-            ? `@${challengerAccount.username}`
-            : '???';
-          const winnerInMessageText =
+          let botMessageText = '';
+          if (winner.value === zeroAddress) {
+            // 引き分けの場合
+            // イベントのwinnerがzeroAddressかつ、makerとchallenger両方がzeroAddressでないもの
+            botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(maker.value)}`;
+            botMessageText += 'The game was draw.';
+          } else if (
+            winner.value === challenger.value ||
             winner.value === maker.value
-              ? makerInMessageText
-              : challengerInMessageText;
-          await this.neynarService.publishCast(
-            `[GameRevealed] maker: ${makerInMessageText}, challenger: ${challengerInMessageText}, winner: ${winnerInMessageText}`,
-          );
+          ) {
+            if (
+              winner.value === challenger.value &&
+              maker.value === zeroAddress
+            ) {
+              // Makerが棄権の場合（賭けたカードを持ってない場合）
+              // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+              botMessageText += `${await getNeynarUserName(maker.value)}`;
+              botMessageText += '\n';
+              botMessageText += 'Opponent hold the game and you won!';
+            } else if (
+              winner.value === maker.value &&
+              challenger.value === zeroAddress
+            ) {
+              // Challengerが棄権の場合（賭けたカードを持ってない場合）
+              // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+              botMessageText += `${await getNeynarUserName(challenger.value)}`;
+              botMessageText += '\n';
+              botMessageText += 'Opponent hold the game and you won!';
+            } else if (winner.value === maker.value || winner.value) {
+              // 勝敗が付いた場合
+              botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(maker.value)}`;
+              botMessageText += '\n';
+              botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
+            }
+          } else {
+            throw new Error('unexpected error');
+          }
+          // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
+          const game = await this.warService.getWarGameByGameId(gameId.value);
+          const res = await this.neynarService.publishCast(botMessageText, {
+            replyTo: game.cast_hash_made,
+          });
+          await this.warService.onGameRevealed(gameId.value, res.hash);
           break;
         }
         default: {

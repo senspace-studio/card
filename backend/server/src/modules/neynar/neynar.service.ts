@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NeynarAPIClient } from '@neynar/nodejs-sdk';
+import { EmbeddedCast } from '@neynar/nodejs-sdk/build/neynar-api/v2';
 import { NEYNER_API_KEY, FARCASTER_SIGNER_UUID } from 'src/utils/env';
 
 @Injectable()
@@ -42,9 +43,17 @@ export class NeynarService {
     }
     return false;
   }
-
-  async publishCast(text: string) {
+  async publishCast(
+    text: string,
+    options?: {
+      embeds?: EmbeddedCast[];
+      replyTo?: string;
+      channelId?: string;
+      idem?: string;
+      parent_author_fid?: number;
+    },
+  ) {
     this.logger.log(this.publishCast.name);
-    return await this.client.publishCast(FARCASTER_SIGNER_UUID, text);
+    return await this.client.publishCast(FARCASTER_SIGNER_UUID, text, options);
   }
 }
