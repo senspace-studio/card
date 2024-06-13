@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Address, encodePacked, keccak256 } from 'viem';
 import { http, createPublicClient } from 'viem';
@@ -38,12 +38,15 @@ const client = createPublicClient({
 
 @Injectable()
 export class WarService {
+  private readonly logger = new Logger(WarService.name);
+
   constructor(
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
   ) {}
 
   getGameStatus(game: WarEntity) {
+    this.logger.log(this.getGameStatus.name, game);
     if (game) {
       if (game.game_id) {
         if (game.cast_hash_revealed) {
@@ -70,6 +73,7 @@ export class WarService {
   }
 
   async getCardBalanceOf(owner: Address) {
+    this.logger.log(this.getCardBalanceOf.name, { owner });
     const numOfToken = 14;
     const ids = Array(numOfToken)
       .fill('')
@@ -86,11 +90,13 @@ export class WarService {
   }
 
   async hasCard(owner: string, tokenId: number) {
+    this.logger.log(this.hasCard.name, { owner, tokenId });
     const { balanceOfAll } = await this.getCardBalanceOf(owner as Address);
     return 0n < balanceOfAll[tokenId - 1];
   }
 
   async getAllReservedGames(maker: string) {
+    this.logger.log(this.getAllReservedGames.name, { maker });
     const games = await this.warRepositry.find({ where: { maker } });
     const reservedGamnes = games.filter(
       (e) => this.getGameStatus(e) === GAME_STATUS.MADE,
@@ -99,6 +105,7 @@ export class WarService {
   }
 
   async getAllReservedCards(maker: string) {
+    this.logger.log(this.getAllReservedCards.name, { maker });
     const games = await this.getAllReservedGames(maker);
     const numOfCards: number[] = [...new Array(14)].fill(0);
     for (const game of games) {
@@ -108,14 +115,21 @@ export class WarService {
   }
 
   async getWarGameBySignature(signature: string) {
+    this.logger.log(this.getWarGameBySignature.name, { signature });
     return await this.warRepositry.findOne({ where: { signature } });
   }
 
   async getWarGameByGameId(gameId: string) {
+    this.logger.log(this.getWarGameByGameId.name, { gameId });
     return await this.warRepositry.findOne({ where: { game_id: gameId } });
   }
 
   async createNewGame(maker: string, tokenId: bigint, seed: bigint) {
+    this.logger.log(this.createNewGame.name, {
+      maker,
+      tokenId: Number(tokenId),
+      seed: Number(seed),
+    });
     const messageHash = keccak256(
       encodePacked(['uint256', 'uint256'], [tokenId, seed]),
     ) as `0x${string}`;
@@ -137,6 +151,11 @@ export class WarService {
   }
 
   async onGameMade(gameId: string, signature: string, cashHash: string) {
+    this.logger.log(this.getWarGameByGameId.name, {
+      gameId,
+      signature,
+      cashHash,
+    });
     const game = await this.getWarGameBySignature(signature);
     if (this.getGameStatus(game) !== GAME_STATUS.CREATED) {
       throw new Error('invalid game status');
@@ -147,6 +166,11 @@ export class WarService {
   }
 
   async onGameChallenged(gameId: string, challenger: string, cashHash: string) {
+    this.logger.log(this.onGameChallenged.name, {
+      gameId,
+      challenger,
+      cashHash,
+    });
     const game = await this.getWarGameByGameId(gameId);
     if (this.getGameStatus(game) !== GAME_STATUS.MADE) {
       throw new Error('invalid game status');
@@ -157,6 +181,10 @@ export class WarService {
   }
 
   async onGameRevealed(gameId: string, cashHash: string) {
+    this.logger.log(this.onGameRevealed.name, {
+      gameId,
+      cashHash,
+    });
     const game = await this.getWarGameByGameId(gameId);
     if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
       throw new Error('invalid game status');

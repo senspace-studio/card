@@ -12,30 +12,31 @@ export class WarController {
   ) {}
 
   // // ToDo: 開発用なので削除
-  // @Get('/sign')
-  // async signGet() {
-  //   for (let i = 0; i < 100; i++) {
-  //     try {
-  //       const seed = Math.floor(Math.random() * 1000000);
-  //       const signature = await this.warService.createNewGame(
-  //         '0xD0575cA24D907b35d39383a53c3300D510446BaE',
-  //         BigInt(3),
-  //         BigInt(seed),
-  //       );
-  //       return signature;
-  //     } catch (error) {
-  //       if (error.message !== 'signature already used') {
-  //         throw new Error('Internal server error');
-  //       }
-  //     }
-  //   }
-  // }
+  @Get('/sign')
+  async signGet() {
+    for (let i = 0; i < 100; i++) {
+      try {
+        const seed = Math.floor(Math.random() * 1000000);
+        const signature = await this.warService.createNewGame(
+          '0xD0575cA24D907b35d39383a53c3300D510446BaE',
+          BigInt(3),
+          BigInt(seed),
+        );
+        return signature;
+      } catch (error) {
+        if (error.message !== 'signature already used') {
+          throw new Error('signature already used');
+        }
+      }
+    }
+  }
 
   @Get('/balanceOf/:address/:tokenId')
   async balanceOf(
     @Param('address') address: Address,
     @Param('tokenId') tokenId: string,
   ) {
+    this.logger.log(this.balanceOf.name, { address, tokenId });
     const { balanceOfAll } = await this.warService.getCardBalanceOf(address);
     return Number(balanceOfAll[Number(tokenId) - 1]);
   }
@@ -46,6 +47,7 @@ export class WarController {
     @Body('trustedData') trustedData: { messageBytes: string },
     @Body('messageBytes') messageBytes: string,
   ) {
+    this.logger.log(this.getReservedCard.name, { trustedData, messageBytes });
     const result = await this.neynarService.validateRequest(
       messageBytes || trustedData.messageBytes,
     );
@@ -59,7 +61,7 @@ export class WarController {
   // 選んだTokenIDを認識して署名
   @Post('/sign')
   async sign(@Body('messageBytes') messageBytes: string) {
-    this.logger.log(this.sign.name);
+    this.logger.log(this.sign.name, { messageBytes });
     const result = await this.neynarService.validateRequest(messageBytes);
     if (!result.valid) {
       throw new Error('invalid message');
