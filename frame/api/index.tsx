@@ -1,10 +1,11 @@
-import { Frog } from 'frog';
+import { Button, Frog } from 'frog';
 import { devtools } from 'frog/dev';
 import { serveStatic } from 'frog/serve-static';
 import { drawApp } from './draw.js';
 import { warApp } from './war.js';
 import { teaserApp } from './teaser.js';
 import { serve } from '@hono/node-server';
+import { stackApp } from './stack.js';
 
 export const app = new Frog({
   assetsPath: '/',
@@ -18,13 +19,14 @@ app.frame('/', (c) => {
   return c.res({
     image: '',
   });
+
   // return c.res({
   //   image: '/images/top.png',
   //   imageAspectRatio: '1:1',
   //   intents: [
   //     <Button action="/draw">Draw</Button>,
-  //     <Button value="/war">Battle</Button>,
-  //     <Button value="/stack">Stack</Button>,
+  //     <Button action="/war">Battle</Button>,
+  //     <Button action="/stack">Stack</Button>,
   //     <Button.Link href="https://google.com">Rule</Button.Link>,
   //   ],
   // });
@@ -33,6 +35,7 @@ app.frame('/', (c) => {
 app.route('/teaser', teaserApp);
 app.route('/draw', drawApp);
 app.route('/war', warApp);
+app.route('/stack', stackApp);
 
 if (process.env.NODE_ENV !== 'production') {
   devtools(app, { serveStatic });
