@@ -17,7 +17,6 @@ import { AccountEntity } from 'src/entities/account.entity';
 import { TotalEntity } from 'src/entities/total.entity';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { CronModule } from './cron/cron.module';
-import { OgpModule } from './ogp/ogp.module';
 import { ScorecardEntity } from 'src/entities/scorecard';
 import { GashaModule } from './gasha/gasha.module';
 import { WebhookModule } from './webhook/webhook.module';
@@ -49,7 +48,6 @@ import { WarModule } from './war/war.module';
     ViemModule,
     PointsModule,
     CronModule,
-    OgpModule,
     GashaModule,
     WebhookModule,
     WarModule,

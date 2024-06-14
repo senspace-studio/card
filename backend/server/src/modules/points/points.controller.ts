@@ -22,8 +22,9 @@ export class PointsController {
   ) {
     this.logger.log(this.getAllPoints.name);
 
-    // ToDo: score を返す
-    return;
+    const scores = await this.pointsService.getScores();
+
+    return scores;
   }
 
   // 全アドレスの合計スコアを返却
@@ -31,13 +32,17 @@ export class PointsController {
   async getTotalPoint() {
     this.logger.log(this.getTotalPoint.name);
 
-    return;
+    const totalScore = await this.pointsService.getTotalScore();
+
+    return totalScore;
   }
 
   @Get('/:address')
   async getPointByAddress(@Param('address') address: string) {
-    this.logger.log(this.getPointByAddress.name, JSON.stringify({ address }));
-    // ToDo: addressのスコアを返す
-    return;
+    this.logger.log(this.getPointByAddress.name);
+
+    const score = await this.pointsService.getScoreByAddress(address);
+
+    return score;
   }
 }

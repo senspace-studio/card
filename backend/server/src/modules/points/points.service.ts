@@ -1,41 +1,71 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AccountEntity } from 'src/entities/account.entity';
-import { TotalEntity } from 'src/entities/total.entity';
 import { zeroAddress } from 'viem';
 import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
 import * as dayjs from 'dayjs';
+import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 
 @Injectable()
 export class PointsService {
   constructor(
-    @InjectRepository(AccountEntity)
-    private readonly accountRepository: Repository<AccountEntity>,
-    @InjectRepository(TotalEntity)
-    private readonly totalRepository: Repository<TotalEntity>,
+    @InjectRepository(HeatScoreEntity)
+    private readonly heatscoreRepository: Repository<HeatScoreEntity>,
   ) {}
 
-  async getEventsByMinter(minter: string) {}
+  async getScores() {
+    const latestAccounts = await this.heatscoreRepository.find({
+      order: {
+        date: 'DESC',
+      },
+      take: 1,
+    });
 
-  async accountExists(address: string) {
-    return await this.accountRepository.exists({ where: { address } });
+    const latestScores = await this.heatscoreRepository.find({
+      where: {
+        date: latestAccounts[0].date,
+      },
+      order: {
+        score: 'DESC',
+      },
+      take: 20,
+    });
+
+    return latestScores;
   }
 
-  async updateAccount(address: string, points: number) {
-    await this.accountRepository.save({ address, points });
+  async getScoreByAddress(address: string) {
+    const latestAccounts = await this.heatscoreRepository.find({
+      where: {
+        address,
+      },
+      order: {
+        date: 'DESC',
+      },
+      take: 1,
+    });
+
+    return latestAccounts;
   }
 
-  async switchTotalRunning(isRunning: boolean) {
-    await this.totalRepository.update({ id: 0 }, { isRunning });
-  }
+  async getTotalScore() {
+    const latestAccounts = await this.heatscoreRepository.find({
+      order: {
+        date: 'DESC',
+      },
+      take: 1,
+    });
+    const latestDate = latestAccounts[0]?.date || 0;
+    const latestScoreSum = await this.heatscoreRepository
+      .createQueryBuilder('heat_score')
+      .select('SUM(score)', 'totalScore')
+      .where('date = :date', { date: latestDate })
+      .getRawOne();
 
-  async updateTotal(id: number, TotalEntity: Partial<TotalEntity>) {
-    await this.totalRepository.update(id, TotalEntity);
+    return latestScoreSum;
   }
 
   // 対戦スコアの算出
-
   calcWarScore(baseUnixtime: number, gameLogs: GameRevealedEventLog[]) {
     const uniquePlayers = new Set<string>();
     gameLogs.forEach((eventLog) => {

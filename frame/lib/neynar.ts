@@ -27,10 +27,10 @@ export const getFarcasterUserInfoByAddress = async (address: `0x${string}`) => {
 
   const userData = await userInfo.json();
   const addressLowerCase = address.toLowerCase();
-  const pfp_url = userData[addressLowerCase][0].pfp_url;
-  const userName = userData[addressLowerCase][0].username;
+  const pfp_url = userData[addressLowerCase]?.[0].pfp_url || '';
+  const userName = userData[addressLowerCase]?.[0].username || '???';
   const verifiedAddresses =
-    userData[addressLowerCase][0].verified_addresses.eth_addresses;
+    userData[addressLowerCase]?.[0].verified_addresses.eth_addresses || [];
 
   return { pfp_url, userName, verifiedAddresses };
 };
