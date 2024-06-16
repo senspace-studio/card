@@ -4,6 +4,8 @@ dotenv.config();
 
 export const BASE_URL = process.env.BASE_URL as string;
 
+export const BACKEND_URL = process.env.BACKEND_URL as string;
+
 export const GASHA_CONTRACT_ADDRESS = process.env
   .GASHA_CONTRACT_ADDRESS as `0x${string}`;
 

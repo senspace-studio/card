@@ -23,9 +23,12 @@ export const DEALER_PRIVATE_KEY = process.env.DEALER_PRIVATE_KEY || '';
 export const ENGINE_WALLET_ADDRESS = process.env.ENGINE_WALLET_ADDRESS || '';
 export const ENGINE_WEBHOOK_SECRET = process.env.ENGINE_WEBHOOK_SECRET || '';
 export const FARCASTER_SIGNER_UUID = process.env.FARCASTER_SIGNER_UUID || '';
+export const FARCASTER_USER_NAME =
+  process.env.FARCASTER_USER_NAME || 'yuki-dev';
 export const INVITATION_CONTRACT_ADDRESS =
   process.env.INVITATION_CONTRACT_ADDRESS || '';
 
+export const FRAME_BASE_URL = process.env.FRAME_BASE_URL || '';
 // Stream
 export const STREAM_INTERVAL_MINUTES =
   process.env.STREAM_INTERVAL_MINUTES || 1440;

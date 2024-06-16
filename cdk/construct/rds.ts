@@ -1,25 +1,25 @@
-import * as ec2 from "aws-cdk-lib/aws-ec2"
-import * as rds from "aws-cdk-lib/aws-rds"
-import { Construct } from "constructs"
-import { Config } from "../config"
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as rds from 'aws-cdk-lib/aws-rds';
+import { Construct } from 'constructs';
+import { getConfig } from '../config';
 
 interface RdsProps {
-  vpc: ec2.Vpc
-  dbSecurityGroup: ec2.SecurityGroup
-  config: Config
+  vpc: ec2.Vpc;
+  dbSecurityGroup: ec2.SecurityGroup;
+  config: ReturnType<typeof getConfig>;
 }
 
 export class Rds extends Construct {
   constructor(scope: Construct, id: string, props: RdsProps) {
-    super(scope, id)
+    super(scope, id);
 
-    const { vpc, dbSecurityGroup } = props
+    const { vpc, dbSecurityGroup } = props;
 
-    const rdsCredentials = rds.Credentials.fromUsername("admin", {
+    const rdsCredentials = rds.Credentials.fromUsername('admin', {
       secretName: `${
         props.config.stage
       }-${props.config.serviceName.toLowerCase()}-db-secret`,
-    })
+    });
 
     const instanceParameterGroup = new rds.ParameterGroup(
       scope,
@@ -29,8 +29,8 @@ export class Rds extends Construct {
           version: rds.MysqlEngineVersion.VER_8_0_36,
         }),
         description: `${props.config.serviceName} DB Instance Parameter Group`,
-      }
-    )
+      },
+    );
 
     new rds.DatabaseInstance(scope, `${props.config.serviceName}-DB`, {
       engine: rds.DatabaseInstanceEngine.mysql({
@@ -38,9 +38,9 @@ export class Rds extends Construct {
       }),
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T3,
-        props.config.stage === "main"
+        props.config.stage === 'main'
           ? ec2.InstanceSize.MEDIUM
-          : ec2.InstanceSize.MICRO
+          : ec2.InstanceSize.MICRO,
       ),
       multiAz: false,
       allocatedStorage: 8,
@@ -53,6 +53,6 @@ export class Rds extends Construct {
       securityGroups: [dbSecurityGroup],
       parameterGroup: instanceParameterGroup,
       databaseName: `${props.config.serviceName.toLowerCase()}`,
-    })
+    });
   }
 }
