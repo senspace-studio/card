@@ -241,10 +241,6 @@ export class WarService {
         castHash,
       }),
     );
-    // const game = await this.getWarGameByGameId(gameId);
-    // if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
-    //   throw new Error('invalid game status');
-    // }
     const game = await this.getWarGameByGameId(gameId);
     const status = this.getGameStatus(game);
     const requiredStatus = GAME_STATUS.CHALLENGED;
