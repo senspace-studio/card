@@ -20,6 +20,7 @@ export enum GAME_STATUS {
   CREATED,
   // ゲームがブロックチェーン上に登録されてチャレンジャー待ち
   MADE,
+  MADE_CASTED,
   // チャレンジャーが現れた
   CHALLENGED,
   // 公開待ち
@@ -57,11 +58,15 @@ export class WarService {
           return GAME_STATUS.WAITING_REVEAL;
         } else if (game.challenger) {
           return GAME_STATUS.CHALLENGED;
-        } else if (game.cast_hash_made) {
+        } else if (game.cast_hash_made || game.signature) {
           const now = new Date().getTime();
           const expiration = 24 * 60 * 60 * 1e3;
           if (now < Number(game.created) + expiration) {
-            return GAME_STATUS.MADE;
+            if (game.cast_hash_made) {
+              return GAME_STATUS.MADE_CASTED;
+            } else {
+              return GAME_STATUS.MADE;
+            }
           } else {
             return GAME_STATUS.EXPIRED;
           }
@@ -103,7 +108,9 @@ export class WarService {
     this.logger.log(this.getAllReservedGames.name, JSON.stringify({ maker }));
     const games = await this.warRepositry.find({ where: { maker } });
     const reservedGamnes = games.filter(
-      (e) => this.getGameStatus(e) === GAME_STATUS.MADE,
+      (e) =>
+        this.getGameStatus(e) === GAME_STATUS.MADE ||
+        this.getGameStatus(e) === GAME_STATUS.MADE_CASTED,
     );
     return reservedGamnes;
   }
@@ -166,13 +173,12 @@ export class WarService {
     return signature;
   }
 
-  async onGameMade(gameId: string, signature: string, castHash: string) {
+  async onGameMade(gameId: string, signature: string) {
     this.logger.log(
       this.getWarGameByGameId.name,
       JSON.stringify({
         gameId,
         signature,
-        castHash,
       }),
     );
     const game = await this.getWarGameBySignature(signature);
@@ -184,6 +190,24 @@ export class WarService {
       );
     }
     game.game_id = gameId;
+    await this.warRepositry.save(game);
+  }
+  async onGameMadeCasted(gameId: string, castHash: string) {
+    this.logger.log(
+      this.getWarGameByGameId.name,
+      JSON.stringify({
+        gameId,
+        castHash,
+      }),
+    );
+    const game = await this.getWarGameByGameId(gameId);
+    const status = this.getGameStatus(game);
+    const requiredStatus = GAME_STATUS.MADE;
+    if (status !== requiredStatus) {
+      throw new Error(
+        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+      );
+    }
     game.cast_hash_made = castHash;
     await this.warRepositry.save(game);
   }
@@ -198,10 +222,11 @@ export class WarService {
     );
     const game = await this.getWarGameByGameId(gameId);
     const status = this.getGameStatus(game);
-    const requiredStatus = GAME_STATUS.MADE;
-    if (status !== requiredStatus) {
+    const requiredStatus0 = GAME_STATUS.MADE;
+    const requiredStatus1 = GAME_STATUS.MADE_CASTED;
+    if (!(status === requiredStatus0 || status === requiredStatus1)) {
       throw new Error(
-        `invalid game status (required: ${requiredStatus}, but: ${status})`,
+        `invalid game status (required: ${requiredStatus0} or ${requiredStatus1}, but: ${status})`,
       );
     }
     game.challenger = challenger;
@@ -240,10 +265,6 @@ export class WarService {
         castHash,
       }),
     );
-    // const game = await this.getWarGameByGameId(gameId);
-    // if (this.getGameStatus(game) !== GAME_STATUS.CHALLENGED) {
-    //   throw new Error('invalid game status');
-    // }
     const game = await this.getWarGameByGameId(gameId);
     const status = this.getGameStatus(game);
     const requiredStatus = GAME_STATUS.WAITING_REVEAL;
