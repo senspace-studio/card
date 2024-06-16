@@ -114,6 +114,8 @@ export class WebhookController {
           const { maker, signature, gameId } = body.data
             .decodedLog as GameMadeEvent;
           // gameIdとsignatureを紐づける
+          await this.warService.onGameMade(gameId.value, signature.value);
+
           // gameIdを元にゲームの情報を取得してBotからCast
           let botMessageText = '';
           botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
@@ -124,11 +126,7 @@ export class WebhookController {
 
           await this.neynarService.lookupCast(res.hash);
 
-          await this.warService.onGameMade(
-            gameId.value,
-            signature.value,
-            res.hash,
-          );
+          await this.warService.onGameMadeCasted(gameId.value, res.hash);
           break;
         }
         case 'GameChallenged': {
