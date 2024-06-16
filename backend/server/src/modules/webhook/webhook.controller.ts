@@ -111,7 +111,6 @@ export class WebhookController {
         const account = (await this.neynarService.getUserInfo(address))[0];
         return account ? `@${account.username}` : '???';
       };
-
       if (
         body.data.contractAddress.toLowerCase() ===
         WAR_CONTRACT_ADDRESS.toLowerCase()
@@ -122,6 +121,8 @@ export class WebhookController {
             const { maker, signature, gameId } = body.data
               .decodedLog as GameMadeEvent;
             // gameIdとsignatureを紐づける
+            await this.warService.onGameMade(gameId.value, signature.value);
+
             // gameIdを元にゲームの情報を取得してBotからCast
             let botMessageText = '';
             botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
@@ -130,13 +131,7 @@ export class WebhookController {
               embeds: [{ url: frameURL }],
             });
 
-            await this.neynarService.lookupCast(res.hash);
-
-            await this.warService.onGameMade(
-              gameId.value,
-              signature.value,
-              res.hash,
-            );
+            await this.warService.onGameMadeCasted(gameId.value, res.hash);
             break;
           }
           case 'GameChallenged': {
@@ -206,19 +201,49 @@ export class WebhookController {
                 // 勝敗が付いた場合
                 botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
                 botMessageText += '\n';
-                botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
+                botMessageText += 'The game was draw.';
+              } else if (
+                winner.value === challenger.value ||
+                winner.value === maker.value
+              ) {
+                if (
+                  winner.value === challenger.value &&
+                  maker.value === zeroAddress
+                ) {
+                  // Makerが棄権の場合（賭けたカードを持ってない場合）
+                  // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+                  botMessageText += `${await getNeynarUserName(maker.value)}`;
+                  botMessageText += '\n';
+                  botMessageText += 'Opponent hold the game and you won!';
+                } else if (
+                  winner.value === maker.value &&
+                  challenger.value === zeroAddress
+                ) {
+                  // Challengerが棄権の場合（賭けたカードを持ってない場合）
+                  // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+                  botMessageText += `${await getNeynarUserName(challenger.value)}`;
+                  botMessageText += '\n';
+                  botMessageText += 'Opponent hold the game and you won!';
+                } else if (winner.value === maker.value || winner.value) {
+                  // 勝敗が付いた場合
+                  botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
+                  botMessageText += '\n';
+                  botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
+                }
+              } else {
+                throw new Error('unexpected error');
               }
-            } else {
-              throw new Error('unexpected error');
+              // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
+              const game = await this.warService.getWarGameByGameId(
+                gameId.value,
+              );
+              const res = await this.neynarService.publishCast(botMessageText, {
+                replyTo: game.cast_hash_made,
+              });
+              await this.neynarService.lookupCast(res.hash);
+              await this.warService.onGameRevealed(gameId.value, res.hash);
+              break;
             }
-            // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
-            const game = await this.warService.getWarGameByGameId(gameId.value);
-            const res = await this.neynarService.publishCast(botMessageText, {
-              replyTo: game.cast_hash_made,
-            });
-            await this.neynarService.lookupCast(res.hash);
-            await this.warService.onGameRevealed(gameId.value, res.hash);
-            break;
           }
           default: {
             break;
