@@ -121,8 +121,6 @@ warApp.frame('/make-duel', async (c) => {
 
   const quantities = await getQuantities(address, c);
 
-  console.log(quantities);
-
   c.deriveState((prevState) => {
     prevState.quantities = quantities;
     prevState.address = address;
@@ -592,6 +590,11 @@ warApp.frame('/challenge/:gameId', async (c) => {
       ),
     imageAspectRatio: '1:1',
     intents: [<Button action={`/choose/${params}`}>Start</Button>],
+    imageOptions: {
+      headers: {
+        'Cache-Control': 'max-age=60',
+      },
+    },
   });
 });
 
