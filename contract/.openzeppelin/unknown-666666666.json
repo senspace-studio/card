@@ -115,6 +115,26 @@
       "address": "0x852420a580e171c00127C7692D0822E64B39FB43",
       "txHash": "0x4f4d9464570eecc9f9833ea612460175a2bcd32c81791b1c2f2747aeb6f35ba3",
       "kind": "transparent"
+    },
+    {
+      "address": "0xa444D216C56628A8dd5b1c321b7BE275F6a7731E",
+      "txHash": "0xf757368beba66a59cd9dce854dbf1291822b0dc15c824a7b1ae2244d3e42b964",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xcD962F118012752F105ED53878494E3C99B118ED",
+      "txHash": "0x3880d264aae62050ac5bf08ebd8ccf5a7905045e5ed681dd06c9ee5cc243eaf7",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x860160c7f0EBBf2FA911bE099E7BB0752002A211",
+      "txHash": "0x7bc3409ab1edfcaa1267019cc479001cc8a7c05d911c8cdf0e6227e6e324f8d4",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x9A3867D3ed46b2b8A3518132bA1A1D28B625264f",
+      "txHash": "0x3d0b82121cb46db684a32aa9baf1262623a35338ef8c8a52598d47a3b4781720",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -3757,6 +3777,230 @@
           "t_uint32": {
             "label": "uint32",
             "numberOfBytes": "4"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "dab42f50b942699523bba6bbd0d70db75869d1d282cbdcc628ab2739d3dc951b": {
+      "address": "0xFB06CBe2acaF86d21Bc7841A724Dda5082e375D3",
+      "txHash": "0xbce418b782914c8ac8e76a29b902e4e11b827e423a7714c4794ead4a27a40cba",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "GashaItem",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(ICard)1805",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:11"
+          },
+          {
+            "label": "invitation",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IERC721)934",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:13"
+          },
+          {
+            "label": "poolWallet",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_address",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:15"
+          },
+          {
+            "label": "series",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_array(t_struct(SeriesItem)1858_storage)dyn_storage",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:17"
+          },
+          {
+            "label": "seed",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_uint256",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:19"
+          },
+          {
+            "label": "unitPrice",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint256",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:21"
+          },
+          {
+            "label": "startTime",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_uint64",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:23"
+          },
+          {
+            "label": "endTime",
+            "offset": 8,
+            "slot": "6",
+            "type": "t_uint64",
+            "contract": "Gasha",
+            "src": "contracts/gasha/Gasha.sol:25"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)65_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(PausableStorage)138_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_array(t_struct(SeriesItem)1858_storage)dyn_storage": {
+            "label": "struct IGasha.SeriesItem[]",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ICard)1805": {
+            "label": "contract ICard",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC721)934": {
+            "label": "contract IERC721",
+            "numberOfBytes": "20"
+          },
+          "t_enum(Rareness)1848": {
+            "label": "enum IGasha.Rareness",
+            "members": [
+              "Common",
+              "Rare",
+              "Special"
+            ],
+            "numberOfBytes": "1"
+          },
+          "t_struct(SeriesItem)1858_storage": {
+            "label": "struct IGasha.SeriesItem",
+            "members": [
+              {
+                "label": "tokenId",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "rareness",
+                "type": "t_enum(Rareness)1848",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "weight",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "isActive",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "3"
+              }
+            ],
+            "numberOfBytes": "128"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
           }
         },
         "namespaces": {
