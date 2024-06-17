@@ -9,7 +9,7 @@ import {
 import { JSDOM } from 'jsdom';
 
 // TODO - replace url after cast
-const ROOT_CAST_URL = 'https://warpcast.com/renstern.eth/0xb56678d0';
+const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0xfb9874ec';
 
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
 const SHARE_TEXT = encodeURI('Check out my Joker Meme Card!');
@@ -114,7 +114,7 @@ app.frame(framePath + '/share/:hash', async (c) => {
 
   return c.res({
     image: `/api/image/${encodedImageUrl}`,
-    browserLocation: `/api/image/${encodedImageUrl}`,
+    browserLocation: `https://warpcast.com/cardgamemaster/0xfb9874ec`,
     intents: [
       <Button.Link key="create" href={ROOT_CAST_URL}>
         Create My Joker
