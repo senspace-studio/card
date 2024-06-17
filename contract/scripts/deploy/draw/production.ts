@@ -10,6 +10,7 @@ const main = async () => {
   const gashaContract = await deployGashaContract(
     adminAddress,
     await cardContract.getAddress(),
+    '0xa3F7125A348161517e8a92a64dB1B62C5cda3f0a',
     Number(parseEther('100')),
   );
 

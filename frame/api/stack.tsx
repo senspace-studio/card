@@ -1,10 +1,10 @@
 import { Button, Frog } from 'frog';
 import sharp from 'sharp';
-import { BACKEND_URL, BASE_URL } from '../constant/config';
+import { BACKEND_URL, BASE_URL } from '../constant/config.js';
 import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
-} from '../lib/neynar';
+} from '../lib/neynar.js';
 
 type State = {
   verifiedAddress: string;
@@ -122,7 +122,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       scores.map(async (score: any) => {
         const account = (await getFarcasterUserInfoByAddress(score.address))
           .userName;
-
         console.log({ account });
         return {
           ...score,
