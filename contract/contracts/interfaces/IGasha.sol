@@ -44,12 +44,6 @@ interface IGasha {
         uint256 quantity;
     }
 
-    struct BonusPointDuration {
-        uint64 startTime;
-        uint64 endTime;
-        uint32 multiplier;
-    }
-
     // ***********************
     // *** Functions Section ****
     // ***********************

@@ -104,8 +104,6 @@ export class WebhookController {
       throw new Error('Request has expired');
     }
 
-    console.log(body);
-
     if (body.type === 'event-log') {
       const getNeynarUserName = async (address: string) => {
         const account = (await this.neynarService.getUserInfo(address))[0];
@@ -127,9 +125,16 @@ export class WebhookController {
             let botMessageText = '';
             botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
             const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
+
             const res = await this.neynarService.publishCast(botMessageText, {
               embeds: [{ url: frameURL }],
             });
+
+            try {
+              await this.neynarService.lookupCast(res.hash);
+            } catch (error) {
+              this.logger.error(error);
+            }
 
             await this.warService.onGameMadeCasted(gameId.value, res.hash);
             break;
@@ -153,9 +158,12 @@ export class WebhookController {
               game.seed,
             ]);
             const botMessageText = `${await getNeynarUserName(challenger.value)} challenged!`;
-            const res = await this.neynarService.publishCast(botMessageText, {
-              replyTo: game.cast_hash_made,
-            });
+            const res = await this.neynarService.publishCast(
+              botMessageText,
+              game.cast_hash_made && {
+                replyTo: game.cast_hash_made,
+              },
+            );
             await this.neynarService.lookupCast(res.hash);
             await this.warService.onGameChallengedCasted(
               gameId.value,
@@ -201,49 +209,28 @@ export class WebhookController {
                 // 勝敗が付いた場合
                 botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
                 botMessageText += '\n';
-                botMessageText += 'The game was draw.';
-              } else if (
-                winner.value === challenger.value ||
-                winner.value === maker.value
-              ) {
-                if (
-                  winner.value === challenger.value &&
-                  maker.value === zeroAddress
-                ) {
-                  // Makerが棄権の場合（賭けたカードを持ってない場合）
-                  // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                  botMessageText += `${await getNeynarUserName(maker.value)}`;
-                  botMessageText += '\n';
-                  botMessageText += 'Opponent hold the game and you won!';
-                } else if (
-                  winner.value === maker.value &&
-                  challenger.value === zeroAddress
-                ) {
-                  // Challengerが棄権の場合（賭けたカードを持ってない場合）
-                  // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                  botMessageText += `${await getNeynarUserName(challenger.value)}`;
-                  botMessageText += '\n';
-                  botMessageText += 'Opponent hold the game and you won!';
-                } else if (winner.value === maker.value || winner.value) {
-                  // 勝敗が付いた場合
-                  botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
-                  botMessageText += '\n';
-                  botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
-                }
-              } else {
-                throw new Error('unexpected error');
+                botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
               }
-              // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
-              const game = await this.warService.getWarGameByGameId(
-                gameId.value,
-              );
-              const res = await this.neynarService.publishCast(botMessageText, {
-                replyTo: game.cast_hash_made,
-              });
-              await this.neynarService.lookupCast(res.hash);
-              await this.warService.onGameRevealed(gameId.value, res.hash);
-              break;
+            } else {
+              throw new Error('unexpected error');
             }
+            // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
+            const game = await this.warService.getWarGameByGameId(gameId.value);
+            const res = await this.neynarService.publishCast(
+              botMessageText,
+              game.cast_hash_made && {
+                replyTo: game.cast_hash_made,
+              },
+            );
+
+            try {
+              await this.neynarService.lookupCast(res.hash);
+            } catch (error) {
+              this.logger.error(error);
+            }
+
+            await this.warService.onGameRevealed(gameId.value, res.hash);
+            break;
           }
           default: {
             break;

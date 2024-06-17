@@ -122,7 +122,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       scores.map(async (score: any) => {
         const account = (await getFarcasterUserInfoByAddress(score.address))
           .userName;
-
         return {
           ...score,
           name: account,

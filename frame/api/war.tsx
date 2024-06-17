@@ -74,7 +74,9 @@ warApp.frame('/', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/make-duel">Create Battle</Button>,
-      <Button.Link href="https://google.com">Find Match</Button.Link>,
+      <Button.Link href="https://warpcast.com/cardgamemaster">
+        Find Match
+      </Button.Link>,
       <Button.Link href="https://google.com">Rules</Button.Link>,
     ],
   });

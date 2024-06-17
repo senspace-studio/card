@@ -36,6 +36,10 @@ const config: HardhatUserConfig = {
       url: 'https://base-mainnet.g.alchemy.com/v2/3UkpGe2fpUEY91zV9ff2Bup-Bk2RTOnY',
     },
     degen: {
+      accounts: [process.env.MAIN_PRIVATE_KEY!],
+      url: 'https://nitrorpc-degen-mainnet-1.t.conduit.xyz',
+    },
+    degen_test: {
       accounts: [process.env.TEST_PRIVATE_KEY!],
       url: 'https://nitrorpc-degen-mainnet-1.t.conduit.xyz',
     },
