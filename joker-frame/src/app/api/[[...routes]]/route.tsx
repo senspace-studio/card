@@ -12,9 +12,7 @@ import { JSDOM } from 'jsdom';
 const ROOT_CAST_URL = 'https://warpcast.com/renstern.eth/0xb56678d0';
 
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
-const SHARE_TEXT = encodeURI(
-  'Check out my Joker Frame on Senspace!（仮メッセージ）',
-);
+const SHARE_TEXT = encodeURI('Check out my Joker Meme Card!');
 const SHARE_EMBEDS = '&embeds[]=';
 
 const app = new Frog({
