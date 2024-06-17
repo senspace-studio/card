@@ -112,7 +112,7 @@ export const setGameInfo = async (
   createdAt: bigint,
 ) => {
   const query =
-    'INSERT IGNORE INTO game (gameId, address, userName, pfp_url, wager, createdAt) VALUES (?, ?, ?, ?, ?, ?)';
+    'INSERT IGNORE INTO game (gameId, address, userName, pfp_url, wager, createdAt) VALUES (?, ?, ?, ?, ?, FROM_UNIXTIME(?))';
   const connection = await connectToDatabase();
   await connection.execute(query, [
     id,

@@ -164,7 +164,7 @@ export class WebhookController {
                 replyTo: game.cast_hash_made,
               },
             );
-            await this.neynarService.lookupCast(res.hash);
+
             await this.warService.onGameChallengedCasted(
               gameId.value,
               res.hash,
@@ -222,12 +222,6 @@ export class WebhookController {
                 replyTo: game.cast_hash_made,
               },
             );
-
-            try {
-              await this.neynarService.lookupCast(res.hash);
-            } catch (error) {
-              this.logger.error(error);
-            }
 
             await this.warService.onGameRevealed(gameId.value, res.hash);
             break;
