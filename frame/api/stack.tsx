@@ -100,7 +100,7 @@ stackApp.hono.get('/image/:score', async (c) => {
   const png = await canvas.png().toBuffer();
 
   return c.newResponse(png, 200, {
-    contentType: 'image/png',
+    'Content-Type': 'image/png',
   });
 });
 
@@ -122,7 +122,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       scores.map(async (score: any) => {
         const account = (await getFarcasterUserInfoByAddress(score.address))
           .userName;
-        console.log({ account });
         return {
           ...score,
           name: account,
@@ -139,8 +138,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   ]);
   const myScore = await myScoreRes.json();
 
-  console.log({ myScore, topScores });
-
   const scores = [
     { name, address, score: Number(myScore[0]?.score || 0) },
     ...topScores.map((score: any) => ({
@@ -149,8 +146,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       score: Number(score.score),
     })),
   ];
-
-  console.log(scores);
 
   const usersName = await Promise.all(
     scores.map(async (score, index) => {
@@ -181,7 +176,9 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
         text: {
           text: `<span foreground="white" letter_spacing="2">${Number(
             score.score,
-          ).toLocaleString()}</span>`,
+          )
+            .toFixed(0)
+            .toLocaleString()}</span>`,
           rgba: true,
           width: 750,
           height: 40,
@@ -193,7 +190,7 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       return {
         input: userScore,
         top: 350 + index * 152,
-        left: 760 - score.score.toString().length * 27,
+        left: 760 - score.score.toFixed(0).toString().length * 27,
       };
     }),
   );
@@ -203,6 +200,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   const png = await canvas.png().toBuffer();
 
   return c.newResponse(png, 200, {
-    contentType: 'image/png',
+    'Content-Type': 'image/png',
   });
 });
