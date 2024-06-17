@@ -50,3 +50,10 @@ export const inivtationNFTContracrt = getContract({
   address: INVITATION_NFT_CONTRACT_ADDRESS,
   client: publicClient,
 });
+
+// 以下は個別の関数
+
+export const checkInvitation = async (address: `0x${string}`) => {
+  const balance = await inivtationNFTContracrt.read.balanceOf([address]);
+  return Number(balance) > 0;
+};

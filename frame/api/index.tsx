@@ -14,22 +14,41 @@ export const app = new Frog({
 
 app.use('/*', serveStatic({ root: './public' }));
 
-app.frame('/', (c) => {
-  // 一時的に画像を表示しない
-  return c.res({
-    image: '',
-  });
+const title = 'House of Cardians';
 
-  // return c.res({
-  //   image: '/images/top.png',
-  //   imageAspectRatio: '1:1',
-  //   intents: [
-  //     <Button action="/draw">Draw</Button>,
-  //     <Button action="/war">Battle</Button>,
-  //     <Button action="/stack">Stack</Button>,
-  //     <Button.Link href="https://google.com">Rule</Button.Link>,
-  //   ],
-  // });
+app.frame('/', (c) => {
+  // 一時的にproductionでは画像を表示しない
+
+  if (process.env.NODE_ENV === 'production') {
+    return c.res({
+      image: '',
+    });
+  }
+
+  return c.res({
+    title,
+    image: '/images/top.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/draw">Draw🃏</Button>,
+      <Button action="/war">Battle⚔️</Button>,
+      <Button action="/stack">Stack🗼</Button>,
+      <Button action="/sub">Next ＞</Button>,
+    ],
+  });
+});
+
+app.frame('/sub', (c) => {
+  return c.res({
+    title,
+    image: '/images/sub.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
+      <Button.Link href="https://google.com">Rules📖</Button.Link>,
+      <Button action="/">＜ Back</Button>,
+    ],
+  });
 });
 
 app.route('/teaser', teaserApp);

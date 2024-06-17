@@ -6,6 +6,7 @@ import {
   FARCASTER_SIGNER_UUID,
   FARCASTER_USER_NAME,
 } from 'src/utils/env';
+import { zeroAddress } from 'viem';
 
 @Injectable()
 export class NeynarService {
@@ -59,7 +60,17 @@ export class NeynarService {
     },
   ) {
     this.logger.log(this.publishCast.name);
-    return await this.client.publishCast(FARCASTER_SIGNER_UUID, text, options);
+    try {
+      return await this.client.publishCast(
+        FARCASTER_SIGNER_UUID,
+        text,
+        options,
+      );
+    } catch (error) {
+      return {
+        hash: null,
+      };
+    }
   }
 
   async lookupCast(hash: string) {

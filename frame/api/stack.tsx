@@ -5,11 +5,15 @@ import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
 } from '../lib/neynar.js';
+import { checkInvitation } from '../lib/contract.js';
 
 type State = {
+  verifiedAddresses: `0x${string}`[];
   verifiedAddress: string;
   username: string;
 };
+
+const title = 'Stack | House of Cardians';
 
 export const stackApp = new Frog<{ State: State }>({
   assetsPath: '/',
@@ -26,11 +30,32 @@ stackApp.frame('/', async (c) => {
 
   if (!verifiedAddress) {
     const { verifiedAddresses, userName } = await getFarcasterUserInfo(fid);
+
+    if (!verifiedAddresses || verifiedAddresses.length === 0) {
+      return c.res({
+        title,
+        image: '/images/verify.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action={BASE_URL}>Back</Button>],
+      });
+    }
+
     c.deriveState((prev) => {
       prev.verifiedAddress = verifiedAddresses[0];
       prev.username = userName;
     });
     verifiedAddress = verifiedAddresses[0];
+
+    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
+
+    if (!hasInvitation) {
+      return c.res({
+        title,
+        image: '/images/war/no_invi.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Back</Button>],
+      });
+    }
   }
 
   const superFluidURL = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=${verifiedAddress}`;
@@ -40,6 +65,7 @@ stackApp.frame('/', async (c) => {
   const { totalScore } = await res.json();
 
   return c.res({
+    title,
     image: `/stack/image/${Number(totalScore || 0).toFixed(0)}`,
     imageAspectRatio: '1:1',
     intents: [
@@ -54,6 +80,7 @@ stackApp.frame('/leaderboard', async (c) => {
   const { username, verifiedAddress } = c.previousState;
 
   return c.res({
+    title,
     image: `/stack/image/leaderboard/${verifiedAddress}/${username}`,
     imageAspectRatio: '1:1',
     intents: [<Button action="/">Back</Button>],
@@ -100,7 +127,7 @@ stackApp.hono.get('/image/:score', async (c) => {
   const png = await canvas.png().toBuffer();
 
   return c.newResponse(png, 200, {
-    contentType: 'image/png',
+    'Content-Type': 'image/png',
   });
 });
 
@@ -122,7 +149,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       scores.map(async (score: any) => {
         const account = (await getFarcasterUserInfoByAddress(score.address))
           .userName;
-        console.log({ account });
         return {
           ...score,
           name: account,
@@ -139,8 +165,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   ]);
   const myScore = await myScoreRes.json();
 
-  console.log({ myScore, topScores });
-
   const scores = [
     { name, address, score: Number(myScore[0]?.score || 0) },
     ...topScores.map((score: any) => ({
@@ -149,8 +173,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       score: Number(score.score),
     })),
   ];
-
-  console.log(scores);
 
   const usersName = await Promise.all(
     scores.map(async (score, index) => {
@@ -181,7 +203,9 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
         text: {
           text: `<span foreground="white" letter_spacing="2">${Number(
             score.score,
-          ).toLocaleString()}</span>`,
+          )
+            .toFixed(0)
+            .toLocaleString()}</span>`,
           rgba: true,
           width: 750,
           height: 40,
@@ -193,7 +217,7 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
       return {
         input: userScore,
         top: 350 + index * 152,
-        left: 760 - score.score.toString().length * 27,
+        left: 760 - score.score.toFixed(0).toString().length * 27,
       };
     }),
   );
@@ -203,6 +227,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   const png = await canvas.png().toBuffer();
 
   return c.newResponse(png, 200, {
-    contentType: 'image/png',
+    'Content-Type': 'image/png',
   });
 });

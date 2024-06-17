@@ -7,7 +7,12 @@ import {
 } from '../constant/config.js';
 import { decodeEventLog, formatEther, parseEther } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
-import { cardContract, gashaContract, publicClient } from '../lib/contract.js';
+import {
+  cardContract,
+  checkInvitation,
+  gashaContract,
+  publicClient,
+} from '../lib/contract.js';
 import sharp from 'sharp';
 import JSON from 'json-bigint';
 import { getFarcasterUserInfo } from '../lib/neynar.js';
@@ -17,6 +22,8 @@ type State = {
   ids: number[];
   quantities: number[];
   transactionId: string;
+  hasInvitation: boolean;
+  verifiedAddresses: `0x${string}`[];
 };
 
 const MINIMUM_NATIVE_TOKEN = 100;
@@ -24,17 +31,53 @@ const MINIMUM_NATIVE_TOKEN = 100;
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
 
+const title = 'Draw | House of Cardians';
+
 export const drawApp = new Frog<{ State: State }>({
   initialState: {
     ids: [],
     quantities: [],
     transactionId: '',
+    hasInvitation: false,
+    verifiedAddresses: [],
   },
 });
 
-drawApp.frame('/', (c) => {
+drawApp.frame('/', async (c) => {
+  if (c.frameData?.fid) {
+    const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+
+    if (!verifiedAddresses || verifiedAddresses.length === 0) {
+      return c.res({
+        title,
+        image: '/images/verify.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action={BASE_URL}>Back</Button>],
+      });
+    }
+
+    c.deriveState((prevState) => {
+      prevState.verifiedAddresses = verifiedAddresses;
+    });
+
+    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
+
+    if (!hasInvitation) {
+      return c.res({
+        title,
+        image: '/images/war/no_invi.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Back</Button>],
+      });
+    }
+
+    c.deriveState((prevState) => {
+      prevState.hasInvitation = hasInvitation;
+    });
+  }
+
   return c.res({
-    title: 'Draw | House of Cardians',
+    title,
     image: '/images/draw/top.png',
     imageAspectRatio: '1:1',
     intents: [
@@ -48,7 +91,33 @@ drawApp.frame('/', (c) => {
 drawApp.frame('/input', async (c) => {
   const numOfMint = Number(c.inputText);
 
-  const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+  const verifiedAddresses =
+    c.previousState.verifiedAddresses.length > 0
+      ? c.previousState.verifiedAddresses
+      : (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
+
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
+    return c.res({
+      title,
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const hasInvitation =
+    c.previousState.hasInvitation ||
+    (await checkInvitation(verifiedAddresses[0]));
+
+  if (!hasInvitation) {
+    return c.res({
+      title,
+      image: '/images/war/no_invi.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
   const amountOfDegen = formatEther(
     await getBalance(publicClient, {
       address: verifiedAddresses[0],
@@ -57,7 +126,7 @@ drawApp.frame('/input', async (c) => {
 
   if (Number(amountOfDegen) < MINIMUM_NATIVE_TOKEN) {
     return c.res({
-      title: 'Draw | House of Cardians',
+      title,
       image: '/images/draw/bridge.png',
       imageAspectRatio: '1:1',
       intents: [
@@ -68,7 +137,7 @@ drawApp.frame('/input', async (c) => {
   }
 
   return c.res({
-    title: 'Draw | House of Cardians',
+    title,
     image: '/images/draw/mint.png',
     imageAspectRatio: '1:1',
     action: '/score',
@@ -138,7 +207,7 @@ drawApp.frame('/score', async (c) => {
       const shareLink = `${shareUrlBase}My hand is stacked! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info.${embedParam}${BASE_URL}/draw/score/${transactionId}`;
 
       return c.res({
-        title: 'Draw | House of Cardians',
+        title,
         image:
           '/draw/image/score/' +
           encodeURIComponent(JSON.stringify(spinEvent.args)),
@@ -165,7 +234,7 @@ drawApp.frame('/card/:id', (c) => {
 
   if (ids.length === 0 || quantities.length === 0) {
     return c.res({
-      title: 'Draw | House of Cardians',
+      title,
       image: `/images/draw/${c.req.param('id')}.png`,
       imageAspectRatio: '1:1',
       intents: [<Button action="/">Draw My Cards</Button>],
@@ -179,7 +248,7 @@ drawApp.frame('/card/:id', (c) => {
   const shareLink = `${shareUrlBase}I got a ${shareCard}! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info. ${embedParam}${BASE_URL}/draw/card/${id}`;
 
   return c.res({
-    title: 'Draw | House of Cardians',
+    title,
     image: `/images/draw/${c.req.param('id')}.png`,
     imageAspectRatio: '1:1',
     intents: [
@@ -238,7 +307,7 @@ drawApp.frame('/score/:transactionId', async (c) => {
       });
 
       return c.res({
-        title: 'Draw | House of Cardians',
+        title,
         image:
           '/draw/image/score/' +
           encodeURIComponent(JSON.stringify(spinEvent.args)),
@@ -252,12 +321,36 @@ drawApp.frame('/score/:transactionId', async (c) => {
 });
 
 drawApp.frame('/mycards', async (c) => {
-  const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
+  const verifiedAddresses =
+    c.previousState.verifiedAddresses.length > 0
+      ? c.previousState.verifiedAddresses
+      : (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
+
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
+    return c.res({
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const hasInvitation =
+    c.previousState.hasInvitation ||
+    (await checkInvitation(verifiedAddresses[0]));
+
+  if (!hasInvitation) {
+    return c.res({
+      title,
+      image: '/images/war/no_invi.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
 
   const quantities = await getQuantities(verifiedAddresses[0]);
 
   return c.res({
-    title: 'Draw | House of Cardians',
+    title,
     image:
       '/war/image/score/' +
       encodeURIComponent(
