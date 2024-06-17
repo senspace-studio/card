@@ -24,6 +24,8 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     uint64 public endTime;
 
+    address public commissionWallet;
+
     modifier isAvailableTime() {
         uint256 currentTime = block.timestamp;
         require(
@@ -81,8 +83,11 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
             }
         }
 
+        uint256 poolValue = (msg.value * 95) / 100;
+        uint256 commission = msg.value - poolValue;
+        require(_safeTransfer(poolWallet, poolValue), 'Gasha: transfer failed');
         require(
-            _safeTransfer(poolWallet, unitPrice * quantity),
+            _safeTransfer(commissionWallet, commission),
             'Gasha: transfer failed'
         );
 
@@ -224,6 +229,10 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     function setPoolWallet(address _poolWallet) external onlyOwner {
         poolWallet = _poolWallet;
+    }
+
+    function setCommissionWallet(address _commissionWallet) external onlyOwner {
+        commissionWallet = _commissionWallet;
     }
 
     function setInvitationAddress(address _invitation) external onlyOwner {

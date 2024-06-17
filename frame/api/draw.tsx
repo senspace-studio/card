@@ -34,6 +34,7 @@ export const drawApp = new Frog<{ State: State }>({
 
 drawApp.frame('/', (c) => {
   return c.res({
+    title: 'Draw | House of Cardians',
     image: '/images/draw/top.png',
     imageAspectRatio: '1:1',
     intents: [
@@ -56,6 +57,7 @@ drawApp.frame('/input', async (c) => {
 
   if (Number(amountOfDegen) < MINIMUM_NATIVE_TOKEN) {
     return c.res({
+      title: 'Draw | House of Cardians',
       image: '/images/draw/bridge.png',
       imageAspectRatio: '1:1',
       intents: [
@@ -66,6 +68,7 @@ drawApp.frame('/input', async (c) => {
   }
 
   return c.res({
+    title: 'Draw | House of Cardians',
     image: '/images/draw/mint.png',
     imageAspectRatio: '1:1',
     action: '/score',
@@ -135,6 +138,7 @@ drawApp.frame('/score', async (c) => {
       const shareLink = `${shareUrlBase}My hand is stacked! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info.${embedParam}${BASE_URL}/draw/score/${transactionId}`;
 
       return c.res({
+        title: 'Draw | House of Cardians',
         image:
           '/draw/image/score/' +
           encodeURIComponent(JSON.stringify(spinEvent.args)),
@@ -161,6 +165,7 @@ drawApp.frame('/card/:id', (c) => {
 
   if (ids.length === 0 || quantities.length === 0) {
     return c.res({
+      title: 'Draw | House of Cardians',
       image: `/images/draw/${c.req.param('id')}.png`,
       imageAspectRatio: '1:1',
       intents: [<Button action="/">Draw My Cards</Button>],
@@ -174,6 +179,7 @@ drawApp.frame('/card/:id', (c) => {
   const shareLink = `${shareUrlBase}I got a ${shareCard}! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info. ${embedParam}${BASE_URL}/draw/card/${id}`;
 
   return c.res({
+    title: 'Draw | House of Cardians',
     image: `/images/draw/${c.req.param('id')}.png`,
     imageAspectRatio: '1:1',
     intents: [
@@ -232,6 +238,7 @@ drawApp.frame('/score/:transactionId', async (c) => {
       });
 
       return c.res({
+        title: 'Draw | House of Cardians',
         image:
           '/draw/image/score/' +
           encodeURIComponent(JSON.stringify(spinEvent.args)),
@@ -250,6 +257,7 @@ drawApp.frame('/mycards', async (c) => {
   const quantities = await getQuantities(verifiedAddresses[0]);
 
   return c.res({
+    title: 'Draw | House of Cardians',
     image:
       '/war/image/score/' +
       encodeURIComponent(
