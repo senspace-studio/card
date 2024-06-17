@@ -9,8 +9,8 @@ import { convertCardValue } from '../lib/convertCardValue.js';
 import {
   cardContract,
   warContract,
-  inivtationNFTContracrt,
   warPoolContract,
+  checkInvitation,
 } from '../lib/contract.js';
 
 import sharp from 'sharp';
@@ -37,6 +37,8 @@ const USER_NAME_FONT_SIZE = 20;
 const IMAGE_SIZE = 1000;
 const CARD_SIZE = 220;
 
+const title = 'Battle | House of Cardians';
+
 type State = {
   quantities: number[];
   address: `0x${string}`;
@@ -50,6 +52,8 @@ type State = {
   c_userName?: string;
   c_card?: number;
   signature?: Address;
+  verifiedAddresses?: `0x${string}`[];
+  hasInvitation?: boolean;
 };
 
 enum Result {
@@ -67,14 +71,53 @@ export const warApp = new Frog<{ State: State }>({
     card: 0,
     wager: 0,
     gameId: '',
+    verifiedAddresses: [],
+    haiInvitation: false,
   },
   headers: {
     'Cache-Control': 'max-age=60',
   },
 });
 
-warApp.frame('/', (c) => {
+warApp.frame('/', async (c) => {
+  if (c.frameData?.fid) {
+    const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
+      c.frameData?.fid,
+    );
+
+    if (!verifiedAddresses || verifiedAddresses.length === 0) {
+      return c.res({
+        title,
+        image: '/images/verify.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action={BASE_URL}>Back</Button>],
+      });
+    }
+
+    c.deriveState((prevState) => {
+      prevState.verifiedAddresses = verifiedAddresses;
+      prevState.userName = userName;
+      prevState.pfp_url = pfp_url;
+    });
+
+    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
+
+    if (!hasInvitation) {
+      return c.res({
+        title,
+        image: '/images/war/no_invi.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Back</Button>],
+      });
+    }
+
+    c.deriveState((prevState) => {
+      prevState.hasInvitation = hasInvitation;
+    });
+  }
+
   return c.res({
+    title,
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
@@ -89,6 +132,7 @@ warApp.frame('/', (c) => {
 
 warApp.frame('/rule', (c) => {
   return c.res({
+    title,
     image: '/images/war/bet.png',
     imageAspectRatio: '1:1',
     intents: [<Button action={`/`}>Back</Button>],
@@ -98,14 +142,15 @@ warApp.frame('/rule', (c) => {
 warApp.frame('/make-duel', async (c) => {
   const { frameData } = c;
   const fid = frameData?.fid;
-  const { pfp_url, userName, verifiedAddresses } = await getFarcasterUserInfo(
-    fid,
-  );
+  const { pfp_url, userName, verifiedAddresses } = c.previousState.userName
+    ? c.previousState
+    : await getFarcasterUserInfo(fid);
 
   const verifyedAddress = verifiedAddresses[0];
 
   if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({
+      title,
       image: '/images/verify.png',
       imageAspectRatio: '1:1',
       intents: [<Button action="/">Back</Button>],
@@ -121,6 +166,7 @@ warApp.frame('/make-duel', async (c) => {
 
   if (!hasNFT) {
     return c.res({
+      title,
       image: '/images/war/no_invi.png',
       imageAspectRatio: '1:1',
       intents: [<Button action="/">Back</Button>],
@@ -132,9 +178,12 @@ warApp.frame('/make-duel', async (c) => {
     prevState.address = address;
     prevState.userName = userName;
     prevState.pfp_url = pfp_url;
+    prevState.hasInvitation = hasNFT;
+    prevState.verifiedAddresses = verifiedAddresses;
   });
 
   return c.res({
+    title,
     image:
       '/war/image/score/' +
       encodeURIComponent(JSON.stringify({ quantities, address })),
@@ -166,6 +215,7 @@ warApp.frame('/make-duel', async (c) => {
 //     );
 
 //     return c.res({
+//       title,
 //       image: `/war/image/error/${params}`,
 //       imageAspectRatio: '1:1',
 //       intents: [
@@ -186,6 +236,7 @@ warApp.frame('/make-duel', async (c) => {
 //     );
 
 //     return c.res({
+//       title,
 //       image: `/war/image/error/${params}`,
 //       imageAspectRatio: '1:1',
 //       intents: [<Button action="/make-duel">Back</Button>],
@@ -198,6 +249,7 @@ warApp.frame('/make-duel', async (c) => {
 //   });
 
 //   return c.res({
+//     title,
 //     image: '/images/war/bet.png',
 //     imageAspectRatio: '1:1',
 //     intents: [
@@ -225,6 +277,7 @@ warApp.frame('/preview', async (c) => {
     );
 
     return c.res({
+      title,
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [
@@ -246,6 +299,7 @@ warApp.frame('/preview', async (c) => {
     );
 
     return c.res({
+      title,
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [<Button action="/make-duel">Back</Button>],
@@ -267,6 +321,7 @@ warApp.frame('/preview', async (c) => {
   //   );
 
   //   return c.res({
+  //     title,
   //     image: `/war/image/error/${params}`,
   //     imageAspectRatio: '1:1',
   //     intents: [<Button action="/bet">Back</Button>],
@@ -279,6 +334,7 @@ warApp.frame('/preview', async (c) => {
   });
 
   return c.res({
+    title,
     image:
       '/war/image/preview/' +
       encodeURIComponent(
@@ -388,6 +444,7 @@ warApp.frame('/find', async (c) => {
   const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/challenge/${gameId}`;
 
   return c.res({
+    title,
     image: '/war/image/find/' + params,
     browserLocation: '/war/image/find/' + params,
 
@@ -430,6 +487,7 @@ const generateErrorImage = async (
 
 warApp.frame('/error/address', (c) => {
   return c.res({
+    title,
     image: '/images/war/address_error.png',
     imageAspectRatio: '1:1',
     intents: [<Button action={`/`}>Back</Button>],
@@ -556,6 +614,7 @@ warApp.frame('/challenge/:gameId', async (c) => {
   });
 
   return c.res({
+    title,
     image:
       '/war/image/challenge/' +
       encodeURIComponent(
@@ -579,6 +638,7 @@ warApp.frame('/choose', async (c) => {
   const { quantities, c_address } = c.previousState;
 
   return c.res({
+    title,
     image:
       '/war/image/score/' +
       encodeURIComponent(JSON.stringify({ quantities, address: c_address })),
@@ -607,6 +667,7 @@ warApp.frame('/choose/:params', async (c) => {
 
   if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({
+      title,
       image: '/images/verify.png',
       imageAspectRatio: '1:1',
       intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
@@ -621,6 +682,7 @@ warApp.frame('/choose/:params', async (c) => {
 
   if (!hasNFT) {
     return c.res({
+      title,
       image: '/images/war/no_invi.png',
       imageAspectRatio: '1:1',
       intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
@@ -641,6 +703,7 @@ warApp.frame('/choose/:params', async (c) => {
   });
 
   return c.res({
+    title,
     image:
       '/war/image/score/' +
       encodeURIComponent(JSON.stringify({ quantities, address })),
@@ -684,6 +747,7 @@ warApp.frame('/duel', async (c) => {
     );
 
     return c.res({
+      title,
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [
@@ -698,6 +762,7 @@ warApp.frame('/duel', async (c) => {
   });
 
   return c.res({
+    title,
     image:
       '/war/image/duel/' +
       encodeURIComponent(
@@ -754,6 +819,7 @@ warApp.frame('/loading', async (c) => {
   await updateChallenger(gameId, String(c_address), c_userName!, c_pfp_url!);
 
   return c.res({
+    title,
     image:
       '/war/image/loading/' +
       encodeURIComponent(
@@ -794,6 +860,7 @@ warApp.frame('/result/:gameId', async (c) => {
       }),
     );
     return c.res({
+      title,
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [],
@@ -849,6 +916,7 @@ warApp.frame('/result/:gameId', async (c) => {
   const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/result/${gameId}`;
 
   return c.res({
+    title,
     image: `/war/image/result/${encodedResultParams}`,
     imageAspectRatio: '1:1',
     browserLocation: `/war/image/result/${encodedResultParams}`,
@@ -967,11 +1035,6 @@ const getQuantities = async (address: string, c: any) => {
     return remainingQuantity < 0 ? 0 : remainingQuantity;
   });
   return quantities;
-};
-
-const checkInvitation = async (address: `0x${string}`) => {
-  const balance = await inivtationNFTContracrt.read.balanceOf([address]);
-  return Number(balance) > 0;
 };
 
 const checkCardNumber = (card: number, quantities: number[]) => {

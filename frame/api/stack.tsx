@@ -5,11 +5,15 @@ import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
 } from '../lib/neynar.js';
+import { checkInvitation } from '../lib/contract.js';
 
 type State = {
+  verifiedAddresses: `0x${string}`[];
   verifiedAddress: string;
   username: string;
 };
+
+const title = 'Stack | House of Cardians';
 
 export const stackApp = new Frog<{ State: State }>({
   assetsPath: '/',
@@ -26,11 +30,32 @@ stackApp.frame('/', async (c) => {
 
   if (!verifiedAddress) {
     const { verifiedAddresses, userName } = await getFarcasterUserInfo(fid);
+
+    if (!verifiedAddresses || verifiedAddresses.length === 0) {
+      return c.res({
+        title,
+        image: '/images/verify.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action={BASE_URL}>Back</Button>],
+      });
+    }
+
     c.deriveState((prev) => {
       prev.verifiedAddress = verifiedAddresses[0];
       prev.username = userName;
     });
     verifiedAddress = verifiedAddresses[0];
+
+    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
+
+    if (!hasInvitation) {
+      return c.res({
+        title,
+        image: '/images/war/no_invi.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Back</Button>],
+      });
+    }
   }
 
   const superFluidURL = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=${verifiedAddress}`;
@@ -40,6 +65,7 @@ stackApp.frame('/', async (c) => {
   const { totalScore } = await res.json();
 
   return c.res({
+    title,
     image: `/stack/image/${Number(totalScore || 0).toFixed(0)}`,
     imageAspectRatio: '1:1',
     intents: [
@@ -54,6 +80,7 @@ stackApp.frame('/leaderboard', async (c) => {
   const { username, verifiedAddress } = c.previousState;
 
   return c.res({
+    title,
     image: `/stack/image/leaderboard/${verifiedAddress}/${username}`,
     imageAspectRatio: '1:1',
     intents: [<Button action="/">Back</Button>],
