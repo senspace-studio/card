@@ -12,6 +12,8 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     IERC721 public invitation;
 
+    address public poolWallet;
+
     SeriesItem[] public series;
 
     uint256 public seed;
@@ -21,10 +23,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     uint64 public startTime;
 
     uint64 public endTime;
-
-    uint256[] public basePoint;
-
-    BonusPointDuration public bonusPoint;
 
     modifier isAvailableTime() {
         uint256 currentTime = block.timestamp;
@@ -46,15 +44,16 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     function initialize(
         address _initialOwner,
         address _gashaItemERC1155,
+        address _poolWallet,
         uint256 _initialSeed,
         uint256 _unitPrice
     ) public initializer {
         __Ownable_init(_initialOwner);
         __Pausable_init();
         GashaItem = ICard(_gashaItemERC1155);
+        poolWallet = _poolWallet;
         seed = _initialSeed;
         unitPrice = _unitPrice;
-        basePoint = [200, 600, 1800];
     }
 
     function spin(
@@ -66,8 +65,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         SeriesItem[] memory activeSeriesItem = activeSeriesItems();
         uint256[] memory ids = new uint256[](activeSeriesItem.length);
         uint256[] memory quantities = new uint256[](activeSeriesItem.length);
-        uint256 earnedPoint = 0;
-        uint32 bonusMultiplier = _bonusMultiplier();
 
         for (uint256 i = 0; i < activeSeriesItem.length; i++) {
             ids[i] = activeSeriesItem[i].tokenId;
@@ -82,11 +79,12 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
                     break;
                 }
             }
-            earnedPoint +=
-                basePoint[uint256(item.rareness)] *
-                bonusMultiplier *
-                (10 ** 18);
         }
+
+        require(
+            _safeTransfer(poolWallet, unitPrice * quantity),
+            'Gasha: transfer failed'
+        );
 
         _mint(msg.sender, ids, quantities);
 
@@ -98,15 +96,6 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         uint256[] memory ids,
         uint256[] memory quantities
     ) external payable onlyOwner {
-        uint256 totalQuantity = 0;
-        for (uint256 i = 0; i < quantities.length; i++) {
-            totalQuantity += quantities[i];
-        }
-        require(
-            msg.value >= unitPrice * totalQuantity,
-            'Gasha: insufficient funds'
-        );
-
         _mint(to, ids, quantities);
 
         emit Spin(to, ids, quantities);
@@ -156,15 +145,11 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         return defaultItem;
     }
 
-    function _bonusMultiplier() internal view returns (uint32) {
-        uint256 currentTime = block.timestamp;
-        if (
-            bonusPoint.startTime <= currentTime &&
-            currentTime < bonusPoint.endTime
-        ) {
-            return bonusPoint.multiplier;
-        }
-        return 1;
+    function _safeTransfer(address to, uint256 amount) private returns (bool) {
+        // slither-disable-next-line arbitrary-send-eth
+        (bool success, ) = to.call{value: amount}('');
+
+        return success;
     }
 
     function activeSeriesItems() public view returns (SeriesItem[] memory) {
@@ -235,6 +220,10 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         endTime = _endTime;
 
         emit SetAvailableTime(_startTime, _endTime);
+    }
+
+    function setPoolWallet(address _poolWallet) external onlyOwner {
+        poolWallet = _poolWallet;
     }
 
     function setInvitationAddress(address _invitation) external onlyOwner {

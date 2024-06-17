@@ -5,6 +5,7 @@ import { parseEther } from 'ethers';
 export const deployGashaContract = async (
   adminAddress: string,
   gashaItemERC1155Address: string,
+  poolWalletAddress: string,
   unitPrice: number,
 ) => {
   const gashaFactory = await ethers.getContractFactory('Gasha');
@@ -14,6 +15,7 @@ export const deployGashaContract = async (
     [
       adminAddress,
       gashaItemERC1155Address,
+      poolWalletAddress,
       10000,
       parseEther(unitPrice.toString()),
     ],
