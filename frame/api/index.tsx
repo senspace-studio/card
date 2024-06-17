@@ -15,21 +15,24 @@ export const app = new Frog({
 app.use('/*', serveStatic({ root: './public' }));
 
 app.frame('/', (c) => {
-  // 一時的に画像を表示しない
-  return c.res({
-    image: '',
-  });
+  // 一時的にproductionでは画像を表示しない
 
-  // return c.res({
-  //   image: '/images/top.png',
-  //   imageAspectRatio: '1:1',
-  //   intents: [
-  //     <Button action="/draw">Draw</Button>,
-  //     <Button action="/war">Battle</Button>,
-  //     <Button action="/stack">Stack</Button>,
-  //     <Button.Link href="https://google.com">Rule</Button.Link>,
-  //   ],
-  // });
+  if (process.env.NODE_ENV === 'production') {
+    return c.res({
+      image: '',
+    });
+  }
+
+  return c.res({
+    image: '/images/top.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/draw">Draw</Button>,
+      <Button action="/war">Battle</Button>,
+      <Button action="/stack">Stack</Button>,
+      <Button.Link href="https://google.com">Rule</Button.Link>,
+    ],
+  });
 });
 
 app.route('/teaser', teaserApp);

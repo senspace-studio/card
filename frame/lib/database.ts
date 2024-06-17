@@ -23,7 +23,7 @@ const connectToDatabase = async () => {
     throw new Error('DB_HOST or DB_PORT is not defined');
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  if (['production', 'staging'].includes(process.env.NODE_ENV!)) {
     return mysql.createConnection(dbConfig);
   } else {
     return new Promise<mysql.Connection>(async (resolve, reject) => {

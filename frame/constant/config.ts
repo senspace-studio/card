@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { parseEther } from 'viem';
 
 dotenv.config();
 
@@ -9,7 +10,8 @@ export const BACKEND_URL = process.env.BACKEND_URL as string;
 export const GASHA_CONTRACT_ADDRESS = process.env
   .GASHA_CONTRACT_ADDRESS as `0x${string}`;
 
-export const GASHA_UNIT_PRICE = 100;
+export const GASHA_UNIT_PRICE =
+  process.env.NODE_ENV === 'production' ? 100 : 0.00001;
 
 export const THIRDWEB_ENGINE_ENDPOINT = process.env
   .THIRDWEB_ENGINE_ENDPOINT as string;

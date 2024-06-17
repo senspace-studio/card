@@ -201,6 +201,10 @@ export class AppRunner extends Construct {
                     props.config.stream.stream_end_schedule_cron_expression,
                 },
                 {
+                  name: 'DEALER_PRIVATE_KEY',
+                  value: props.config.blockchain.dealer_private_key,
+                },
+                {
                   name: 'NODE_ENV',
                   value: props.config.backend.node_env,
                 },
@@ -269,7 +273,6 @@ export class FrameAppRunner extends Construct {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }).subnetIds,
         securityGroups: [appRunnerSecurityGroup.securityGroupId],
-
         vpcConnectorName: `${
           props.config.stage
         }-${props.config.serviceName.toLowerCase()}-frame-apprunner-vpc-connector`,

@@ -5,7 +5,7 @@ import {
   GASHA_CONTRACT_ADDRESS,
   GASHA_UNIT_PRICE,
 } from '../constant/config.js';
-import { decodeEventLog, formatEther } from 'viem';
+import { decodeEventLog, formatEther, parseEther } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
 import { cardContract, gashaContract, publicClient } from '../lib/contract.js';
 import sharp from 'sharp';
@@ -19,7 +19,10 @@ type State = {
   transactionId: string;
 };
 
-const MINIMUM_NATIVE_TOKEN = 0;
+const MINIMUM_NATIVE_TOKEN = 100;
+
+const shareUrlBase = 'https://warpcast.com/~/compose?text=';
+const embedParam = '&embeds[]=';
 
 export const drawApp = new Frog<{ State: State }>({
   initialState: {
@@ -35,7 +38,7 @@ drawApp.frame('/', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/input">Start</Button>,
-      <Button action={`${BASE_URL}`}>Home</Button>,
+      // <Button action={`${BASE_URL}`}>Home</Button>,
       <Button action="/mycards">My Cards</Button>,
     ],
   });
@@ -129,6 +132,8 @@ drawApp.frame('/score', async (c) => {
         prevState.transactionId = transactionId;
       });
 
+      const shareLink = `${shareUrlBase}My hand is stacked! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info.${embedParam}${BASE_URL}/draw/score/${transactionId}`;
+
       return c.res({
         image:
           '/draw/image/score/' +
@@ -137,10 +142,11 @@ drawApp.frame('/score', async (c) => {
         intents: [
           <Button action="/score">-</Button>,
           <Button action={`/card/${getNextCard(ids, quantities, 15)}`}>
-            Next
+            Next ＞
           </Button>,
           <Button action={`/input`}>Draw Again</Button>,
-          <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
+          // <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
+          <Button.Link href={shareLink}>Share</Button.Link>,
         ],
       });
     }
@@ -151,9 +157,21 @@ drawApp.frame('/score', async (c) => {
 
 drawApp.frame('/card/:id', (c) => {
   const { ids, quantities } = c.previousState;
+  const id = Number(c.req.param('id'));
 
-  const prevCard = getPrevCard(ids, quantities, Number(c.req.param('id')));
-  const nextCard = getNextCard(ids, quantities, Number(c.req.param('id')));
+  if (ids.length === 0 || quantities.length === 0) {
+    return c.res({
+      image: `/images/draw/${c.req.param('id')}.png`,
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Draw My Cards</Button>],
+    });
+  }
+
+  const prevCard = getPrevCard(ids, quantities, id);
+  const nextCard = getNextCard(ids, quantities, id);
+
+  const shareCard = id === 14 ? 'Joker' : id;
+  const shareLink = `${shareUrlBase}I got a ${shareCard}! Draw your cards from the frame.%0AFollow /card and @cardgamemaster for more info. ${embedParam}${BASE_URL}/draw/card/${id}`;
 
   return c.res({
     image: `/images/draw/${c.req.param('id')}.png`,
@@ -164,15 +182,66 @@ drawApp.frame('/card/:id', (c) => {
       ) : (
         <Button action="/score">{`＜ Back`}</Button>
       ),
-      nextCard ? (
-        <Button action={`/card/${nextCard}`}>{`Next ＞`}</Button>
-      ) : (
-        <Button action={`/`}>Home 🏠</Button>
-      ),
+      nextCard && <Button action={`/card/${nextCard}`}>{`Next ＞`}</Button>,
       <Button action={`/input`}>Draw Again</Button>,
-      <Button action={`${BASE_URL}/war`}>Battle ⚔</Button>,
+      <Button.Link href={shareLink}>Share</Button.Link>,
+      // <Button action={`${BASE_URL}/war`}>Battle ⚔</Button>,
     ],
   });
+});
+
+drawApp.frame('/score/:transactionId', async (c) => {
+  const transactionId = c.req.param('transactionId');
+
+  while (true) {
+    const { data: receipt } = await tweClient.GET(
+      '/transaction/{chain}/tx-hash/{txHash}',
+      {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            txHash: transactionId as `0x${string}`,
+          },
+        },
+      },
+    );
+
+    const spinEvent = receipt?.result?.logs
+      ?.map((log: any) => {
+        try {
+          return decodeEventLog({
+            abi: GASHA_ABI,
+            data: log.data,
+            topics: log.topics,
+          });
+        } catch (error) {
+          return;
+        }
+      })
+      .find((l) => l?.eventName === 'Spin') as any;
+
+    if (spinEvent) {
+      const ids = spinEvent.args.ids.map((id: BigInt) => Number(id));
+      const quantities = spinEvent.args.quantities.map((quantity: BigInt) =>
+        Number(quantity),
+      );
+      c.deriveState((prevState) => {
+        prevState.ids = ids;
+        prevState.quantities = quantities;
+        prevState.transactionId = transactionId;
+      });
+
+      return c.res({
+        image:
+          '/draw/image/score/' +
+          encodeURIComponent(JSON.stringify(spinEvent.args)),
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Draw My Cards</Button>],
+      });
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
 });
 
 drawApp.frame('/mycards', async (c) => {
@@ -245,13 +314,13 @@ const getQuantities = async (address: string) => {
 
 drawApp.transaction('/transaction/:numOfMint', async (c) => {
   const numOfMint = Number(c.req.param('numOfMint'));
-  const requiredDegen = numOfMint * GASHA_UNIT_PRICE;
+  const requiredDegen = parseEther(String(numOfMint * GASHA_UNIT_PRICE));
 
   const estimatedGas = await gashaContract.estimateGas.spin(
     [BigInt(numOfMint)],
     {
       value: BigInt(requiredDegen),
-      account: '0x807C69F16456F92ab2bFc9De8f14AF31051f9678',
+      account: '0xa3F7125A348161517e8a92a64dB1B62C5cda3f0a',
     },
   );
 
