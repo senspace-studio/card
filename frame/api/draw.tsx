@@ -92,8 +92,9 @@ drawApp.frame('/input', async (c) => {
   const numOfMint = Number(c.inputText);
 
   const verifiedAddresses =
-    c.previousState.verifiedAddresses ||
-    (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
+    c.previousState.verifiedAddresses.length > 0
+      ? c.previousState.verifiedAddresses
+      : (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
 
   if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({
@@ -321,8 +322,9 @@ drawApp.frame('/score/:transactionId', async (c) => {
 
 drawApp.frame('/mycards', async (c) => {
   const verifiedAddresses =
-    c.previousState.verifiedAddresses ||
-    (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
+    c.previousState.verifiedAddresses.length > 0
+      ? c.previousState.verifiedAddresses
+      : (await getFarcasterUserInfo(c.frameData?.fid)).verifiedAddresses;
 
   if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({

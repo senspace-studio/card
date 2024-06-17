@@ -71,7 +71,6 @@ export const warApp = new Frog<{ State: State }>({
     card: 0,
     wager: 0,
     gameId: '',
-    verifiedAddresses: [],
     haiInvitation: false,
   },
   headers: {
@@ -146,8 +145,6 @@ warApp.frame('/make-duel', async (c) => {
     ? c.previousState
     : await getFarcasterUserInfo(fid);
 
-  const verifyedAddress = verifiedAddresses[0];
-
   if (!verifiedAddresses || verifiedAddresses.length === 0) {
     return c.res({
       title,
@@ -157,7 +154,7 @@ warApp.frame('/make-duel', async (c) => {
     });
   }
 
-  const address = verifyedAddress as `0x${string}`;
+  const address = verifiedAddresses[0] as `0x${string}`;
 
   const [hasNFT, quantities] = await Promise.all([
     checkInvitation(address),
