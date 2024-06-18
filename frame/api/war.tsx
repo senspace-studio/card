@@ -127,7 +127,7 @@ warApp.frame('/', async (c) => {
       <Button.Link href="https://paragraph.xyz/@houseofcardians/preview/tPluxZr5GVmTn9e2NSGW">
         Rules
       </Button.Link>,
-      <Button action={BASE_URL}>＜ Back</Button>,
+      <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
     ],
   });
 });

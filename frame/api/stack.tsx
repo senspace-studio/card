@@ -70,8 +70,8 @@ stackApp.frame('/', async (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/leaderboard">Leader Board</Button>,
-      <Button.Link href={superFluidURL}>Stream</Button.Link>,
-      <Button action={`${BASE_URL}`}>Back</Button>,
+      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
+      <Button action={`${BASE_URL}/top`}>Back</Button>,
     ],
   });
 });
