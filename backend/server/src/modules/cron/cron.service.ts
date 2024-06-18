@@ -1,10 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PointsService } from '../points/points.service';
 import { ViemService } from '../viem/viem.service';
-import { Cron, Interval } from '@nestjs/schedule';
+import { Cron } from '@nestjs/schedule';
 import {
   ACCOUNT_FACTORY_ADDRESS,
-  INVITATION_CONTRACT_ADDRESS,
   RUN_CRON,
   STREAM_BACKEND_WALLET,
   STREAM_CFAV1_ADDRESS,
@@ -16,12 +15,10 @@ import {
   STREAM_SET_SCHEDULE_CRON_EXPRESSION,
   SUPER_TOKEN,
   VESTING_SCHEDULE_ADDRESS,
-  WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient, { tweClientPure } from 'src/lib/thirdweb-engine';
 import * as dayjs from 'dayjs';
-import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
-import { bytesToHex, maxUint256, parseUnits, zeroAddress } from 'viem';
+import { bytesToHex, maxUint256, parseUnits } from 'viem';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -64,56 +61,11 @@ export class CronService {
     const startDate_game = baseDate.subtract(3, 'days');
 
     console.log('Scoring range', startDate_game.toDate(), baseDate.toDate());
-    const {
-      result: { blockNumber: fromBlock_game },
-    } = await (
-      await fetch(
-        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDate_game.unix()}&closest=after`,
-      )
-    ).json();
-    const {
-      result: { blockNumber: toBlock_game },
-    } = await (
-      await fetch(
-        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${baseDate.unix()}&closest=after`,
-      )
-    ).json();
 
-    let { data: gameData } = (await tweClient.POST(
-      '/contract/{chain}/{contractAddress}/events/get',
-      {
-        params: {
-          path: {
-            chain: 'degen-chain',
-            contractAddress: WAR_CONTRACT_ADDRESS,
-          },
-        },
-        body: {
-          eventName: 'GameRevealed',
-          fromBlock: fromBlock_game,
-          toBlock: toBlock_game,
-        } as never,
-      },
-    )) as any;
-
-    const timestampByBlockNumber = {} as Record<number, number>;
-
-    const gameRevealedlogs = await Promise.all(
-      gameData.result.map(async (r) => {
-        let timestamp = timestampByBlockNumber[r.transaction.blockNumber];
-        if (!timestamp) {
-          timestamp = Number(
-            await this.viemService.getBlockTimestampByBlockNumber(
-              r.transaction.blockNumber,
-            ),
-          );
-          timestampByBlockNumber[r.transaction.blockNumber] = timestamp;
-        }
-        return { ...r.data, timestamp };
-      }) as GameRevealedEventLog[],
+    const gameRevealedlogs = await this.pointsService.getGameLogs(
+      startDate_game.unix(),
+      baseDate.unix(),
     );
-
-    gameData = {};
 
     const warScore = this.pointsService.calcWarScore(
       baseDate.unix(),
@@ -122,75 +74,10 @@ export class CronService {
 
     const startDate_invite = baseDate.subtract(14, 'days');
 
-    const {
-      result: { blockNumber: fromBlock_invite },
-    } = await (
-      await fetch(
-        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDate_invite.unix()}&closest=after`,
-      )
-    ).json();
-    const {
-      result: { blockNumber: toBlock_invite },
-    } = await (
-      await fetch(
-        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${baseDate.unix()}&closest=after`,
-      )
-    ).json();
-
-    let { data: inviteData } = (await tweClient.POST(
-      '/contract/{chain}/{contractAddress}/events/get',
-      {
-        params: {
-          path: {
-            chain: 'degen-chain',
-            contractAddress: INVITATION_CONTRACT_ADDRESS,
-          },
-        },
-        body: {
-          eventName: 'Transfer',
-          fromBlock: fromBlock_invite,
-          toBlock: toBlock_invite,
-        } as never,
-      },
-    )) as any;
-
-    const inviteLogs = await Promise.all(
-      inviteData.result.map(async (r) => {
-        let timestamp = timestampByBlockNumber[r.transaction.blockNumber];
-        if (!timestamp) {
-          timestamp = Number(
-            await this.viemService.getBlockTimestampByBlockNumber(
-              r.transaction.blockNumber,
-            ),
-          );
-          timestampByBlockNumber[r.transaction.blockNumber] = timestamp;
-        }
-        return { ...r.data, tokenId: Number(r.data.tokenId.hex), timestamp };
-      }) as TransferEventLog[],
-    ).then((logs) => {
-      logs = logs.filter(
-        (log) => log.from !== zeroAddress && log.to !== zeroAddress,
-      );
-      const uniqueTransferLogs = new Map<number, TransferEventLog>();
-      for (const log of logs) {
-        if (
-          (log.from !== zeroAddress &&
-            log.to !== zeroAddress &&
-            !uniqueTransferLogs.has(log.tokenId)) ||
-          log.timestamp < uniqueTransferLogs.get(log.tokenId)!.timestamp
-        ) {
-          uniqueTransferLogs.set(log.tokenId, log);
-        }
-      }
-      logs = Array.from(uniqueTransferLogs.values())
-        .sort((a, b) => a.timestamp - b.timestamp)
-        .filter(
-          (log, index, self) =>
-            index === self.findIndex((l) => l.to === log.to),
-        );
-
-      return logs;
-    });
+    const inviteLogs = await this.pointsService.getInviteLogs(
+      startDate_invite.unix(),
+      baseDate.unix(),
+    );
 
     const inviteScore = this.pointsService.calcReferralScore(
       baseDate.unix(),
@@ -198,21 +85,9 @@ export class CronService {
       gameRevealedlogs,
     );
 
-    // sum two Map<string, number>
-    const totalScore = new Map<string, number>();
-    for (const [player, score] of warScore) {
-      totalScore.set(player, (totalScore.get(player) || 0) + score);
-    }
-    for (const [player, score] of inviteScore) {
-      totalScore.set(player, (totalScore.get(player) || 0) + score);
-    }
+    const totalScore = this.pointsService.sumScores([warScore, inviteScore]);
 
-    // yを全員に分配したい。totalScoreのなかで割合を計算してyを分配する
-    const totalScoreArray = Array.from(totalScore.entries());
-
-    console.log('ScoredDate: ', baseDate.toDate());
-
-    for (const [player, score] of totalScoreArray) {
+    for (const [player, score] of totalScore) {
       const exists = await this.heatScoreRepository.exists({
         where: {
           address: player,
