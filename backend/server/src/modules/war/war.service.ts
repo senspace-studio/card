@@ -10,7 +10,7 @@ import {
   DEALER_PRIVATE_KEY,
   ERC1155_ADDRESS,
 } from 'src/utils/env';
-import { Repository } from 'typeorm';
+import { Between, MoreThan, IsNull, Repository } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 
 export enum GAME_STATUS {
@@ -61,7 +61,7 @@ export class WarService {
         } else if (game.cast_hash_made || game.signature) {
           const now = new Date().getTime();
           const expiration = 24 * 60 * 60 * 1e3;
-          if (now < Number(game.created) + expiration) {
+          if (now < game.created.getTime() + expiration) {
             if (game.cast_hash_made) {
               return GAME_STATUS.MADE_CASTED;
             } else {
@@ -104,25 +104,77 @@ export class WarService {
     return 0n < balanceOfAll[tokenId - 1];
   }
 
-  async getAllReservedGames(maker: string) {
-    this.logger.log(this.getAllReservedGames.name, JSON.stringify({ maker }));
-    const games = await this.warRepositry.find({ where: { maker } });
+  async getAllReservedGames(orderBy: 'ASC' | 'DESC' = 'ASC') {
+    this.logger.log(this.getAllReservedGames.name, JSON.stringify({ orderBy }));
+    const now = new Date();
+    const games = await this.warRepositry.find({
+      where: {
+        created: MoreThan(new Date(now.getTime() - 24 * 60 * 60 * 1e3)),
+      },
+      order: { created: orderBy },
+    });
+    // this.logger.debug(JSON.stringify(games));
     const reservedGamnes = games.filter(
       (e) =>
         this.getGameStatus(e) === GAME_STATUS.MADE ||
         this.getGameStatus(e) === GAME_STATUS.MADE_CASTED,
     );
+    // this.logger.debug(JSON.stringify(reservedGamnes));
+    return reservedGamnes;
+  }
+
+  async getAllReservedGamesByMaker(
+    maker: string,
+    orderBy: 'ASC' | 'DESC' = 'ASC',
+  ) {
+    this.logger.log(
+      this.getAllReservedGamesByMaker.name,
+      JSON.stringify({ maker, orderBy }),
+    );
+    const games = await this.warRepositry.find({
+      where: { maker },
+      order: { created: orderBy },
+    });
+    const reservedGamnes = games.filter(
+      (e) =>
+        this.getGameStatus(e) === GAME_STATUS.MADE ||
+        this.getGameStatus(e) === GAME_STATUS.MADE_CASTED,
+    );
+    // games.map((e) => {
+    //   this.logger.debug(GAME_STATUS[this.getGameStatus(e)]);
+    // });
     return reservedGamnes;
   }
 
   async getAllReservedCards(maker: string) {
     this.logger.log(this.getAllReservedCards.name, JSON.stringify({ maker }));
-    const games = await this.getAllReservedGames(maker);
+    const games = await this.getAllReservedGamesByMaker(maker);
     const numOfCards: number[] = [...new Array(14)].fill(0);
     for (const game of games) {
       numOfCards[Number(game.maker_token_id) - 1]++;
     }
     return numOfCards;
+  }
+
+  async getRandomChallengableGame(maker?: string) {
+    this.logger.log(
+      this.getRandomChallengableGame.name,
+      JSON.stringify({ maker }),
+    );
+    const now = new Date();
+    const games = await this.warRepositry.find({
+      where: {
+        challenger: IsNull(),
+        maker,
+        // 2時間以上経過24時間は経過してない
+        created: Between(
+          new Date(now.getTime() - 24 * 60 * 60 * 1e3),
+          new Date(now.getTime() - 2 * 60 * 60 * 1e3),
+        ),
+      },
+    });
+    const index = Math.floor(Math.random() * games.length);
+    return games[index];
   }
 
   async getWarGameBySignature(signature: string) {
@@ -168,7 +220,6 @@ export class WarService {
       maker,
       maker_token_id: tokenId.toString(),
       signature: signature,
-      created: new Date().getTime().toString(),
     });
     return signature;
   }
