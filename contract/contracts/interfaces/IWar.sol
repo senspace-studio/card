@@ -37,4 +37,12 @@ interface IWar {
     );
 
     event GameExpired(bytes8 indexed gameId, address indexed maker);
+
+    event SetDealer(address indexed dealer);
+
+    event SetWarPool(address indexed warPool);
+
+    event SetCard(address indexed card);
+
+    event SetInvitation(address indexed invitation);
 }
