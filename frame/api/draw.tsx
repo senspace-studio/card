@@ -82,8 +82,8 @@ drawApp.frame('/', async (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/input">Start</Button>,
-      // <Button action={`${BASE_URL}`}>Home</Button>,
       <Button action="/mycards">My Cards</Button>,
+      <Button action={`${BASE_URL}`}>＜ Back</Button>,
     ],
   });
 });
@@ -218,7 +218,7 @@ drawApp.frame('/score', async (c) => {
             Next ＞
           </Button>,
           <Button action={`/input`}>Draw Again</Button>,
-          // <Button action={`${BASE_URL}/war`}>War ⚔</Button>,
+          <Button action={`${BASE_URL}/war`}>Battle⚔️</Button>,
           <Button.Link href={shareLink}>Share</Button.Link>,
         ],
       });
@@ -259,8 +259,7 @@ drawApp.frame('/card/:id', (c) => {
       ),
       nextCard && <Button action={`/card/${nextCard}`}>{`Next ＞`}</Button>,
       <Button action={`/input`}>Draw Again</Button>,
-      <Button.Link href={shareLink}>Share</Button.Link>,
-      // <Button action={`${BASE_URL}/war`}>Battle ⚔</Button>,
+      <Button action={`${BASE_URL}/war`}>Battle⚔️</Button>,
     ],
   });
 });
@@ -357,7 +356,10 @@ drawApp.frame('/mycards', async (c) => {
         JSON.stringify({ quantities, address: verifiedAddresses[0] }),
       ),
     imageAspectRatio: '1:1',
-    intents: [<Button action="/">Back</Button>],
+    intents: [
+      <Button action={`${BASE_URL}/war`}>Battle⚔️</Button>,
+      <Button action="/">Back</Button>,
+    ],
   });
 });
 

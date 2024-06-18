@@ -27,6 +27,15 @@ app.frame('/', (c) => {
 
   return c.res({
     title,
+    image: '/images/title.png',
+    imageAspectRatio: '1:1',
+    intents: [<Button action="/top">Enter</Button>],
+  });
+});
+
+app.frame('/top', (c) => {
+  return c.res({
+    title,
     image: '/images/top.png',
     imageAspectRatio: '1:1',
     intents: [

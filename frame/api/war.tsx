@@ -120,11 +120,14 @@ warApp.frame('/', async (c) => {
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/make-duel">Create Battle</Button>,
+      <Button action="/make-duel">Start</Button>,
       <Button.Link href="https://warpcast.com/cardgamemaster">
-        Find Match
+        Matches
       </Button.Link>,
-      <Button.Link href="https://google.com">Rules</Button.Link>,
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/preview/tPluxZr5GVmTn9e2NSGW">
+        Rules
+      </Button.Link>,
+      <Button action={BASE_URL}>＜ Back</Button>,
     ],
   });
 });
@@ -446,7 +449,9 @@ warApp.frame('/find', async (c) => {
     browserLocation: '/war/image/find/' + params,
 
     imageAspectRatio: '1:1',
-    intents: [<Button.Link href={shareLink}>Find A Duel Partner</Button.Link>],
+    intents: [
+      <Button.Link href={shareLink}>Find A Battle Partner</Button.Link>,
+    ],
   });
 });
 
@@ -686,6 +691,21 @@ warApp.frame('/choose/:params', async (c) => {
     });
   }
 
+  const gameStatus = await warContract.read.gameStatus([gameId]);
+  if (gameStatus.toString() !== '1') {
+    return c.res({
+      title,
+      image: '/images/war/expired.png',
+      imageAspectRatio: '1:1',
+      intents: [
+        <Button action={`/`}>Create Battle</Button>,
+        <Button.Link href="https://warpcast.com/cardgamemaster">
+          Find Match
+        </Button.Link>,
+      ],
+    });
+  }
+
   const totalBalance = quantities.reduce((acc, cur) => acc + cur, 0);
 
   c.deriveState((prevState) => {
@@ -910,17 +930,25 @@ warApp.frame('/result/:gameId', async (c) => {
   });
 
   const encodedResultParams = encodeURIComponent(resultParams);
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/result/${gameId}`;
+
+  let shareLink = '';
+  if (winner?.toLowerCase() === c_address?.toLowerCase()) {
+    shareLink = `${shareUrlBase}Victory is mine! I beat ${userName}!${embedParam}${BASE_URL}/war/result/${gameId}`;
+  } else {
+    shareLink = `${shareUrlBase}${embedParam}${BASE_URL}/war/result/${gameId}`;
+  }
+
+  const intents = [<Button action={`/`}>Create Battle</Button>];
+  if (c.frameData?.fid) {
+    intents.unshift(<Button.Link href={shareLink}>Share</Button.Link>);
+  }
 
   return c.res({
     title,
     image: `/war/image/result/${encodedResultParams}`,
     imageAspectRatio: '1:1',
     browserLocation: `/war/image/result/${encodedResultParams}`,
-    intents: [
-      <Button.Link href={shareLink}>share</Button.Link>,
-      <Button action={`/`}>make duel</Button>,
-    ],
+    intents,
   });
 });
 
@@ -1024,7 +1052,18 @@ const getQuantities = async (address: string, c: any) => {
     allCardIds,
   ]);
 
-  const usedQuantities = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const body = await c.req.json();
+  const { trustedData } = body;
+  const response = await fetch(`${BACKEND_URL!}/war/getReservedCards`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messageBytes: trustedData.messageBytes,
+    }),
+  });
+  const usedQuantities = await response.json();
 
   const quantities = data.map((quantity, index) => {
     const remainingQuantity =
@@ -1283,12 +1322,9 @@ const generateChallengeImage = async (
 
   const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
 
-  let leftUserTop = 488;
+  let leftUserTop = 479;
   if (!isBet) {
     leftUserTop += 48;
-  }
-  if (share) {
-    leftUserTop -= 6;
   }
 
   const pfpSize = 42;
@@ -1355,12 +1391,12 @@ const generateChallengeImage = async (
   const composites = [
     {
       input: pfpImage,
-      left: 94,
+      left: 58,
       top: leftUserTop,
     },
     {
       input: userNameImage,
-      left: 94 + pfpSize + 10,
+      left: 57 + pfpSize + 10,
       top: leftUserTop,
     },
     {
@@ -1472,8 +1508,8 @@ const generatePreviewImage = async (
   const isBetAdjustment = isBet ? 0 : 48;
 
   const composites = [
-    { input: userComponent, left: 94, top: 486 + isBetAdjustment },
-    { input: cardImage, left: 290, top: 366 + isBetAdjustment },
+    { input: userComponent, left: 57, top: 480 + isBetAdjustment },
+    { input: cardImage, left: 290, top: 361 + isBetAdjustment },
   ];
 
   if (isBet && wagerImage) {
@@ -1584,7 +1620,7 @@ const generateDuelImage = async (
   ]);
 
   const composites = [
-    { input: userComponent, top: 533, left: 100 },
+    { input: userComponent, top: 533, left: 53 },
     { input: opponentComponent, top: 533, left: 740 },
   ];
 
@@ -1707,7 +1743,7 @@ const generateResultImage = async (
     challengerCardLeft -
       (opponentComponentMetadata.width ?? 0) / 2 +
       containerWidth / 2 +
-      90,
+      110,
   );
   const opponentComponentTop = userNameTop;
 

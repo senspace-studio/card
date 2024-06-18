@@ -131,8 +131,6 @@ export const updateChallenger = async (
   c_userName: string,
   c_pfp_url: string,
 ) => {
-  console.log('update query');
-  console.log([c_address, c_userName, c_pfp_url, id]);
   const query =
     'UPDATE game SET c_address = ?, c_userName = ?, c_pfp_url = ? WHERE gameId = ?';
   const connection = await connectToDatabase();
