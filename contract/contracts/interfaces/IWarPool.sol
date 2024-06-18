@@ -25,7 +25,10 @@ interface IWarPool {
     event Deposit(
         bytes8 indexed gameId,
         address indexed player,
-        DepositStatus status
+        DepositStatus status,
+        address currency,
+        bool isNativeToken,
+        uint256 betAmount
     );
 
     event PayoutForWinner(
@@ -42,6 +45,17 @@ interface IWarPool {
     event ReturnToBoth(bytes8 indexed gameId);
 
     event WithdrawByAdmin(bytes8 indexed gameId);
+
+    event SetWar(address indexed war);
+
+    event Withdraw(address indexed currency, uint256 amount);
+
+    event SetCommission(
+        uint256 commissionRateTop,
+        uint256 commissionRateBottom
+    );
+
+    event SetRewardRate(uint256 rewardRateBottom);
 
     function gameDeposits(
         bytes8

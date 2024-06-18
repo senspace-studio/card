@@ -104,7 +104,14 @@ contract WarPool is
             token.transferFrom(player, address(this), betAmount);
         }
 
-        emit Deposit(gameId, player, gameDeposit.status);
+        emit Deposit(
+            gameId,
+            player,
+            gameDeposit.status,
+            currency,
+            isNativeToken,
+            betAmount
+        );
     }
 
     function payoutForWinner(
@@ -269,10 +276,6 @@ contract WarPool is
         emit WithdrawByAdmin(gameId);
     }
 
-    function setWarAddress(address _warAddress) external onlyOwner {
-        warAddress = _warAddress;
-    }
-
     function withdraw(address currency, uint256 amount) external onlyOwner {
         if (currency == address(0)) {
             require(
@@ -286,6 +289,13 @@ contract WarPool is
                 'WarPool: failed to withdraw'
             );
         }
+
+        emit Withdraw(currency, amount);
+    }
+
+    function setWarAddress(address _warAddress) external onlyOwner {
+        warAddress = _warAddress;
+        emit SetWar(_warAddress);
     }
 
     function setCommission(
@@ -300,11 +310,15 @@ contract WarPool is
         );
         commissionRateTop = _commissionRateTop;
         commissionRateBottom = _commissionRateBottom;
+
+        emit SetCommission(_commissionRateTop, _commissionRateBottom);
     }
 
     function setRewardRate(uint256 _rewardRateBottom) external onlyOwner {
         require(_rewardRateBottom > 0, 'WarPool: invalid reward rate');
         rewardRateBottom = _rewardRateBottom;
+
+        emit SetRewardRate(_rewardRateBottom);
     }
 
     function _commissionAmount(uint256 amount) private view returns (uint256) {
