@@ -27,6 +27,7 @@ export const FARCASTER_USER_NAME =
   process.env.FARCASTER_USER_NAME || 'yuki-dev';
 export const INVITATION_CONTRACT_ADDRESS =
   process.env.INVITATION_CONTRACT_ADDRESS || '';
+export const STACK_VARIABLES_ADDRESS = process.env.STACK_VARIABLES_ADDRESS;
 
 export const FRAME_BASE_URL = process.env.FRAME_BASE_URL || '';
 // Stream

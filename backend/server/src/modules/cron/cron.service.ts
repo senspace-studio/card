@@ -5,6 +5,7 @@ import { Cron } from '@nestjs/schedule';
 import {
   ACCOUNT_FACTORY_ADDRESS,
   RUN_CRON,
+  STACK_VARIABLES_ADDRESS,
   STREAM_BACKEND_WALLET,
   STREAM_CFAV1_ADDRESS,
   STREAM_END_SCHEDULE_CRON_EXPRESSION,
@@ -26,6 +27,8 @@ import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 import { randomBytes } from 'tweetnacl';
 import parser from 'cron-parser';
 import { chunk } from 'lodash';
+import { WarService } from '../war/war.service';
+import { readContract } from 'src/lib/thirdweb-engine/read-contract';
 const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
@@ -35,6 +38,7 @@ export class CronService {
   constructor(
     private readonly pointsService: PointsService,
     private readonly viemService: ViemService,
+    private readonly warService: WarService,
     @InjectRepository(HeatScoreEntity)
     private readonly heatScoreRepository: Repository<HeatScoreEntity>,
     @InjectRepository(StreamSmartAccountEntity)
@@ -123,9 +127,32 @@ export class CronService {
 
       if (scores.length === 0) return;
 
+      const startOfYesterday = dayjs().subtract(1, 'day').startOf('day');
+      const endOfYesterday = dayjs().subtract(1, 'day').endOf('day');
+      const numOfWar = await this.warService.numOfGames(
+        startOfYesterday.unix(),
+        endOfYesterday.unix(),
+      );
+
+      const [
+        { data: bonusMultilrierTop },
+        { data: bonusMultilrierBottom },
+        { data: difficultyTop },
+        { data: difficultyBottom },
+      ] = await Promise.all([
+        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierTop', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierBottom', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'difficultyTop', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'difficultyBottom', ''),
+      ]);
+
+      const bonusMultiplier =
+        Number(bonusMultilrierTop.result) /
+        Number(bonusMultilrierBottom.result);
+
+      const k = numOfWar * 200 * bonusMultiplier;
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
-      const h = 0.001;
-      const k = 0.005;
+      const h = Number(difficultyTop.result) / Number(difficultyBottom.result);
       const y = h * (1 - Math.exp(-k * x));
 
       const totalScoreArrayWithRatio = scores.map(({ address, score }) => {

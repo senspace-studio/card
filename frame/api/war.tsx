@@ -124,7 +124,7 @@ warApp.frame('/', async (c) => {
       <Button.Link href="https://warpcast.com/cardgamemaster">
         Matches
       </Button.Link>,
-      <Button.Link href="https://paragraph.xyz/@houseofcardians/tPluxZr5GVmTn9e2NSGW#h-battle">
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
         Rules
       </Button.Link>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
@@ -189,7 +189,7 @@ warApp.frame('/make-duel', async (c) => {
       encodeURIComponent(JSON.stringify({ quantities, address })),
     imageAspectRatio: '1:1',
     intents: [
-      <TextInput placeholder="1,2....11,12,13 or J " />,
+      <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/preview">Set</Button>,
     ],
   });
@@ -618,7 +618,7 @@ warApp.frame('/choose', async (c) => {
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
-      <TextInput placeholder="11 or J or ..." />,
+      <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/duel">Set</Button>,
     ],
   });
@@ -698,7 +698,7 @@ warApp.frame('/choose/:params', async (c) => {
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
-      <TextInput placeholder="11 or J or ..." />,
+      <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/duel">Set</Button>,
       totalBalance === 0 && (
         <Button action={BASE_URL + '/draw'}>Draw Card</Button>
@@ -904,9 +904,11 @@ warApp.frame('/result/:gameId', async (c) => {
 
   let shareLink = '';
   if (winner?.toLowerCase() === c_address?.toLowerCase()) {
-    shareLink = `${shareUrlBase}Victory is mine! I beat ${userName}!${embedParam}${BASE_URL}/war/result/${gameId}`;
+    shareLink = `${shareUrlBase}Victory is mine! I beat @${userName}🏆%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
+  } else if (winner?.toLowerCase() === zeroAddress) {
+    shareLink = `${shareUrlBase}I drew with @${userName}🤝%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
   } else {
-    shareLink = `${shareUrlBase}${embedParam}${BASE_URL}/war/result/${gameId}`;
+    shareLink = `${shareUrlBase}I lost to @${userName}😭%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
   }
 
   const intents = [<Button action={`/`}>Create Battle</Button>];
@@ -1355,8 +1357,9 @@ const generateChallengeImage = async (
       topPfpSize / 2
     }" /></svg>`,
   );
+
   const topPfpImage = await sharp(pfpBuffer)
-    .resize(topPfpSize)
+    .resize(topPfpSize, topPfpSize)
     .composite([{ input: topCircleMask, blend: 'dest-in' }])
     .png()
     .toBuffer();

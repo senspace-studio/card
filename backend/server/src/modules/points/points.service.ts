@@ -207,8 +207,10 @@ export class PointsService {
   calcWarScore(baseUnixtime: number, gameLogs: GameRevealedEventLog[]) {
     const uniquePlayers = new Set<string>();
     gameLogs.forEach((eventLog) => {
-      uniquePlayers.add(eventLog.maker.toLowerCase());
-      uniquePlayers.add(eventLog.challenger.toLowerCase());
+      if (eventLog.maker !== zeroAddress)
+        uniquePlayers.add(eventLog.maker.toLowerCase());
+      if (eventLog.challenger !== zeroAddress)
+        uniquePlayers.add(eventLog.challenger.toLowerCase());
     });
 
     const playerScores = new Map<string, number>();
@@ -322,7 +324,7 @@ export class PointsService {
 
         // 基準日以前にTransferされた場合は、基準日に合わせる
         const eventTimestamp =
-          eventLog.timestamp < 1717687600 ? 1718687600 : eventLog.timestamp;
+          eventLog.timestamp < 1718798400 ? 1718798400 : eventLog.timestamp;
         const decayMultiplier = this.referralDecay(
           dayjs(baseUnixtime).diff(eventTimestamp, 'days'),
           maxDays,

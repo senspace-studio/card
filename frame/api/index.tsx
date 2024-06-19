@@ -17,14 +17,6 @@ app.use('/*', serveStatic({ root: './public' }));
 const title = 'House of Cardians';
 
 app.frame('/', (c) => {
-  // 一時的にproductionでは画像を表示しない
-
-  if (process.env.NODE_ENV === 'production') {
-    return c.res({
-      image: '',
-    });
-  }
-
   return c.res({
     title,
     image: '/images/title.png',
@@ -54,7 +46,7 @@ app.frame('/sub', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
-      <Button.Link href="https://paragraph.xyz/@houseofcardians/preview/tPluxZr5GVmTn9e2NSGW">
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians">
         Rules📖
       </Button.Link>,
       <Button action="/top">＜ Back</Button>,

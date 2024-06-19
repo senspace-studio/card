@@ -9,9 +9,11 @@ import {
   BLOCKCHAIN_API,
   DEALER_PRIVATE_KEY,
   ERC1155_ADDRESS,
+  WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import { Repository } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
+import tweClient from 'src/lib/thirdweb-engine';
 
 export enum GAME_STATUS {
   // データが存在しない
@@ -318,5 +320,41 @@ export class WarService {
         const num = Number(value);
         return isNaN(num) ? -1 : num;
     }
+  };
+
+  numOfGames = async (startDateUnix: number, endDateUnix: number) => {
+    const {
+      result: { blockNumber: fromBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDateUnix}&closest=after`,
+      )
+    ).json();
+    const {
+      result: { blockNumber: toBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${endDateUnix}&closest=after`,
+      )
+    ).json();
+
+    const { data } = await tweClient.POST(
+      '/contract/{chain}/{contractAddress}/events/get',
+      {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            contractAddress: WAR_CONTRACT_ADDRESS,
+          },
+        },
+        body: {
+          eventName: 'GameRevealed',
+          fromBlock: fromBlock_game,
+          toBlock: toBlock_game,
+        } as never,
+      },
+    );
+
+    return data.result.length;
   };
 }
