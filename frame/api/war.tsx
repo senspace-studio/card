@@ -124,7 +124,7 @@ warApp.frame('/', async (c) => {
       <Button.Link href="https://warpcast.com/cardgamemaster">
         Matches
       </Button.Link>,
-      <Button.Link href="https://paragraph.xyz/@houseofcardians/preview/tPluxZr5GVmTn9e2NSGW">
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/tPluxZr5GVmTn9e2NSGW#h-battle">
         Rules
       </Button.Link>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
@@ -572,31 +572,6 @@ warApp.frame('/challenge/:gameId', async (c) => {
     });
   }
 
-  const status = await warContract.read.gameStatus([gameId]);
-  if (status > 1) {
-    const { userName, pfp_url, card, wager, c_userName, c_pfp_url, c_card } =
-      gameInfo;
-
-    const params = encodeURIComponent(
-      JSON.stringify({
-        userName,
-        pfp_url,
-        wager,
-        card: card || '',
-        c_userName: c_userName || '',
-        c_pfp_url: c_pfp_url || '',
-        c_card: c_card || '',
-        status,
-      }),
-    );
-
-    return c.res({
-      image: `/war/image/expired/${params}`,
-      imageAspectRatio: '1:1',
-      intents: [<Button action="/">Create Battle</Button>],
-    });
-  }
-
   const { userName, pfp_url, wager } = gameInfo;
 
   const params = encodeURIComponent(
@@ -624,15 +599,11 @@ warApp.frame('/challenge/:gameId', async (c) => {
           userName,
           pfp_url,
           wager,
+          gameId,
         }),
       ),
     imageAspectRatio: '1:1',
     intents: [<Button action={`/choose/${params}`}>Start</Button>],
-    imageOptions: {
-      headers: {
-        'Cache-Control': 'max-age=60',
-      },
-    },
   });
 });
 
@@ -992,9 +963,21 @@ warApp.hono.get('/image/error/:params', async (c) => {
 
 warApp.hono.get('/image/challenge/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager } = params;
-  const png = await generateChallengeImage(true, userName, pfp_url, wager);
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+  const { userName, pfp_url, wager, gameId } = params;
+
+  const status = await warContract.read.gameStatus([gameId]);
+  // const gameInfo = await getGameInfoByGameId(gameId);
+
+  const png =
+    status.toString() == '1'
+      ? await generateChallengeImage(true, userName, pfp_url, wager)
+      : await generateExpiredSimpleImage();
+
+  const response = c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=120',
+  });
+  return response;
 });
 
 warApp.hono.get('/image/duel/:params', async (c) => {
@@ -1520,6 +1503,13 @@ const generatePreviewImage = async (
   return png;
 };
 
+const generateExpiredSimpleImage = async () => {
+  const canvas = sharp('./public/images/war/expired.png').resize(1000, 1000);
+
+  const png = await canvas.png().toBuffer();
+  return png;
+};
+
 const generateExpiredImage = async ({
   userName,
   pfp_url,
@@ -1649,25 +1639,25 @@ const generateResultBgImage = async (
     1000,
   );
 
-  const [cardImage, c_cardImage, userComponent, opponentComponent] =
-    await Promise.all([
-      sharp(`./public/images/war/card/${card}.png`)
-        .resize(185)
-        .png()
-        .toBuffer(),
-      sharp(`./public/images/war/card/${c_card}.png`)
-        .resize(185)
-        .png()
-        .toBuffer(),
-      generateUserComponent(userName, pfp_url),
-      generateUserComponent(c_userName, c_pfp_url),
-    ]);
+  // const [cardImage, c_cardImage, userComponent, opponentComponent] =
+  //   await Promise.all([
+  //     sharp(`./public/images/war/card/${card}.png`)
+  //       .resize(185)
+  //       .png()
+  //       .toBuffer(),
+  //     sharp(`./public/images/war/card/${c_card}.png`)
+  //       .resize(185)
+  //       .png()
+  //       .toBuffer(),
+  //     generateUserComponent(userName, pfp_url),
+  //     generateUserComponent(c_userName, c_pfp_url),
+  //   ]);
 
-  const composites = [
-    { input: userComponent, top: 533, left: 100 },
-    { input: opponentComponent, top: 533, left: 740 },
-    ...(cardImage ? [{ input: cardImage, left: 289, top: 420 }] : []),
-    ...(c_cardImage ? [{ input: c_cardImage, left: 527, top: 420 }] : []),
+  const composites: any[] = [
+    // { input: userComponent, top: 533, left: 100 },
+    // { input: opponentComponent, top: 533, left: 740 },
+    // ...(cardImage ? [{ input: cardImage, left: 289, top: 420 }] : []),
+    // ...(c_cardImage ? [{ input: c_cardImage, left: 527, top: 420 }] : []),
   ];
 
   const finalImage = await baseImage.composite(composites).png().toBuffer();

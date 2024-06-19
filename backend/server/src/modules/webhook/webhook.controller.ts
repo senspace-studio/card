@@ -202,7 +202,7 @@ export class WebhookController {
               ) {
                 // Makerが棄権の場合（賭けたカードを持ってない場合）
                 // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                botMessageText += `${await getNeynarUserName(maker.value)}`;
+                botMessageText += `${await getNeynarUserName(challenger.value)}`;
                 botMessageText += '\n';
                 botMessageText += 'Opponent hold the game and you won!';
               } else if (
@@ -211,7 +211,7 @@ export class WebhookController {
               ) {
                 // Challengerが棄権の場合（賭けたカードを持ってない場合）
                 // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                botMessageText += `${await getNeynarUserName(challenger.value)}`;
+                botMessageText += `${await getNeynarUserName(maker.value)}`;
                 botMessageText += '\n';
                 botMessageText += 'Opponent hold the game and you won!';
               } else if (winner.value === maker.value || winner.value) {

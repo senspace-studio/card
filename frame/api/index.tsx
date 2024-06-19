@@ -54,8 +54,10 @@ app.frame('/sub', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
-      <Button.Link href="https://google.com">Rules📖</Button.Link>,
-      <Button action="/">＜ Back</Button>,
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/preview/tPluxZr5GVmTn9e2NSGW">
+        Rules📖
+      </Button.Link>,
+      <Button action="/top">＜ Back</Button>,
     ],
   });
 });
