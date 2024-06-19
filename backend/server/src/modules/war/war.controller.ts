@@ -51,10 +51,13 @@ export class WarController {
     const result = await this.neynarService.validateRequest(
       messageBytes || trustedData.messageBytes,
     );
-    if (!result.valid) {
+    if (
+      !result.valid ||
+      !result.action.interactor.verified_addresses.eth_addresses[0]
+    ) {
       throw new Error('invalid message');
     }
-    const maker = result.action.address;
+    const maker = result.action.interactor.verified_addresses.eth_addresses[0];
     return await this.warService.getAllReservedCards(maker);
   }
 

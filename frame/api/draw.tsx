@@ -83,7 +83,7 @@ drawApp.frame('/', async (c) => {
     intents: [
       <Button action="/input">Start</Button>,
       <Button action="/mycards">My Cards</Button>,
-      // <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
+      <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
     ],
   });
 });
