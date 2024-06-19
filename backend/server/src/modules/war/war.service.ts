@@ -51,7 +51,7 @@ export class WarService {
   ) {}
 
   getGameStatus(game: WarEntity) {
-    this.logger.log(this.getGameStatus.name, JSON.stringify(game));
+    this.logger.log(this.getGameStatus.name);
     if (game) {
       if (game.game_id) {
         if (game.cast_hash_revealed) {
@@ -121,6 +121,7 @@ export class WarService {
     this.logger.log(this.getAllReservedCards.name, JSON.stringify({ maker }));
     const games = await this.getAllReservedGames(maker);
     const numOfCards: number[] = [...new Array(14)].fill(0);
+
     for (const game of games) {
       numOfCards[Number(game.maker_token_id) - 1]++;
     }

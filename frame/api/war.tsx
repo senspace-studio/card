@@ -449,9 +449,7 @@ warApp.frame('/find', async (c) => {
     browserLocation: '/war/image/find/' + params,
 
     imageAspectRatio: '1:1',
-    intents: [
-      <Button.Link href={shareLink}>Find A Battle Partner</Button.Link>,
-    ],
+    intents: [<Button.Link href={shareLink}>Share Game</Button.Link>],
   });
 });
 
@@ -664,17 +662,18 @@ warApp.frame('/choose/:params', async (c) => {
 
   const gameStatus = await warContract.read.gameStatus([gameId]);
   if (gameStatus.toString() !== '1') {
-    return c.res({
-      title,
-      image: '/images/war/expired.png',
-      imageAspectRatio: '1:1',
-      intents: [
-        <Button action={`/`}>Create Battle</Button>,
-        <Button.Link href="https://warpcast.com/cardgamemaster">
-          Find Match
-        </Button.Link>,
-      ],
-    });
+    return c.error({ message: 'This game is already expired.' });
+    // return c.res({
+    //   title,
+    //   image: '/images/war/expired.png',
+    //   imageAspectRatio: '1:1',
+    //   intents: [
+    //     <Button action={`/`}>Create Battle</Button>,
+    //     <Button.Link href="https://warpcast.com/cardgamemaster">
+    //       Find Match
+    //     </Button.Link>,
+    //   ],
+    // });
   }
 
   const totalBalance = quantities.reduce((acc, cur) => acc + cur, 0);
@@ -904,11 +903,11 @@ warApp.frame('/result/:gameId', async (c) => {
 
   let shareLink = '';
   if (winner?.toLowerCase() === c_address?.toLowerCase()) {
-    shareLink = `${shareUrlBase}Victory is mine! I beat @${userName}🏆%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
+    shareLink = `${shareUrlBase}Victory is mine! I beat @${userName} 🏆%0A${embedParam}${BASE_URL}/war/result/${gameId}`;
   } else if (winner?.toLowerCase() === zeroAddress) {
-    shareLink = `${shareUrlBase}I drew with @${userName}🤝%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
+    shareLink = `${shareUrlBase}I drew with @${userName} 🤝%0A${embedParam}${BASE_URL}/war/result/${gameId}`;
   } else {
-    shareLink = `${shareUrlBase}I lost to @${userName}😭%0ACreate a new battle below.${embedParam}${BASE_URL}/war/result/${gameId}`;
+    shareLink = `${shareUrlBase}I lost to @${userName} 😭%0A${embedParam}${BASE_URL}/war/result/${gameId}`;
   }
 
   const intents = [<Button action={`/`}>Create Battle</Button>];
