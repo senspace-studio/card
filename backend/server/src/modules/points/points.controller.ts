@@ -2,7 +2,7 @@ import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
 import { PointsService } from './points.service';
 import { NeynarService } from 'src/modules/neynar/neynar.service';
 import { ViemService } from 'src/modules/viem/viem.service';
-import { ADMIN_ADDRESSES } from 'src/constants/Admin';
+import * as dayjs from 'dayjs';
 
 @Controller('points')
 export class PointsController {
@@ -33,6 +33,46 @@ export class PointsController {
     this.logger.log(this.getTotalPoint.name);
 
     const totalScore = await this.pointsService.getTotalScore();
+
+    return totalScore;
+  }
+
+  @Get('/calcurate-score')
+  async calcurateScore(@Query('end_date_unix') endDateUnix: number) {
+    this.logger.log(this.calcurateScore.name);
+
+    if (!endDateUnix) {
+      throw new Error('Invalid query params');
+    }
+
+    const startDateUnix = dayjs(Number(endDateUnix)).subtract(3, 'days').unix();
+    const startInviteDateUnix = dayjs(Number(endDateUnix))
+      .subtract(14, 'days')
+      .unix();
+    endDateUnix = dayjs(Number(endDateUnix)).unix();
+
+    const gameRevealedlogs = await this.pointsService.getGameLogs(
+      startDateUnix,
+      endDateUnix,
+    );
+
+    const warScore = this.pointsService.calcWarScore(
+      endDateUnix,
+      gameRevealedlogs,
+    );
+
+    const inviteLogs = await this.pointsService.getInviteLogs(
+      startInviteDateUnix,
+      endDateUnix,
+    );
+
+    const inviteScore = this.pointsService.calcReferralScore(
+      endDateUnix,
+      inviteLogs,
+      gameRevealedlogs,
+    );
+
+    const totalScore = this.pointsService.sumScores([warScore, inviteScore]);
 
     return totalScore;
   }

@@ -13,8 +13,12 @@ export const deployWarAllContracts = async (
   );
   const warPoolContract = await deployWarPoolContract(initialOwnerAddress);
 
-  warContract.setWarPoolAddress(await warPoolContract.getAddress());
-  warPoolContract.setWarAddress(await warContract.getAddress());
+  let tx = await warContract.setWarPoolAddress(
+    await warPoolContract.getAddress(),
+  );
+  await tx.wait();
+  tx = await warPoolContract.setWarAddress(await warContract.getAddress());
+  await tx.wait();
 
   return { warContract, warPoolContract };
 };

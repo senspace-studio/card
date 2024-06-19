@@ -20,6 +20,7 @@ import {
 import * as crypto from 'node:crypto';
 import { Address, zeroAddress } from 'viem';
 import tweClient from 'src/lib/thirdweb-engine';
+import { readContract } from 'src/lib/thirdweb-engine/read-contract';
 
 const generateSignature = (
   body: string,
@@ -123,7 +124,7 @@ export class WebhookController {
 
             // gameIdを元にゲームの情報を取得してBotからCast
             let botMessageText = '';
-            botMessageText += `${await getNeynarUserName(maker.value)} created a new game!`;
+            botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched with another player.\n\nCheck out the /card channel to find games to play.`;
             const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
 
             const res = await this.neynarService.publishCast(botMessageText, {
@@ -157,7 +158,7 @@ export class WebhookController {
               game.maker_token_id,
               game.seed,
             ]);
-            const botMessageText = `${await getNeynarUserName(challenger.value)} challenged!`;
+            const botMessageText = `You've matched with ${await getNeynarUserName(challenger.value)}!\nGame results coming momentarily...`;
             const res = await this.neynarService.publishCast(
               botMessageText,
               game.cast_hash_made && {
@@ -180,9 +181,17 @@ export class WebhookController {
             if (winner.value === zeroAddress) {
               // 引き分けの場合
               // イベントのwinnerがzeroAddressかつ、makerとchallenger両方がzeroAddressでないもの
-              botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
+              const { data } = await readContract(
+                WAR_CONTRACT_ADDRESS,
+                'games',
+                gameId.value,
+              );
+              const card = BigInt(data.result[3]?.hex).toString(10) || '';
+
+              botMessageText += `It’s a draw! ${await getNeynarUserName(maker.value)} and ${await getNeynarUserName(challenger.value)} both played a ${card}`;
               botMessageText += '\n';
-              botMessageText += 'The game was draw.';
+              botMessageText +=
+                'Play again or find a match in the /card channel!';
             } else if (
               winner.value === challenger.value ||
               winner.value === maker.value
@@ -193,7 +202,7 @@ export class WebhookController {
               ) {
                 // Makerが棄権の場合（賭けたカードを持ってない場合）
                 // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                botMessageText += `${await getNeynarUserName(maker.value)}`;
+                botMessageText += `${await getNeynarUserName(challenger.value)}`;
                 botMessageText += '\n';
                 botMessageText += 'Opponent hold the game and you won!';
               } else if (
@@ -202,14 +211,38 @@ export class WebhookController {
               ) {
                 // Challengerが棄権の場合（賭けたカードを持ってない場合）
                 // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
-                botMessageText += `${await getNeynarUserName(challenger.value)}`;
+                botMessageText += `${await getNeynarUserName(maker.value)}`;
                 botMessageText += '\n';
                 botMessageText += 'Opponent hold the game and you won!';
               } else if (winner.value === maker.value || winner.value) {
                 // 勝敗が付いた場合
-                botMessageText += `${await getNeynarUserName(maker.value)} ${await getNeynarUserName(challenger.value)}`;
+                const { data } = await readContract(
+                  WAR_CONTRACT_ADDRESS,
+                  'games',
+                  gameId.value,
+                );
+
+                let winnerCard = '';
+                let loserCard = '';
+                const winnerAddress = winner.value;
+                const loserAddress =
+                  winner.value === maker.value ? challenger.value : maker.value;
+
+                if (winner.value.toLowerCase() === maker.value.toLowerCase()) {
+                  winnerCard = BigInt(data.result[3]?.hex).toString(10) || '';
+                  loserCard = BigInt(data.result[4]?.hex).toString(10) || '';
+                } else {
+                  winnerCard = BigInt(data.result[4]?.hex).toString(10) || '';
+                  loserCard = BigInt(data.result[3]?.hex).toString(10) || '';
+                }
+
+                winnerCard = winnerCard === '14' ? 'Joker' : winnerCard;
+                loserCard = loserCard === '14' ? 'Joker' : loserCard;
+
+                botMessageText += `${await getNeynarUserName(winnerAddress)} has won with a ${winnerCard} vs. ${await getNeynarUserName(loserAddress)}'s ${loserCard}!`;
                 botMessageText += '\n';
-                botMessageText += `${await getNeynarUserName(winner.value)} won the game!`;
+                botMessageText +=
+                  'Play again or find a match in the /card channel!';
               }
             } else {
               throw new Error('unexpected error');
@@ -220,6 +253,7 @@ export class WebhookController {
               botMessageText,
               game.cast_hash_made && {
                 replyTo: game.cast_hash_made,
+                embeds: [{ url: `${FRAME_BASE_URL}/war` }],
               },
             );
 

@@ -123,12 +123,9 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     ) internal view returns (SeriesItem memory item) {
         uint256 totalWeight = 0;
         SeriesItem[] memory seriesItem = activeSeriesItems();
-        SeriesItem memory defaultItem;
+        SeriesItem memory defaultItem = seriesItem[0];
         for (uint256 i = 0; i < seriesItem.length; i++) {
             totalWeight += seriesItem[i].weight;
-            if (seriesItem[i].rareness == Rareness.Common) {
-                defaultItem = seriesItem[i];
-            }
         }
 
         // slither-disable-start weak-prng
@@ -193,6 +190,8 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
             );
         }
         series.push(SeriesItem(tokenId, rareness, weight, false));
+
+        emit SetNewSeriesItem(tokenId, weight, rareness);
     }
 
     function activateSeriesItem(uint256 tokenId) public onlyOwner {
@@ -202,6 +201,8 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
                 break;
             }
         }
+
+        emit ActivateSeriesItem(tokenId);
     }
 
     function deactivateSeriesItem(uint256 tokenId) public onlyOwner {
@@ -211,10 +212,14 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
                 break;
             }
         }
+
+        emit DeactivateSeriesItem(tokenId);
     }
 
     function resetSeed(uint256 newSeed) external onlyOwner {
         seed = newSeed;
+
+        emit ResetSeed(newSeed);
     }
 
     function setAvailableTime(
@@ -229,18 +234,26 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     function setPoolWallet(address _poolWallet) external onlyOwner {
         poolWallet = _poolWallet;
+
+        emit SetPool(_poolWallet);
     }
 
     function setCommissionWallet(address _commissionWallet) external onlyOwner {
         commissionWallet = _commissionWallet;
+
+        emit SetCommission(_commissionWallet);
     }
 
     function setInvitationAddress(address _invitation) external onlyOwner {
         invitation = IERC721(_invitation);
+
+        emit SetInvitation(_invitation);
     }
 
     function setUnitPrice(uint256 _unitPrice) external onlyOwner {
         unitPrice = _unitPrice;
+
+        emit SetUnitPrice(_unitPrice);
     }
 
     function togglePause() external onlyOwner {

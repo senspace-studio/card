@@ -1,7 +1,8 @@
 import { SignerWithAddress } from '@nomicfoundation/hardhat-ethers/signers';
-import { Card, Gasha, Hat, War, WarPool } from '../typechain-types';
+import { Card, Gasha, War, WarPool } from '../typechain-types';
 import { ethers } from 'hardhat';
 import {
+  deployAndSetupInvitation,
   deployCardContract,
   deployGashaContract,
   deployWarAllContracts,
@@ -15,7 +16,6 @@ import {
 } from 'viem';
 import { expect } from 'chai';
 import { EventLog, getBytes } from 'ethers';
-import { deployHatContract } from '../scripts/helper/hat';
 import { time } from '@nomicfoundation/hardhat-network-helpers';
 
 describe('War without betting', () => {
@@ -36,6 +36,7 @@ describe('War without betting', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
+      admin.address,
       100,
     );
 
@@ -79,6 +80,11 @@ describe('War without betting', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
   });
 
   it('should make game', async () => {
@@ -155,7 +161,7 @@ describe('War with betting native token', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
-
+      admin.address,
       0,
     );
 
@@ -199,6 +205,11 @@ describe('War with betting native token', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,
@@ -359,7 +370,7 @@ describe('Make two games with the same combination', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
-
+      admin.address,
       0,
     );
 
@@ -404,6 +415,11 @@ describe('Make two games with the same combination', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,
@@ -569,7 +585,7 @@ describe('draw game', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
-
+      admin.address,
       0,
     );
 
@@ -614,6 +630,11 @@ describe('draw game', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,
@@ -725,7 +746,7 @@ describe('One side abstains', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
-
+      admin.address,
       0,
     );
 
@@ -770,6 +791,11 @@ describe('One side abstains', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,
@@ -892,7 +918,7 @@ describe('Both sides abstain', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
-
+      admin.address,
       0,
     );
 
@@ -937,6 +963,11 @@ describe('Both sides abstain', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,
@@ -1071,6 +1102,7 @@ describe('Game expire', () => {
     Gasha = await deployGashaContract(
       admin.address,
       await Card.getAddress(),
+      admin.address,
       0,
     );
 
@@ -1115,6 +1147,11 @@ describe('Game expire', () => {
 
     await War.setCardAddress(await Card.getAddress());
     await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
 
     await Gasha.connect(admin).dropByOwner(
       maker.address,

@@ -18,9 +18,17 @@ interface IGasha {
 
     event DeactivateSeriesItem(uint256 indexed tokenId);
 
-    event ResetSeed(uint256 indexed seed);
+    event ResetSeed(uint256 seed);
 
     event SetAvailableTime(uint64 startTime, uint64 endTime);
+
+    event SetPool(address indexed pool);
+
+    event SetCommission(address indexed commission);
+
+    event SetInvitation(address indexed invitation);
+
+    event SetUnitPrice(uint256 unitPrice);
 
     // ***********************
     // *** Structs Section ****

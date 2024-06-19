@@ -100,14 +100,6 @@ contract War is
             'War: invalid bet amount'
         );
 
-        warPool.deposit{value: isNativeToken ? betAmount : 0}(
-            gameId,
-            msg.sender,
-            currency,
-            isNativeToken,
-            betAmount
-        );
-
         games[gameId] = Game({
             maker: msg.sender,
             challenger: address(0),
@@ -117,6 +109,14 @@ contract War is
             challengerCard: 0,
             createdAt: uint64(block.timestamp)
         });
+
+        warPool.deposit{value: isNativeToken ? betAmount : 0}(
+            gameId,
+            msg.sender,
+            currency,
+            isNativeToken,
+            betAmount
+        );
 
         emit GameMade(gameId, msg.sender, signature);
     }
@@ -190,24 +190,23 @@ contract War is
         bool challengerHasCard = _hasCard(game.challenger, game.challengerCard);
 
         address winner;
+        address loser;
         uint256 rewardRateTop;
 
         if (!makerHasCard && !challengerHasCard) {
             game.makerCard = makerCard;
             warPool.withdrawByAdmin(gameId);
             return;
-        } else if (!makerHasCard) {
+        }
+
+        if (!makerHasCard) {
             winner = game.challenger;
+            loser = game.maker;
             rewardRateTop = 100000;
-            card.burn(game.challenger, game.challengerCard, 1);
-            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
-            emit GameRevealed(gameId, address(0), game.challenger, winner);
         } else if (!challengerHasCard) {
             winner = game.maker;
+            loser = game.challenger;
             rewardRateTop = 100000;
-            card.burn(game.maker, makerCard, 1);
-            warPool.payoutForWinner(gameId, rewardRateTop, winner, address(0));
-            emit GameRevealed(gameId, game.maker, address(0), winner);
         } else {
             winner = makerCard > game.challengerCard
                 ? game.maker
@@ -215,26 +214,38 @@ contract War is
                 ? address(0)
                 : game.challenger;
 
-            if (winner == address(0)) {
-                warPool.returnToBoth(gameId);
-            } else {
-                address loser = winner == game.maker
-                    ? game.challenger
-                    : game.maker;
-                uint256 looserCard = winner == game.maker
+            if (winner != address(0)) {
+                loser = winner == game.maker ? game.challenger : game.maker;
+                uint256 loserCard = winner == game.maker
                     ? game.challengerCard
                     : makerCard;
-                rewardRateTop = calcRewardRateTop(looserCard);
-                warPool.payoutForWinner(gameId, rewardRateTop, winner, loser);
+                rewardRateTop = calcRewardRateTop(loserCard);
+            } else {
+                loser = address(0);
+                rewardRateTop = 0;
             }
-
-            card.burn(game.maker, makerCard, 1);
-            card.burn(game.challenger, game.challengerCard, 1);
-            emit GameRevealed(gameId, game.maker, game.challenger, winner);
         }
 
         game.winner = winner;
         game.makerCard = makerCard;
+
+        if (winner == address(0)) {
+            warPool.returnToBoth(gameId);
+            card.burn(game.maker, makerCard, 1);
+            card.burn(game.challenger, game.challengerCard, 1);
+        } else {
+            warPool.payoutForWinner(gameId, rewardRateTop, winner, loser);
+            if (!makerHasCard) {
+                card.burn(game.challenger, game.challengerCard, 1);
+            } else if (!challengerHasCard) {
+                card.burn(game.maker, makerCard, 1);
+            } else {
+                card.burn(game.maker, makerCard, 1);
+                card.burn(game.challenger, game.challengerCard, 1);
+            }
+        }
+
+        emit GameRevealed(gameId, game.maker, game.challenger, winner);
     }
 
     function expireGame(
@@ -250,22 +261,21 @@ contract War is
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
         Game memory game = games[gameId];
 
-        if (
-            game.maker != address(0) &&
-            game.challenger == address(0) &&
-            block.timestamp - game.createdAt > expirationTime
-        ) {
-            return GameStatus.Expired;
-        } else if (game.maker != address(0) && game.challenger == address(0)) {
-            return GameStatus.Created;
-        } else if (
-            game.maker != address(0) &&
-            game.challenger != address(0) &&
-            game.makerCard == 0
-        ) {
-            return GameStatus.Challenged;
-        } else if (game.maker != address(0) && game.challenger != address(0)) {
-            return GameStatus.Revealed;
+        if (game.maker != address(0)) {
+            if (game.challenger == address(0)) {
+                if (block.timestamp - game.createdAt > expirationTime) {
+                    return GameStatus.Expired;
+                } else {
+                    return GameStatus.Created;
+                }
+            } else if (game.challenger != address(0)) {
+                // slither-disable-next-line incorrect-equality
+                if (game.makerCard == 0) {
+                    return GameStatus.Challenged;
+                } else {
+                    return GameStatus.Revealed;
+                }
+            }
         } else {
             return GameStatus.NotExist;
         }
@@ -318,18 +328,22 @@ contract War is
 
     function setDealerAddress(address _dealerAddress) external onlyOwner {
         dealerAddress = _dealerAddress;
+        emit SetDealer(_dealerAddress);
     }
 
     function setWarPoolAddress(address _warPool) external onlyOwner {
         warPool = IWarPool(_warPool);
+        emit SetWarPool(_warPool);
     }
 
     function setCardAddress(address _card) external onlyOwner {
         card = ICard(_card);
+        emit SetCard(_card);
     }
 
     function setInvitationAddress(address _invitation) external onlyOwner {
         invitation = IERC721(_invitation);
+        emit SetInvitation(_invitation);
     }
 
     function togglePause() external onlyOwner {

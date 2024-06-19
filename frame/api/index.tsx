@@ -17,14 +17,15 @@ app.use('/*', serveStatic({ root: './public' }));
 const title = 'House of Cardians';
 
 app.frame('/', (c) => {
-  // 一時的にproductionでは画像を表示しない
+  return c.res({
+    title,
+    image: '/images/title.png',
+    imageAspectRatio: '1:1',
+    intents: [<Button action="/top">Enter</Button>],
+  });
+});
 
-  if (process.env.NODE_ENV === 'production') {
-    return c.res({
-      image: '',
-    });
-  }
-
+app.frame('/top', (c) => {
   return c.res({
     title,
     image: '/images/top.png',
@@ -45,8 +46,10 @@ app.frame('/sub', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
-      <Button.Link href="https://google.com">Rules📖</Button.Link>,
-      <Button action="/">＜ Back</Button>,
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians">
+        Rules📖
+      </Button.Link>,
+      <Button action="/top">＜ Back</Button>,
     ],
   });
 });

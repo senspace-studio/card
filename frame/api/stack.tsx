@@ -25,6 +25,8 @@ export const stackApp = new Frog<{ State: State }>({
 });
 
 stackApp.frame('/', async (c) => {
+  return c.error({ message: 'Coming Soon...' });
+
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
 
@@ -70,8 +72,8 @@ stackApp.frame('/', async (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/leaderboard">Leader Board</Button>,
-      <Button.Link href={superFluidURL}>Stream</Button.Link>,
-      <Button action={`${BASE_URL}`}>Back</Button>,
+      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
+      <Button action={`${BASE_URL}/top`}>Back</Button>,
     ],
   });
 });
