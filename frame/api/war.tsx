@@ -662,18 +662,22 @@ warApp.frame('/choose/:params', async (c) => {
 
   const gameStatus = await warContract.read.gameStatus([gameId]);
   if (gameStatus.toString() !== '1') {
-    return c.error({ message: 'This game is already expired.' });
-    // return c.res({
-    //   title,
-    //   image: '/images/war/expired.png',
-    //   imageAspectRatio: '1:1',
-    //   intents: [
-    //     <Button action={`/`}>Create Battle</Button>,
-    //     <Button.Link href="https://warpcast.com/cardgamemaster">
-    //       Find Match
-    //     </Button.Link>,
-    //   ],
-    // });
+    return c.res({
+      title,
+      image: '/images/war/title.png',
+      imageAspectRatio: '1:1',
+      action: '/',
+      intents: [
+        <Button action="/make-duel">Start</Button>,
+        <Button.Link href="https://warpcast.com/cardgamemaster">
+          Matches
+        </Button.Link>,
+        <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
+          Rules
+        </Button.Link>,
+        <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
+      ],
+    });
   }
 
   const totalBalance = quantities.reduce((acc, cur) => acc + cur, 0);
@@ -1054,6 +1058,7 @@ const getQuantities = async (address: string, c: any) => {
       Number(quantity) - (Number(usedQuantities[index]) || 0);
     return remainingQuantity < 0 ? 0 : remainingQuantity;
   });
+
   return quantities;
 };
 
