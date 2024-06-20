@@ -15,7 +15,7 @@ export class HeatScoreEntity {
   @PrimaryColumn()
   address: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 8 })
+  @Column({ type: 'decimal', precision: 20, scale: 8 })
   score: number;
 
   @Column({ type: 'datetime' })
