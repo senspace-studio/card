@@ -72,7 +72,11 @@ export class PointsController {
       gameRevealedlogs,
     );
 
-    const totalScore = this.pointsService.sumScores([warScore, inviteScore]);
+    console.log(inviteScore);
+
+    const totalScore = this.pointsService
+      .sumScores([warScore, inviteScore])
+      .filter(([_, score]) => score > 0);
 
     return totalScore;
   }

@@ -89,7 +89,9 @@ export class CronService {
       gameRevealedlogs,
     );
 
-    const totalScore = this.pointsService.sumScores([warScore, inviteScore]);
+    const totalScore = this.pointsService
+      .sumScores([warScore, inviteScore])
+      .filter(([_, score]) => score > 0);
 
     for (const [player, score] of totalScore) {
       const exists = await this.heatScoreRepository.exists({
@@ -127,11 +129,11 @@ export class CronService {
 
       if (scores.length === 0) return;
 
-      const startOfYesterday = dayjs().subtract(1, 'day').startOf('day');
-      const endOfYesterday = dayjs().subtract(1, 'day').endOf('day');
+      const endOfLastDay = dayjs(scoredDate);
+      const startOfLastDay = endOfLastDay.subtract(1, 'day');
       const numOfWar = await this.warService.numOfGames(
-        startOfYesterday.unix(),
-        endOfYesterday.unix(),
+        startOfLastDay.unix(),
+        endOfLastDay.unix(),
       );
 
       const [
@@ -150,10 +152,20 @@ export class CronService {
         Number(bonusMultilrierTop.result) /
         Number(bonusMultilrierBottom.result);
 
-      const k = numOfWar * 200 * bonusMultiplier;
+      const h = numOfWar * 200 * bonusMultiplier;
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
-      const h = Number(difficultyTop.result) / Number(difficultyBottom.result);
+      const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
       const y = h * (1 - Math.exp(-k * x));
+
+      this.logger.log('numOfWar:', numOfWar);
+      this.logger.log('bonusMultiplierTop:', bonusMultilrierTop.result);
+      this.logger.log('bonusMultiplierBottom:', bonusMultilrierBottom.result);
+      this.logger.log('difficultyTop:', difficultyTop.result);
+      this.logger.log('difficultyBottom:', difficultyBottom.result);
+      this.logger.log('k:', k);
+      this.logger.log('x:', x);
+      this.logger.log('h:', h);
+      this.logger.log('y:', y);
 
       const totalScoreArrayWithRatio = scores.map(({ address, score }) => {
         return {
@@ -177,7 +189,7 @@ export class CronService {
       console.log('Stream start and end:', startDate_flow, endDate_flow);
       console.log(y);
       const smartAccountAddress = await this.createSmartAccount_SendDegenX(
-        (y * Number(STREAM_INTERVAL_MINUTES)).toFixed(18),
+        (y * 1.2).toFixed(18),
         startDate_flow,
         endDate_flow,
       );
@@ -197,7 +209,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
     } catch (error) {
       this.logger.error(error);
@@ -251,7 +263,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
 
       console.log('executedScores:', scores);
@@ -306,7 +318,7 @@ export class CronService {
             this.executeEndVesting(score.address, stream_smartaccount.address),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       }
     } catch (error) {
       this.logger.error(error);
@@ -326,7 +338,7 @@ export class CronService {
     const baseDate = executeCron.prev().getTime() / 1000;
     const endDate = executeCron.next().getTime() / 1000 - 1;
 
-    console.log('Withdraw range:', baseDate, endDate);
+    this.logger.log('Withdraw range:', baseDate, endDate);
 
     const stream_smartaccount = await this.streamSmartAccountRepository.findOne(
       {
@@ -337,8 +349,10 @@ export class CronService {
       },
     );
 
-    console.log('WithdrawAccount: ', stream_smartaccount?.address);
-    await this.withdrawAllDegenX(stream_smartaccount?.address);
+    if (stream_smartaccount) {
+      this.logger.log('WithdrawAccount: ', stream_smartaccount?.address);
+      await this.withdrawAllDegenX(stream_smartaccount?.address);
+    }
   }
 
   private writeContractParams(
