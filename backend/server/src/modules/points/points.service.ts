@@ -320,6 +320,9 @@ export class PointsService {
             gameLog.maker.toLowerCase() === invitee ||
             gameLog.challenger.toLowerCase() === invitee,
         ).length;
+
+        console.log(player, invitee, playCount);
+
         const playCountBonus = this.referralPlayCountBonus(playCount);
 
         // 基準日以前にTransferされた場合は、基準日に合わせる
@@ -329,6 +332,14 @@ export class PointsService {
           dayjs(baseUnixtime).diff(eventTimestamp, 'days'),
           maxDays,
           decayRate,
+        );
+
+        console.log(
+          player,
+          invitee,
+          playCount,
+          playCountBonus,
+          decayMultiplier,
         );
 
         return acc + playCountBonus * decayMultiplier;
@@ -352,10 +363,14 @@ export class PointsService {
   }
 
   private referralPlayCountBonus(playCount: number) {
-    if (playCount <= 20) {
-      return 1 + (playCount / 20) * 0.25;
+    if (playCount == 0) {
+      return 0;
+    } else if (playCount <= 20) {
+      return playCount * (1 + (playCount / 20) * 0.25);
     } else {
-      return 1.25 + 1.75 * (1 - Math.exp(-0.1 * (playCount - 20)));
+      return (
+        playCount * (1.25 + 1.75 * (1 - Math.exp(-0.1 * (playCount - 20))))
+      );
     }
   }
 

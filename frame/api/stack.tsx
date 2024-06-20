@@ -25,7 +25,7 @@ export const stackApp = new Frog<{ State: State }>({
 });
 
 stackApp.frame('/', async (c) => {
-  return c.error({ message: 'Coming Soon...' });
+  // return c.error({ message: 'Coming Soon...' });
 
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
