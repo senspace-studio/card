@@ -25,8 +25,6 @@ export const stackApp = new Frog<{ State: State }>({
 });
 
 stackApp.frame('/', async (c) => {
-  // return c.error({ message: 'Coming Soon...' });
-
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
 
@@ -68,7 +66,7 @@ stackApp.frame('/', async (c) => {
 
   return c.res({
     title,
-    image: `/stack/image/${Number(totalScore || 0).toFixed(0)}`,
+    image: `/stack/image/${(Number(totalScore || 0) * 100).toFixed(0)}`,
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/leaderboard">Leader Board</Button>,
@@ -83,7 +81,7 @@ stackApp.frame('/leaderboard', async (c) => {
 
   return c.res({
     title,
-    image: `/stack/image/leaderboard/${verifiedAddress}/${username}`,
+    image: `/stack/image/leaderboard/${verifiedAddress}/${username}?${Date.now()}`,
     imageAspectRatio: '1:1',
     intents: [<Button action="/">Back</Button>],
   });
@@ -94,9 +92,9 @@ stackApp.hono.get('/image/:score', async (c) => {
   const score = Number(params.score);
 
   let bgPath = './public/images/stack/stack_1.png';
-  if (score > 1000) {
+  if (score > 100000) {
     bgPath = './public/images/stack/stack_2.png';
-  } else if (score > 50000) {
+  } else if (score > 300000) {
     bgPath = './public/images/stack/stack_3.png';
   }
 
@@ -168,11 +166,11 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   const myScore = await myScoreRes.json();
 
   const scores = [
-    { name, address, score: Number(myScore[0]?.score || 0) },
+    { name, address, score: Number(myScore[0]?.score || 0) * 100 },
     ...topScores.map((score: any) => ({
       name: score.name,
       address: score.address,
-      score: Number(score.score),
+      score: Number(score.score) * 100,
     })),
   ];
 
@@ -203,9 +201,7 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
     scores.map(async (score, index) => {
       const userScore = await sharp({
         text: {
-          text: `<span foreground="white" letter_spacing="2">${Number(
-            score.score,
-          )
+          text: `<span foreground="white" letter_spacing="2">${score.score
             .toFixed(0)
             .toLocaleString()}</span>`,
           rgba: true,
@@ -230,5 +226,6 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
 
   return c.newResponse(png, 200, {
     'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=120',
   });
 });

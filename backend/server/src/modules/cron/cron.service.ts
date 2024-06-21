@@ -196,10 +196,11 @@ export class CronService {
 
       await this.authorizeFlowOperatorWithFullControl(smartAccountAddress);
 
+      this.logger.log('Scheduling Addresses: ', flowRates.length);
       const flowRatesChunks = chunk(flowRates, 10);
-      for (const flowRates of flowRatesChunks) {
+      for (const flowRatesChunk of flowRatesChunks) {
         await Promise.all(
-          flowRates.map((flowRate) =>
+          flowRatesChunk.map((flowRate) =>
             this.createVestingSchedule(
               smartAccountAddress,
               flowRate.address,
@@ -483,25 +484,30 @@ export class CronService {
     endDate: number,
   ) {
     try {
-      await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
-        params: this.writeContractParams(
-          VESTING_SCHEDULE_ADDRESS,
-          smartAccountAddress,
-        ),
-        body: {
-          functionName: 'createVestingSchedule',
-          args: [
-            SUPER_TOKEN,
-            receiver,
-            startDate,
-            0,
-            flowRate,
-            0,
-            endDate,
-            '0x',
-          ],
+      this.logger.log('Schedule for:' + receiver, flowRate, startDate, endDate);
+      const res = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            VESTING_SCHEDULE_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'createVestingSchedule',
+            args: [
+              SUPER_TOKEN,
+              receiver,
+              startDate,
+              0,
+              flowRate,
+              0,
+              endDate,
+              '0x',
+            ],
+          },
         },
-      });
+      );
+      if (res.error) this.logger.error(res.error);
     } catch (error) {
       this.logger.error(error);
       throw error;
