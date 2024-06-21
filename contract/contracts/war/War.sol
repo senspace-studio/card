@@ -30,6 +30,8 @@ contract War is
 
     uint64 expirationTime;
 
+    mapping(bytes => bool) signatures;
+
     modifier onlyDealer() {
         require(
             dealerAddress == msg.sender,
@@ -91,13 +93,17 @@ contract War is
         bool isNativeToken,
         bytes memory signature
     ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
-        bytes8 gameId = bytes8(
-            keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
-        );
+        require(signatures[signature] == false, 'War: signature already used');
 
         require(
             isNativeToken ? msg.value == betAmount : true,
             'War: invalid bet amount'
+        );
+
+        signatures[signature] = true;
+
+        bytes8 gameId = bytes8(
+            keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
         );
 
         games[gameId] = Game({
