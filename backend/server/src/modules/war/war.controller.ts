@@ -12,24 +12,24 @@ export class WarController {
   ) {}
 
   // ToDo: 開発用なので削除
-  // @Get('/sign/:tokenId')
-  // async signGet(@Param('tokenId') tokenId: string) {
-  //   for (let i = 0; i < 100; i++) {
-  //     try {
-  //       const seed = Math.floor(Math.random() * 1000000);
-  //       const signature = await this.warService.createNewGame(
-  //         '0xD0575cA24D907b35d39383a53c3300D510446BaE',
-  //         BigInt(tokenId),
-  //         BigInt(seed),
-  //       );
-  //       return signature;
-  //     } catch (error) {
-  //       if (error.message !== 'signature already used') {
-  //         throw new Error(error);
-  //       }
-  //     }
-  //   }
-  // }
+  @Get('/sign/:tokenId')
+  async signGet(@Param('tokenId') tokenId: string) {
+    for (let i = 0; i < 100; i++) {
+      try {
+        const seed = Math.floor(Math.random() * 1000000);
+        const signature = await this.warService.createNewGame(
+          '0xD0575cA24D907b35d39383a53c3300D510446BaE',
+          BigInt(tokenId),
+          BigInt(seed),
+        );
+        return signature;
+      } catch (error) {
+        if (error.message !== 'signature already used') {
+          throw new Error(error);
+        }
+      }
+    }
+  }
 
   @Get('/balanceOf/:address/:tokenId')
   async balanceOf(
@@ -47,7 +47,7 @@ export class WarController {
     const games = await this.warService.getAllReservedGames(orderBy || 'ASC');
     return games.map((game) => {
       const { game_id, maker, created } = game;
-      return { game_id, maker, created: created.getTime() };
+      return { game_id, maker, created: Number(created) };
     });
   }
 
@@ -56,11 +56,13 @@ export class WarController {
   @Get('/getRandomChallengableGame')
   async getRandomChallengableGame(@Param('maker') maker: string) {
     const game = await this.warService.getRandomChallengableGame(maker);
-    return {
-      game_id: game.game_id,
-      maker: game.maker,
-      created: game.created.getTime(),
-    };
+    return game
+      ? {
+          game_id: game.game_id,
+          maker: game.maker,
+          created: Number(game.created),
+        }
+      : null;
   }
 
   // 予約済のカード枚数を返す。

@@ -61,7 +61,7 @@ export class WarService {
         } else if (game.cast_hash_made || game.signature) {
           const now = new Date().getTime();
           const expiration = 24 * 60 * 60 * 1e3;
-          if (now < game.created.getTime() + expiration) {
+          if (now < Number(game.created) + expiration) {
             if (game.cast_hash_made) {
               return GAME_STATUS.MADE_CASTED;
             } else {
@@ -109,7 +109,9 @@ export class WarService {
     const now = new Date();
     const games = await this.warRepositry.find({
       where: {
-        created: MoreThan(new Date(now.getTime() - 24 * 60 * 60 * 1e3)),
+        created: MoreThan(
+          new Date(now.getTime() - 24 * 60 * 60 * 1e3).getTime().toString(),
+        ),
       },
       order: { created: orderBy },
     });
@@ -168,8 +170,8 @@ export class WarService {
         maker,
         // 2時間以上経過24時間は経過してない
         created: Between(
-          new Date(now.getTime() - 24 * 60 * 60 * 1e3),
-          new Date(now.getTime() - 2 * 60 * 60 * 1e3),
+          new Date(now.getTime() - 24 * 60 * 60 * 1e3).getTime().toString(),
+          new Date(now.getTime() - 2 * 60 * 60 * 1e3).getTime().toString(),
         ),
       },
     });
@@ -220,6 +222,7 @@ export class WarService {
       maker,
       maker_token_id: tokenId.toString(),
       signature: signature,
+      created: new Date().getTime().toString(),
     });
     return signature;
   }
