@@ -214,11 +214,12 @@ contract War is
             loser = game.challenger;
             rewardRateTop = 100000;
         } else {
-            winner = makerCard > game.challengerCard
-                ? game.maker
-                : makerCard == game.challengerCard
-                ? address(0)
-                : game.challenger;
+            winner = _getWinner(
+                makerCard,
+                game.challengerCard,
+                game.maker,
+                game.challenger
+            );
 
             if (winner != address(0)) {
                 loser = winner == game.maker ? game.challenger : game.maker;
@@ -262,6 +263,27 @@ contract War is
         warPool.returnToMaker(gameId);
 
         emit GameExpired(gameId, game.maker);
+    }
+
+    function setGame(
+        bytes8 _gameId,
+        address _maker,
+        address _challenger,
+        address _winner,
+        uint256 _makerCard,
+        uint256 _challengerCard,
+        bytes memory _dealerSignature,
+        uint64 _createdAt
+    ) public whenNotPaused nonReentrant onlyOwner {
+        games[_gameId] = Game({
+            maker: _maker,
+            challenger: _challenger,
+            winner: _winner,
+            makerCard: _makerCard,
+            challengerCard: _challengerCard,
+            dealerSignature: _dealerSignature,
+            createdAt: _createdAt
+        });
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
@@ -320,6 +342,25 @@ contract War is
             return 91212;
         } else {
             return 0;
+        }
+    }
+
+    function _getWinner(
+        uint256 makerCard,
+        uint256 challengerCard,
+        address makerAddress,
+        address challengerAddress
+    ) internal pure returns (address) {
+        if (makerCard == 14 && challengerCard == 1) {
+            return challengerAddress;
+        } else if (makerCard == 1 && challengerCard == 14) {
+            return makerAddress;
+        } else if (makerCard > challengerCard) {
+            return makerAddress;
+        } else if (makerCard < challengerCard) {
+            return challengerAddress;
+        } else {
+            return address(0);
         }
     }
 

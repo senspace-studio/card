@@ -1206,7 +1206,10 @@ warApp.hono.get('/image/result/:params', async (c) => {
     result,
   );
 
-  return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
+  return c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=3600',
+  });
 });
 ////////////////////////////////////////
 // Image Generate Functions
