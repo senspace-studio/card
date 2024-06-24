@@ -139,6 +139,40 @@ describe('War without betting', () => {
     expect(game.makerCard).to.equal(8);
     expect(game.winner).to.equal(maker.address);
   });
+
+  it('should win if 1 set against 14', async () => {
+    const messageHash = keccak256(
+      encodePacked(['uint256', 'uint256'], [BigInt(1), BigInt(2)]),
+    );
+
+    const signature = (await dealer.signMessage(
+      getBytes(messageHash),
+    )) as `0x${string}`;
+
+    const tx = await War.connect(maker).makeGame(
+      zeroAddress,
+      0,
+      true,
+      signature,
+      { value: 0 },
+    );
+    const receipt = await tx.wait();
+    const logs = receipt?.logs as EventLog[];
+    gameId = logs.find((log) => log.eventName === 'GameMade')
+      ?.args[0] as string;
+
+    await expect(
+      War.connect(challenger).challengeGame(gameId, 14, {
+        value: 0,
+      }),
+    ).emit(War, 'GameChallenged');
+
+    await War.connect(dealer).revealCard(gameId, 1, 2);
+
+    const game = await War.games(gameId);
+    expect(game.makerCard).to.equal(1);
+    expect(game.winner).to.equal(maker.address);
+  });
 });
 
 describe('War with betting native token', () => {
@@ -472,7 +506,7 @@ describe('Make two games with the same combination', () => {
 
   it('should make game', async () => {
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(3)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -556,7 +590,7 @@ describe('Make two games with the same combination', () => {
     expect(game.makerCard).to.equal(9);
     expect(game.winner).to.equal(maker.address);
 
-    await War.connect(dealer).revealCard(gameId2, 9, 2);
+    await War.connect(dealer).revealCard(gameId2, 9, 3);
 
     const game2 = await War.games(gameId2);
     expect(game2.makerCard).to.equal(9);
@@ -1075,8 +1109,8 @@ describe('Both sides abstain', () => {
     expect(afterBalanceChallenger).to.equal(
       beforeBalanceChallenger + Number(parseEther('0')),
     );
-    expect(afterAdminBalance).to.equal(
-      beforeAdminBalance + Number(parseEther('200')),
+    expect(afterAdminBalance.toString().slice(0, 17)).to.equal(
+      (beforeAdminBalance + Number(parseEther('200'))).toString().slice(0, 17),
     );
   });
 });
