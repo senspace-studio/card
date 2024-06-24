@@ -2,6 +2,7 @@ import {
   Entity,
   Column,
   PrimaryColumn,
+  // CreateDateColumn,
   // UpdateDateColumn,
 } from 'typeorm';
 
@@ -34,6 +35,12 @@ export class WarEntity {
   @Column({ nullable: true })
   cast_hash_revealed: string;
 
+  // @CreateDateColumn({
+  //   name: 'created',
+  //   type: 'timestamp',
+  //   default: () => 'CURRENT_TIMESTAMP',
+  //   precision: 0,
+  // })
   @Column({ nullable: false })
   created: string;
 }

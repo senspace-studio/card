@@ -1,4 +1,4 @@
-import { Button, Frog, TextInput } from 'frog';
+import { Button, FrameContext, Frog, TextInput } from 'frog';
 import {
   BACKEND_URL,
   BASE_URL,
@@ -28,6 +28,7 @@ import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
 } from '../lib/neynar.js';
+import { BlankInput } from 'hono/types';
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -121,10 +122,8 @@ warApp.frame('/', async (c) => {
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/make-duel">Start</Button>,
-      <Button.Link href="https://warpcast.com/cardgamemaster">
-        Matches
-      </Button.Link>,
+      <Button action="/make-duel">Make Game</Button>,
+      <Button action="/challenge/random">Challenge</Button>,
       <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
         Rules
       </Button.Link>,
@@ -495,8 +494,65 @@ warApp.frame('/error/address', (c) => {
   });
 });
 
+warApp.frame('/challenge/random', async (c) => {
+  const { frameData } = c;
+  const fid = frameData?.fid;
+  const { verifiedAddresses } = c.previousState.userName
+    ? c.previousState
+    : await getFarcasterUserInfo(fid);
+
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
+    return c.res({
+      title,
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const address = verifiedAddresses[0] as `0x${string}`;
+
+  const hasNFT = await checkInvitation(address);
+
+  if (!hasNFT) {
+    return c.res({
+      title,
+      image: '/images/war/no_invi.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const response = await fetch(
+    `${BACKEND_URL!}/war/getRandomChallengableGame?exept_maker=${address}`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  const game = await response.json();
+  if (!game.game_id) return c.error({ message: 'No game found' });
+
+  return await challengeFrame(c, game.game_id);
+});
+
 warApp.frame('/challenge/:gameId', async (c) => {
   const gameId = c.req.param('gameId') as `0x${string}`;
+  return await challengeFrame(c, gameId);
+});
+
+const challengeFrame = async (
+  c: FrameContext<
+    {
+      State: State;
+    },
+    '/challenge/:gameId' | '/challenge/random',
+    BlankInput
+  >,
+  gameId: `0x${string}`,
+) => {
   let gameInfo = await getGameInfoByGameId(gameId);
 
   if (!gameInfo) {
@@ -604,7 +660,7 @@ warApp.frame('/challenge/:gameId', async (c) => {
     imageAspectRatio: '1:1',
     intents: [<Button action={`/choose/${params}`}>Start</Button>],
   });
-});
+};
 
 warApp.frame('/choose', async (c) => {
   const { quantities, c_address } = c.previousState;
@@ -670,9 +726,7 @@ warApp.frame('/choose/:params', async (c) => {
       action: '/',
       intents: [
         <Button action="/make-duel">Start</Button>,
-        <Button.Link href="https://warpcast.com/cardgamemaster">
-          Matches
-        </Button.Link>,
+        <Button action="/challenge/random">Matches</Button>,
         <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
           Rules
         </Button.Link>,
