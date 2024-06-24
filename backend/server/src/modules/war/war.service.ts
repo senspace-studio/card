@@ -11,7 +11,7 @@ import {
   ERC1155_ADDRESS,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
-import { Between, MoreThan, IsNull, Repository } from 'typeorm';
+import { Between, MoreThan, IsNull, Repository, Not } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 import tweClient from 'src/lib/thirdweb-engine';
 
@@ -161,20 +161,24 @@ export class WarService {
     return numOfCards;
   }
 
-  async getRandomChallengableGame(maker?: string) {
+  async getRandomChallengableGame(params: {
+    maker?: string;
+    exept_maker?: string;
+  }) {
     this.logger.log(
       this.getRandomChallengableGame.name,
-      JSON.stringify({ maker }),
+      JSON.stringify(params),
     );
     const now = new Date();
     const games = await this.warRepositry.find({
       where: {
         challenger: IsNull(),
-        maker,
-        // 2時間以上経過24時間は経過してない
+        ...(params.maker && { maker: params.maker }),
+        ...(params.exept_maker && { maker: Not(params.exept_maker) }),
+        // 1時間以上経過24時間は経過してない
         created: Between(
           new Date(now.getTime() - 24 * 60 * 60 * 1e3).getTime().toString(),
-          new Date(now.getTime() - 2 * 60 * 60 * 1e3).getTime().toString(),
+          new Date(now.getTime() - 1 * 60 * 60 * 1e3).getTime().toString(),
         ),
       },
     });
