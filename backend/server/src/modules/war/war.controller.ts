@@ -41,6 +41,30 @@ export class WarController {
     return Number(balanceOfAll[Number(tokenId) - 1]);
   }
 
+  // チャレンジャー待ちのゲームすべてを返す。
+  @Get('/getAllReservedGames')
+  async getAllReservedGames(@Param('orderBy') orderBy: 'ASC' | 'DESC') {
+    const games = await this.warService.getAllReservedGames(orderBy || 'ASC');
+    return games.map((game) => {
+      const { game_id, maker, created } = game;
+      return { game_id, maker, created: Number(created) };
+    });
+  }
+
+  // チャレンジャー待ちのランダムなゲームを返す。
+  // makerを渡すと、そのmakerによって作られたゲームのみ返す
+  @Get('/getRandomChallengableGame')
+  async getRandomChallengableGame(@Param('maker') maker: string) {
+    const game = await this.warService.getRandomChallengableGame(maker);
+    return game
+      ? {
+          game_id: game.game_id,
+          maker: game.maker,
+          created: Number(game.created),
+        }
+      : null;
+  }
+
   // 予約済のカード枚数を返す。
   @Post('/getReservedCards')
   async getReservedCard(
