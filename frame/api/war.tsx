@@ -11,6 +11,7 @@ import {
   warContract,
   warPoolContract,
   checkInvitation,
+  publicClient,
 } from '../lib/contract.js';
 
 import sharp from 'sharp';
@@ -804,6 +805,14 @@ warApp.transaction('/challengeGame', async (c) => {
 });
 
 warApp.frame('/loading', async (c) => {
+  if (c.transactionId === undefined) return c.error({ message: 'No txId' });
+  const transactionReceipt = await publicClient.getTransactionReceipt({
+    hash: c.transactionId,
+  });
+  if (transactionReceipt && transactionReceipt.status == 'reverted') {
+    return c.error({ message: 'Transaction failed' });
+  }
+
   const { userName, pfp_url, wager, c_address, c_userName, c_pfp_url, gameId } =
     c.previousState;
 
