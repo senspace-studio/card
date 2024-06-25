@@ -645,9 +645,17 @@ const challengeFrame = async (
     prevState.gameId = gameId;
   });
 
-  return c.res({
-    title,
-    image:
+  const status = await warContract.read.gameStatus([gameId]);
+  let imageUrl;
+
+  // status
+  // 0. NotExist,
+  // 1. Created,
+  // 2. Challenged,
+  // 3. Revealed,
+  // 4. Expired
+  if (status.toString() === '1') {
+    imageUrl =
       '/war/image/challenge/' +
       encodeURIComponent(
         JSON.stringify({
@@ -656,7 +664,29 @@ const challengeFrame = async (
           wager,
           gameId,
         }),
-      ),
+      );
+  } else if (status.toString() == '2' || status.toString() == '3') {
+    imageUrl =
+      '/war/image/played/' +
+      encodeURIComponent(
+        JSON.stringify({
+          userName,
+          pfp_url,
+          wager,
+          status,
+          card: gameInfo.card,
+          c_userName: gameInfo.c_userName,
+          c_pfp_url: gameInfo.c_pfp_url,
+          c_card: gameInfo.c_card,
+        }),
+      );
+  } else {
+    imageUrl = '/war/image/expired';
+  }
+
+  return c.res({
+    title,
+    image: imageUrl,
     imageAspectRatio: '1:1',
     intents: [<Button action={`/choose/${params}`}>Start</Button>],
   });
@@ -1029,17 +1059,48 @@ warApp.hono.get('/image/error/:params', async (c) => {
   return c.newResponse(image, 200, { 'Content-Type': 'image/png' });
 });
 
+warApp.hono.get('/image/played/:params', async (c) => {
+  const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+  const {
+    userName,
+    pfp_url,
+    wager,
+    card,
+    status,
+    c_userName,
+    c_pfp_url,
+    c_card,
+  } = params;
+
+  const png = await generatePlayedGameImage({
+    userName,
+    pfp_url,
+    wager,
+    status,
+    card,
+    c_userName,
+    c_pfp_url,
+    c_card,
+  });
+  const response = c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+  });
+  return response;
+});
+
+warApp.hono.get('/image/expired', async (c) => {
+  const png = await generateExpiredSimpleImage();
+  const response = c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+  });
+  return response;
+});
+
 warApp.hono.get('/image/challenge/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, wager, gameId } = params;
 
-  const status = await warContract.read.gameStatus([gameId]);
-  // const gameInfo = await getGameInfoByGameId(gameId);
-
-  const png =
-    status.toString() == '1'
-      ? await generateChallengeImage(true, userName, pfp_url, wager)
-      : await generateExpiredSimpleImage();
+  let png = await generateChallengeImage(true, userName, pfp_url, wager);
 
   const response = c.newResponse(png, 200, {
     'Content-Type': 'image/png',
@@ -1470,6 +1531,165 @@ const generateChallengeImage = async (
   if (isBet) {
     composites.push({ input: wagerImage, left: 500, top: 888 });
   }
+
+  const png = await canvas.composite(composites).png().toBuffer();
+  return png;
+};
+
+const generatePlayedGameImage = async ({
+  userName,
+  pfp_url,
+  wager,
+  status,
+  card,
+  c_userName,
+  c_pfp_url,
+  c_card,
+}: {
+  userName: string;
+  pfp_url: string;
+  wager: number;
+  status: number;
+  card?: number;
+  c_userName?: string;
+  c_pfp_url?: string;
+  c_card?: number;
+}) => {
+  let backgroundImageBuffer;
+
+  if (status === 2) {
+    backgroundImageBuffer = await generateChallengeImage(
+      true,
+      userName,
+      pfp_url,
+      wager,
+    );
+  } else if (status === 3) {
+    backgroundImageBuffer = await generateResultBgImage(
+      userName,
+      pfp_url,
+      card || 0,
+      wager,
+      c_userName!,
+      c_pfp_url!,
+      c_card || 0,
+    );
+  }
+
+  console.log(card, c_card);
+  const isBet = wager > 0;
+
+  let imageName = isBet ? 'fin_make_bet.png' : 'fin_make.png';
+
+  const response = await fetch(pfp_url);
+  const pfpBuffer = await response.arrayBuffer();
+
+  const canvas = sharp('./public/images/war/' + imageName).resize(1000, 1000);
+  // const canvas = backgroundImageBuffer;
+
+  let leftUserTop = 479;
+  if (!isBet) {
+    leftUserTop += 48;
+  }
+
+  const pfpSize = 42;
+  const userNameFontSize = 20;
+
+  const topPfpSize = 75;
+  const topUserNameFontSize = 40;
+
+  const circleMask = Buffer.from(
+    `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
+      pfpSize / 2
+    }" /></svg>`,
+  );
+
+  const pfpImage = await sharp(pfpBuffer)
+    .resize(pfpSize, pfpSize)
+    .composite([{ input: circleMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const svgText = `
+    <svg width="500" height="${pfpSize}">
+      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
+    </svg>
+  `;
+
+  const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
+
+  const wagerImage = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="1000">${wager} $DEGEN</span>`,
+      font: 'Bigelow Rules',
+      fontfile: './public/fonts/BigelowRules-Regular.ttf',
+      rgba: true,
+      width: 550,
+      height: 68,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const topCircleMask = Buffer.from(
+    `<svg><circle cx="${topPfpSize / 2}" cy="${topPfpSize / 2}" r="${
+      topPfpSize / 2
+    }" /></svg>`,
+  );
+
+  const topPfpImage = await sharp(pfpBuffer)
+    .resize(topPfpSize, topPfpSize)
+    .composite([{ input: topCircleMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const topSvgText = `
+    <svg width="500" height="${topPfpSize}">
+      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${topUserNameFontSize}" fill="white">${userName}</text>
+    </svg>
+  `;
+
+  const topUserNameImage = await sharp(Buffer.from(topSvgText))
+    .png()
+    .toBuffer();
+
+  const composites = [
+    {
+      input: backgroundImageBuffer,
+      gravity: 'center',
+    },
+    {
+      input: pfpImage,
+      left: 58,
+      top: leftUserTop,
+    },
+    {
+      input: userNameImage,
+      left: 57 + pfpSize + 10,
+      top: leftUserTop,
+    },
+    {
+      input: topPfpImage,
+      left: 566,
+      top: 77,
+    },
+    {
+      input: topUserNameImage,
+      left: 566 + topPfpSize + 20,
+      top: 77,
+    },
+  ];
+
+  if (isBet) {
+    composites.push({ input: wagerImage, left: 500, top: 888 });
+  }
+
+  const overlayImage = await sharp('./public/images/war/played.png')
+    .resize(1000, 1000)
+    .toBuffer();
+
+  composites.push({ input: overlayImage, left: 0, top: 0 });
 
   const png = await canvas.composite(composites).png().toBuffer();
   return png;
