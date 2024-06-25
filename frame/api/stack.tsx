@@ -15,6 +15,8 @@ type State = {
 
 const title = 'Stack | House of Cardians';
 
+const superFluidURLBase = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=`;
+
 export const stackApp = new Frog<{ State: State }>({
   assetsPath: '/',
   basePath: '/',
@@ -58,7 +60,7 @@ stackApp.frame('/', async (c) => {
     }
   }
 
-  const superFluidURL = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=${verifiedAddress}`;
+  const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
 
   const res = await fetch(`${BACKEND_URL}/points/total`);
 
@@ -79,11 +81,16 @@ stackApp.frame('/', async (c) => {
 stackApp.frame('/leaderboard', async (c) => {
   const { username, verifiedAddress } = c.previousState;
 
+  const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
+
   return c.res({
     title,
     image: `/stack/image/leaderboard/${verifiedAddress}/${username}?${Date.now()}`,
     imageAspectRatio: '1:1',
-    intents: [<Button action="/">Back</Button>],
+    intents: [
+      <Button action="/">Back</Button>,
+      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
+    ],
   });
 });
 
