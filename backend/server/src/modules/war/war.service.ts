@@ -172,6 +172,7 @@ export class WarService {
     const now = new Date();
     const games = await this.warRepositry.find({
       where: {
+        game_id: Not(IsNull()),
         challenger: IsNull(),
         ...(params.maker && { maker: params.maker }),
         ...(params.exept_maker && { maker: Not(params.exept_maker) }),
