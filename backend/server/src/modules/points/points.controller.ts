@@ -72,13 +72,23 @@ export class PointsController {
       gameRevealedlogs,
     );
 
-    console.log(inviteScore);
-
     const totalScore = this.pointsService
       .sumScores([warScore, inviteScore])
       .filter(([_, score]) => score > 0);
 
     return totalScore;
+  }
+
+  @Get('/execute-scoring')
+  async executeScoring() {
+    this.logger.log('update score');
+
+    try {
+      await this.pointsService.executeScoring();
+      return 'success';
+    } catch (error) {
+      throw new Error(error);
+    }
   }
 
   @Get('/:address')

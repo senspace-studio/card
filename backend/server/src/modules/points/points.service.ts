@@ -7,11 +7,14 @@ import * as dayjs from 'dayjs';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import {
   INVITATION_CONTRACT_ADDRESS,
+  STREAM_SCORING_CRON_EXPRESSION,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient from 'src/lib/thirdweb-engine';
 import { ViemService } from '../viem/viem.service';
 import { S_VIP_ADDRESSES } from 'src/constants/Invitation';
+import parser from 'cron-parser';
+const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
 export class PointsService {
@@ -383,5 +386,57 @@ export class PointsService {
     }
 
     return Array.from(totalScore.entries());
+  }
+
+  async executeScoring() {
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+    const baseDate = dayjs(currentCronDate);
+
+    const startDate_game = baseDate.subtract(3, 'days');
+
+    console.log('Scoring range', startDate_game.toDate(), baseDate.toDate());
+
+    const gameRevealedlogs = await this.getGameLogs(
+      startDate_game.unix(),
+      baseDate.unix(),
+    );
+
+    const warScore = this.calcWarScore(baseDate.unix(), gameRevealedlogs);
+
+    const startDate_invite = baseDate.subtract(14, 'days');
+
+    const inviteLogs = await this.getInviteLogs(
+      startDate_invite.unix(),
+      baseDate.unix(),
+    );
+
+    const inviteScore = this.calcReferralScore(
+      baseDate.unix(),
+      inviteLogs,
+      gameRevealedlogs,
+    );
+
+    const totalScore = this.sumScores([warScore, inviteScore]).filter(
+      ([_, score]) => score > 0,
+    );
+
+    for (const [player, score] of totalScore) {
+      const exists = await this.heatscoreRepository.exists({
+        where: {
+          address: player,
+          date: baseDate.toDate(),
+        },
+      });
+      if (!exists) {
+        await this.heatscoreRepository.save({
+          address: player,
+          score: score,
+          date: baseDate.toDate(),
+        });
+      }
+    }
   }
 }
