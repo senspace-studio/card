@@ -357,12 +357,13 @@ warApp.frame('/preview', async (c) => {
 warApp.transaction('/duel-letter', async (c) => {
   const { address, signature, wager } = c.previousState;
 
-  const args: readonly [`0x${string}`, bigint, boolean, `0x${string}`] = [
-    zeroAddress,
-    0n,
-    true,
-    signature!,
-  ];
+  const args: readonly [
+    `0x${string}`,
+    bigint,
+    boolean,
+    `0x${string}`,
+    `0x${string}`,
+  ] = [zeroAddress, 0n, true, signature!, zeroAddress];
 
   const estimatedGas = await warContract.estimateGas.makeGame(args, {
     account: address,
