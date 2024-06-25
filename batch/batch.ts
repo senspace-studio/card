@@ -58,7 +58,7 @@ const getGameLogs = async (startDateUnix: number, endDateUnix: number) => {
   return gameData.result.map((r) => ({ ...r.data })) as unknown as GameRevealedEventLog[];
 }
 
-export const calcResult = async () => {
+export const calcLatest7DaysResult = async () => {
   const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
   // 7 days before
   const startDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
@@ -104,4 +104,4 @@ export const calcInvitationEffect = (
   // ToDo
 };
 
-calcResult();
+calcLatest7DaysResult();
