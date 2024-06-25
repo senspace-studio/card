@@ -28,28 +28,13 @@ app.frame('/', (c) => {
 app.frame('/top', (c) => {
   return c.res({
     title,
-    image: '/images/top.png',
+    image: '/images/menu-20240625.png',
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/draw">Draw🃏</Button>,
       <Button action="/war">Battle⚔️</Button>,
       <Button action="/stack">Stack🗼</Button>,
-      <Button action="/sub">Next ＞</Button>,
-    ],
-  });
-});
-
-app.frame('/sub', (c) => {
-  return c.res({
-    title,
-    image: '/images/sub.png',
-    imageAspectRatio: '1:1',
-    intents: [
       <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
-      <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians">
-        Rules📖
-      </Button.Link>,
-      <Button action="/top">＜ Back</Button>,
     ],
   });
 });
