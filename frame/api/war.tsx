@@ -1036,10 +1036,22 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
   const status = await warContract.read.gameStatus([gameId]);
   // const gameInfo = await getGameInfoByGameId(gameId);
 
-  const png =
-    status.toString() == '1'
-      ? await generateChallengeImage(true, userName, pfp_url, wager)
-      : await generateExpiredSimpleImage();
+  // status
+  // 0. NotExist,
+  // 1. Created,
+  // 2. Challenged,
+  // 3. Revealed,
+  // 4. Expired
+
+  let png;
+
+  if (status.toString() == '1') {
+    png = await generateChallengeImage(true, userName, pfp_url, wager);
+  } else if (status.toString() == '2' || status.toString() == '3') {
+    png = await generatePlayedSimpleImage();
+  } else {
+    png = await generateExpiredSimpleImage();
+  }
 
   const response = c.newResponse(png, 200, {
     'Content-Type': 'image/png',
@@ -1576,6 +1588,12 @@ const generatePreviewImage = async (
   return png;
 };
 
+const generatePlayedSimpleImage = async () => {
+  const canvas = sharp('./public/images/war/played.png').resize(1000, 1000);
+
+  const png = await canvas.png().toBuffer();
+  return png;
+};
 const generateExpiredSimpleImage = async () => {
   const canvas = sharp('./public/images/war/expired.png').resize(1000, 1000);
 
