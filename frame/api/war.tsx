@@ -76,7 +76,7 @@ export const warApp = new Frog<{ State: State }>({
     haiInvitation: false,
   },
   headers: {
-    'Cache-Control': 'max-age=60',
+    'Cache-Control': 'max-age=300',
   },
 });
 
@@ -1055,7 +1055,7 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
 
   const response = c.newResponse(png, 200, {
     'Content-Type': 'image/png',
-    'Cache-Control': 'max-age=120',
+    'Cache-Control': 'max-age=300',
   });
   return response;
 });
