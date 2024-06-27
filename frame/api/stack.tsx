@@ -6,6 +6,10 @@ import {
   getFarcasterUserInfoByAddress,
 } from '../lib/neynar.js';
 import { checkInvitation } from '../lib/contract.js';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc.js';
+
+dayjs.extend(utc);
 
 type State = {
   verifiedAddresses: `0x${string}`[];
@@ -85,9 +89,27 @@ stackApp.frame('/leaderboard', async (c) => {
 
   return c.res({
     title,
-    image: `/stack/image/leaderboard/${verifiedAddress}/${username}?${Date.now()}`,
+    image: `/stack/image/leaderboard/${verifiedAddress}/${username}`,
     imageAspectRatio: '1:1',
     intents: [
+      <Button action="/leaderboard-battle">Battle</Button>,
+      <Button action="/">Back</Button>,
+      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
+    ],
+  });
+});
+
+stackApp.frame('/leaderboard-battle', async (c) => {
+  const { username, verifiedAddress } = c.previousState;
+
+  const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
+
+  return c.res({
+    title,
+    image: `/stack/image/leaderboard-battle/${verifiedAddress}/${username}`,
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/leaderboard">Stack</Button>,
       <Button action="/">Back</Button>,
       <Button.Link href={superFluidURL}>Rewards</Button.Link>,
     ],
@@ -135,6 +157,7 @@ stackApp.hono.get('/image/:score', async (c) => {
 
   return c.newResponse(png, 200, {
     'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=3600',
   });
 });
 
@@ -143,7 +166,7 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
   const address = params.address;
   const name = params.name;
 
-  const canvas = sharp('./public/images/stack/leaderboard.png').resize(
+  const canvas = sharp('./public/images/stack/stack_leaders.png').resize(
     1000,
     1000,
   );
@@ -198,8 +221,8 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
         .toBuffer();
       return {
         input: userName,
-        top: 345 + index * 151,
-        left: 220,
+        top: 335 + index * 144,
+        left: 240,
       };
     }),
   );
@@ -221,18 +244,164 @@ stackApp.hono.get('/image/leaderboard/:address/:name', async (c) => {
         .toBuffer();
       return {
         input: userScore,
-        top: 350 + index * 152,
+        top: 340 + index * 146,
         left: 760 - score.score.toFixed(0).toString().length * 27,
       };
     }),
   );
 
-  canvas.composite([...usersName, ...usersScore]);
+  const updatedAt = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="2">${dayjs(
+        myScore[0].createdAt,
+      ).format('M/DD HH:mm')} (UTC)
+      </span>`,
+      rgba: true,
+      width: 750,
+      height: 39,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  canvas.composite([
+    ...usersName,
+    ...usersScore,
+    { input: updatedAt, top: 950, left: 525 },
+  ]);
 
   const png = await canvas.png().toBuffer();
 
   return c.newResponse(png, 200, {
     'Content-Type': 'image/png',
-    'Cache-Control': 'max-age=120',
+    'Cache-Control': 'max-age=3600',
+  });
+});
+
+stackApp.hono.get('/image/leaderboard-battle/:address/:name', async (c) => {
+  const params = c.req.param();
+  const address = params.address;
+  const name = params.name;
+
+  const canvas = sharp('./public/images/stack/battle_leaders.png').resize(
+    1000,
+    1000,
+  );
+
+  const res = await fetch(
+    `https://maincardbatchcalclast7daysresults-maincard28027c69-l3mxgxhwotdx.s3.ap-northeast-1.amazonaws.com/calcLast7DaysResult/result.json`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  const { result, updatedAt } = await res.json();
+
+  const getTop3Scores = async () => {
+    // order result by win, and get top 3
+    const top3 = result.sort((a: any, b: any) => b.win - a.win).slice(0, 3);
+    const userinfos = await Promise.all(
+      top3.map(async (score: any) => {
+        const account = (await getFarcasterUserInfoByAddress(score.address))
+          .userName;
+        return {
+          ...score,
+          name: account,
+        };
+      }),
+    );
+
+    return userinfos;
+  };
+
+  const topScores = await getTop3Scores();
+
+  const myScore = result.find(
+    (score: any) => score.address.toLowerCase() === address.toLowerCase(),
+  );
+
+  const scores = [
+    { name, address, ...myScore },
+    ...topScores.map((score: any) => ({
+      name: score.name,
+      address: score.address,
+      ...score,
+    })),
+  ];
+
+  const usersName = await Promise.all(
+    scores.map(async (score, index) => {
+      const userName = await sharp({
+        text: {
+          text: `<span foreground="white" letter_spacing="1000">${score.name}</span>`,
+          font: 'Bigelow Rules',
+          fontfile: './public/fonts/BigelowRules-Regular.ttf',
+          rgba: true,
+          width: 550,
+          height: 55,
+          align: 'left',
+        },
+      })
+        .png()
+        .toBuffer();
+      return {
+        input: userName,
+        top: 335 + index * 147,
+        left: 240,
+      };
+    }),
+  );
+
+  const usersScore = await Promise.all(
+    scores.map(async (score, index) => {
+      const text = `${score.win} / ${score.lose} / ${score.draw}`;
+      const userScore = await sharp({
+        text: {
+          text: `<span foreground="white" letter_spacing="2">${text}</span>`,
+          rgba: true,
+          width: 750,
+          height: 30,
+          align: 'left',
+        },
+      })
+        .png()
+        .toBuffer();
+      return {
+        input: userScore,
+        top: 344 + index * 146,
+        left: 850 - text.length * 23,
+      };
+    }),
+  );
+  const updatedAtLabel = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="2">${dayjs(
+        Number(updatedAt + '000'),
+      )
+        .utc()
+        .format('M/DD HH:mm')} (UTC)
+      </span>`,
+      rgba: true,
+      width: 750,
+      height: 39,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  canvas.composite([
+    ...usersName,
+    ...usersScore,
+    { input: updatedAtLabel, top: 950, left: 625 },
+  ]);
+
+  const png = await canvas.png().toBuffer();
+
+  return c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=3600',
   });
 });
