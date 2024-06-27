@@ -11,6 +11,7 @@
   "dependencies": {
     "@hono/node-server": "^1",
     "@neynar/nodejs-sdk": "^1.28.0",
+    "dayjs": "^1.11.11",
     "dotenv": "^16.4.5",
     "frog": "latest",
     "hono": "^4",
@@ -22,10 +23,10 @@
     "viem": "^2.13.3"
   },
   "devDependencies": {
-    "tsx": "^4.7.1",
-    "typescript": "^5.3.3",
     "@types/json-bigint": "^1.0.4",
     "@types/node": "^20.11.17",
-    "@types/ssh2": "^1.15.0"
+    "@types/ssh2": "^1.15.0",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
   }
 }
