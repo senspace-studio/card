@@ -27,6 +27,7 @@ import {
 import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
+  getFarcasterUserInfoByCastHash,
 } from '../lib/neynar.js';
 import { BlankInput } from 'hono/types';
 
@@ -333,18 +334,35 @@ warApp.frame('/preview', async (c) => {
     prevState.wager = wager;
   });
 
+  // direct match
+  const { c_address, c_pfp_url, c_userName } = c.previousState;
+  let params;
+  if (c_address) {
+    params = encodeURIComponent(
+      JSON.stringify({
+        userName,
+        pfp_url,
+        card: cardNumber,
+        wager,
+        c_address,
+        c_pfp_url,
+        c_userName,
+      }),
+    );
+  } else {
+    params = encodeURIComponent(
+      JSON.stringify({
+        userName,
+        pfp_url,
+        card: cardNumber,
+        wager,
+      }),
+    );
+  }
+
   return c.res({
     title,
-    image:
-      '/war/image/preview/' +
-      encodeURIComponent(
-        JSON.stringify({
-          userName,
-          pfp_url,
-          card: cardNumber,
-          wager,
-        }),
-      ),
+    image: '/war/image/preview/' + params,
     imageAspectRatio: '1:1',
     action: '/find',
     intents: [
@@ -355,14 +373,16 @@ warApp.frame('/preview', async (c) => {
 });
 
 warApp.transaction('/duel-letter', async (c) => {
-  const { address, signature, wager } = c.previousState;
+  const { address, signature, wager, c_address } = c.previousState;
 
-  const args: readonly [`0x${string}`, bigint, boolean, `0x${string}`] = [
-    zeroAddress,
-    0n,
-    true,
-    signature!,
-  ];
+  const targetAddress = c_address || zeroAddress;
+  const args: readonly [
+    `0x${string}`,
+    bigint,
+    boolean,
+    `0x${string}`,
+    `0x${string}`,
+  ] = [zeroAddress, 0n, true, signature!, targetAddress];
 
   const estimatedGas = await warContract.estimateGas.makeGame(args, {
     account: address,
@@ -432,15 +452,22 @@ warApp.frame('/find', async (c) => {
   const createdAt = game[6];
   await setGameInfo(gameId, address, userName, pfp_url, wager, createdAt);
 
+  // direct match
+  const { c_address, c_userName, c_pfp_url } = c.previousState;
+  if (c_address && c_userName && c_pfp_url) {
+    await updateChallenger(gameId, c_address, c_userName, c_pfp_url);
+  }
+
   const params = encodeURIComponent(
     JSON.stringify({
       userName,
       pfp_url,
       wager,
       gameId,
+      c_userName,
+      c_pfp_url,
     }),
   );
-
   const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/challenge/${gameId}`;
 
   return c.res({
@@ -645,6 +672,8 @@ const challengeFrame = async (
     prevState.gameId = gameId;
   });
 
+  const { c_userName, c_pfp_url } = gameInfo;
+
   return c.res({
     title,
     image:
@@ -655,6 +684,8 @@ const challengeFrame = async (
           pfp_url,
           wager,
           gameId,
+          c_userName: c_userName || '',
+          c_pfp_url: c_pfp_url || '',
         }),
       ),
     imageAspectRatio: '1:1',
@@ -697,6 +728,7 @@ warApp.frame('/choose/:params', async (c) => {
     return c.res({
       title,
       image: '/images/verify.png',
+      action: '/choose',
       imageAspectRatio: '1:1',
       intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
     });
@@ -712,11 +744,11 @@ warApp.frame('/choose/:params', async (c) => {
     return c.res({
       title,
       image: '/images/war/no_invi.png',
+      action: '/choose',
       imageAspectRatio: '1:1',
       intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
     });
   }
-
   const gameStatus = await warContract.read.gameStatus([gameId]);
   if (gameStatus.toString() !== '1') {
     return c.res({
@@ -732,6 +764,25 @@ warApp.frame('/choose/:params', async (c) => {
         </Button.Link>,
         <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
       ],
+    });
+  }
+
+  // direct match
+  const requestedChallengers = await warContract.read.requestedChallengers([
+    gameId,
+  ]);
+
+  if (
+    requestedChallengers !== zeroAddress &&
+    requestedChallengers.toLowerCase() !== address.toLowerCase()
+  ) {
+    return c.res({
+      title,
+      // TODO
+      image: '/images/verify.png',
+      action: '/choose',
+      imageAspectRatio: '1:1',
+      intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
     });
   }
 
@@ -991,6 +1042,106 @@ warApp.frame('/result/:gameId', async (c) => {
   });
 });
 
+warApp.frame('/addAction', (c) => {
+  return c.res({
+    // TODO
+    image: '/images/war/title.png',
+    intents: [
+      <Button.AddCastAction action="/directAction">Add</Button.AddCastAction>,
+    ],
+  });
+});
+
+warApp.castAction(
+  '/directAction',
+  async (c) => {
+    const { actionData } = c;
+    const castHash = actionData?.castId.hash;
+
+    return c.res({
+      type: 'frame',
+      path: `/make-direct-duel/${castHash}`,
+      // path: '/rule',
+    });
+  },
+  // TODO
+  { name: 'direct match', icon: 'zap', description: 'direct match' },
+);
+
+warApp.frame('/make-direct-duel/:castHash', async (c) => {
+  const castHash = c.req.param('castHash');
+  // const params = JSON.parse(decodeURIComponent(c.req.param('params')));
+
+  const {
+    pfp_url: c_pfp_url,
+    userName: c_userName,
+    verifiedAddresses: c_verifiedAddresses,
+  } = await getFarcasterUserInfoByCastHash(castHash);
+
+  const c_address = c_verifiedAddresses[0];
+  const c_hasInvitation = await checkInvitation(c_address);
+
+  const { frameData } = c;
+  const fid = frameData?.fid;
+  const { pfp_url, userName, verifiedAddresses } = c.previousState.userName
+    ? c.previousState
+    : await getFarcasterUserInfo(fid);
+
+  if (
+    !verifiedAddresses ||
+    verifiedAddresses.length === 0 ||
+    !c_verifiedAddresses ||
+    c_verifiedAddresses.length === 0
+  ) {
+    return c.res({
+      title,
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const address = verifiedAddresses[0] as `0x${string}`;
+
+  const [hasNFT, quantities] = await Promise.all([
+    checkInvitation(address),
+    getQuantities(address, c),
+  ]);
+
+  if (!hasNFT) {
+    return c.res({
+      title,
+      image: '/images/war/no_invi.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  c.deriveState((prevState) => {
+    prevState.quantities = quantities;
+    prevState.address = address;
+    prevState.userName = userName;
+    prevState.pfp_url = pfp_url;
+    prevState.c_address = c_address;
+    prevState.c_userName = c_userName;
+    prevState.c_pfp_url = c_pfp_url;
+    prevState.hasInvitation = hasNFT;
+    prevState.verifiedAddresses = verifiedAddresses;
+  });
+
+  return c.res({
+    title,
+    image:
+      '/war/image/score/' +
+      encodeURIComponent(JSON.stringify({ quantities, address })),
+    imageAspectRatio: '1:1',
+    intents: [
+      <TextInput placeholder="1,2....11,12,13 or J" />,
+      <Button action="/preview">Set</Button>,
+    ],
+  });
+});
+
 const generateLoadingImage = async (
   userName: string,
   pfp_url: string,
@@ -1031,7 +1182,7 @@ warApp.hono.get('/image/error/:params', async (c) => {
 
 warApp.hono.get('/image/challenge/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, gameId } = params;
+  const { userName, pfp_url, wager, gameId, c_userName, c_pfp_url } = params;
 
   const status = await warContract.read.gameStatus([gameId]);
   // const gameInfo = await getGameInfoByGameId(gameId);
@@ -1046,7 +1197,14 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
   let png;
 
   if (status.toString() == '1') {
-    png = await generateChallengeImage(true, userName, pfp_url, wager);
+    png = await generateChallengeImage(
+      true,
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+    );
   } else if (status.toString() == '2' || status.toString() == '3') {
     png = await generatePlayedSimpleImage();
   } else {
@@ -1215,17 +1373,31 @@ warApp.hono.get('/image/score/:quantities', async (c) => {
 
 warApp.hono.get('/image/preview/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, card, wager } = params;
-  const png = await generatePreviewImage(userName, pfp_url, card, wager);
+  const { userName, pfp_url, card, wager, c_userName, c_pfp_url } = params;
+  const png = await generatePreviewImage({
+    userName,
+    pfp_url,
+    card,
+    wager,
+    c_userName,
+    c_pfp_url,
+  });
 
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
 warApp.hono.get('/image/find/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager } = params;
+  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
 
-  const png = await generateChallengeImage(false, userName, pfp_url, wager);
+  const png = await generateChallengeImage(
+    false,
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+  );
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
@@ -1373,6 +1545,8 @@ const generateChallengeImage = async (
   userName: string,
   pfp_url: string,
   wager: number,
+  c_userName: string = '',
+  c_pfp_url: string = '',
 ) => {
   const isBet = wager > 0;
 
@@ -1394,31 +1568,10 @@ const generateChallengeImage = async (
     leftUserTop += 48;
   }
 
-  const pfpSize = 42;
-  const userNameFontSize = 20;
-
   const topPfpSize = 75;
   const topUserNameFontSize = 40;
 
-  const circleMask = Buffer.from(
-    `<svg><circle cx="${pfpSize / 2}" cy="${pfpSize / 2}" r="${
-      pfpSize / 2
-    }" /></svg>`,
-  );
-
-  const pfpImage = await sharp(pfpBuffer)
-    .resize(pfpSize, pfpSize)
-    .composite([{ input: circleMask, blend: 'dest-in' }])
-    .png()
-    .toBuffer();
-
-  const svgText = `
-    <svg width="500" height="${pfpSize}">
-      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${userNameFontSize}" fill="white">${userName}</text>
-    </svg>
-  `;
-
-  const userNameImage = await sharp(Buffer.from(svgText)).png().toBuffer();
+  const userComponent = await generateUserComponent(userName, pfp_url);
 
   const wagerImage = await sharp({
     text: {
@@ -1458,13 +1611,8 @@ const generateChallengeImage = async (
 
   const composites = [
     {
-      input: pfpImage,
+      input: userComponent,
       left: 58,
-      top: leftUserTop,
-    },
-    {
-      input: userNameImage,
-      left: 57 + pfpSize + 10,
       top: leftUserTop,
     },
     {
@@ -1481,6 +1629,19 @@ const generateChallengeImage = async (
 
   if (isBet) {
     composites.push({ input: wagerImage, left: 500, top: 888 });
+  }
+
+  // direct match
+  if (c_userName && c_pfp_url) {
+    const opponentComponent = await generateUserComponent(
+      c_userName,
+      c_pfp_url,
+    );
+    composites.push({
+      input: opponentComponent,
+      left: 742,
+      top: leftUserTop,
+    });
   }
 
   const png = await canvas.composite(composites).png().toBuffer();
@@ -1543,12 +1704,21 @@ const generateUserComponent = async (userName: string, pfp_url: string) => {
   return combinedImage;
 };
 
-const generatePreviewImage = async (
-  userName: string,
-  pfp_url: string,
-  card: number,
-  wager: number,
-) => {
+const generatePreviewImage = async ({
+  userName,
+  pfp_url,
+  card,
+  wager,
+  c_userName,
+  c_pfp_url,
+}: {
+  userName: string;
+  pfp_url: string;
+  card: number;
+  wager: number;
+  c_userName?: string;
+  c_pfp_url?: string;
+}) => {
   const isBet = wager > 0;
   const imageName = isBet ? 'tx_make_bet.png' : 'tx_make.png';
   const canvas = sharp(`./public/images/war/${imageName}`).resize(1000, 1000);
@@ -1582,6 +1752,19 @@ const generatePreviewImage = async (
 
   if (isBet && wagerImage) {
     composites.push({ input: wagerImage, left: 490, top: 845 });
+  }
+
+  // direct match
+  if (c_userName && c_pfp_url) {
+    const opponentComponent = await generateUserComponent(
+      c_userName,
+      c_pfp_url,
+    );
+    composites.push({
+      input: opponentComponent,
+      left: 744,
+      top: 480 + isBetAdjustment,
+    });
   }
 
   const png = await canvas.composite(composites).png().toBuffer();

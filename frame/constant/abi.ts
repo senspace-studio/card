@@ -1486,6 +1486,25 @@ export const WAR_ABI = [
         name: 'maker',
         type: 'address',
       },
+    ],
+    name: 'GameExpired',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes8',
+        name: 'gameId',
+        type: 'bytes8',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'maker',
+        type: 'address',
+      },
       {
         indexed: false,
         internalType: 'bytes',
@@ -1576,6 +1595,58 @@ export const WAR_ABI = [
     anonymous: false,
     inputs: [
       {
+        indexed: true,
+        internalType: 'address',
+        name: 'card',
+        type: 'address',
+      },
+    ],
+    name: 'SetCard',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'dealer',
+        type: 'address',
+      },
+    ],
+    name: 'SetDealer',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'invitation',
+        type: 'address',
+      },
+    ],
+    name: 'SetInvitation',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'warPool',
+        type: 'address',
+      },
+    ],
+    name: 'SetWarPool',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
         indexed: false,
         internalType: 'address',
         name: 'account',
@@ -1584,6 +1655,38 @@ export const WAR_ABI = [
     ],
     name: 'Unpaused',
     type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'looserCard',
+        type: 'uint256',
+      },
+    ],
+    name: 'calcRewardRateTop',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'card',
+    outputs: [
+      {
+        internalType: 'contract ICard',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
   },
   {
     inputs: [
@@ -1601,6 +1704,32 @@ export const WAR_ABI = [
     name: 'challengeGame',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'dealerAddress',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes8',
+        name: 'gameId',
+        type: 'bytes8',
+      },
+    ],
+    name: 'expireGame',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1726,10 +1855,28 @@ export const WAR_ABI = [
         name: '_dealerAddress',
         type: 'address',
       },
+      {
+        internalType: 'uint64',
+        name: '_expirationTime',
+        type: 'uint64',
+      },
     ],
     name: 'initialize',
     outputs: [],
     stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'invitation',
+    outputs: [
+      {
+        internalType: 'contract IERC721',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -1753,6 +1900,11 @@ export const WAR_ABI = [
         internalType: 'bytes',
         name: 'signature',
         type: 'bytes',
+      },
+      {
+        internalType: 'address',
+        name: 'requestChallenger',
+        type: 'address',
       },
     ],
     name: 'makeGame',
@@ -1821,6 +1973,25 @@ export const WAR_ABI = [
     inputs: [
       {
         internalType: 'bytes8',
+        name: '',
+        type: 'bytes8',
+      },
+    ],
+    name: 'requestedChallengers',
+    outputs: [
+      {
+        internalType: 'address',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes8',
         name: 'gameId',
         type: 'bytes8',
       },
@@ -1869,6 +2040,67 @@ export const WAR_ABI = [
   {
     inputs: [
       {
+        internalType: 'bytes8',
+        name: '_gameId',
+        type: 'bytes8',
+      },
+      {
+        internalType: 'address',
+        name: '_maker',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_challenger',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: '_winner',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: '_makerCard',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_challengerCard',
+        type: 'uint256',
+      },
+      {
+        internalType: 'bytes',
+        name: '_dealerSignature',
+        type: 'bytes',
+      },
+      {
+        internalType: 'uint64',
+        name: '_createdAt',
+        type: 'uint64',
+      },
+    ],
+    name: 'setGame',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_invitation',
+        type: 'address',
+      },
+    ],
+    name: 'setInvitationAddress',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
         internalType: 'address',
         name: '_warPool',
         type: 'address',
@@ -1906,6 +2138,13 @@ export const WAR_ABI = [
       },
     ],
     stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'togglePause',
+    outputs: [],
+    stateMutability: 'nonpayable',
     type: 'function',
   },
   {
@@ -1953,6 +2192,19 @@ export const WAR_ABI = [
       },
     ],
     stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'warPool',
+    outputs: [
+      {
+        internalType: 'contract IWarPool',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
 ] as const;
