@@ -1,9 +1,7 @@
 import 'dotenv/config';
-import { Chain, createPublicClient, http, zeroAddress } from 'viem';
-import { degen } from 'viem/chains';
+import { zeroAddress } from 'viem';
 import tweClient from './thirdweb-engine';
 
-const BLOCKCHAIN_API = process.env.BLOCKCHAIN_API || '';
 const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';
 const INVITATION_CONTRACT_ADDRESS = process.env.INVITATION_CONTRACT_ADDRESS || '';
 
@@ -19,11 +17,6 @@ type TransferEventLog = {
   to: string;
   tokenId: { type: string, hex: string };
 };
-
-const viemClient = createPublicClient({
-  chain: { ...degen, fees: { baseFeeMultiplier: 1.25 } } as Chain,
-  transport: http(BLOCKCHAIN_API),
-});
 
 const getBlockNumberFromTimestamp = async (timestamp: number) => {
   const res = await fetch(`https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=after`);
@@ -81,6 +74,10 @@ const getInvivationTransferLogs = async (startDateUnix: number, endDateUnix: num
   );
 }
 
+/**
+ * 過去7日の対戦ログから対戦結果を集計する。
+ * @returns 
+ */
 export const calcLatest7DaysResult = async () => {
   const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
   // 7 days before
@@ -116,70 +113,150 @@ export const calcLatest7DaysResult = async () => {
       result.push({ address, ...resultJson[address] });
     }
   }
-  // console.log(result);
   return result;
 }
 
-export const calcInvitationEffect = async (
-  ignoredAddressList: string[],
-  ignoredTokenIdList: string[],
-) => {
-  ignoredAddressList = [...ignoredAddressList];
-  ignoredTokenIdList = [...ignoredTokenIdList];
-  // ToDo
+type Invitation = { tokenId: string; from: string, to: string };
+
+class InvivationMap {
+  private _tokenIdMap: { [to: string]: string } = {};
+  private _fromMap: { [to: string]: string } = {};
+  private _toMap: { [tokenId: string]: string } = {};
+  // フラグ
+  private _activationMap: { [tokenId: string]: boolean } = {};
+
+  findOne(filter: (Partial<Pick<Invitation, 'tokenId' | 'to'>>)) {
+    const { tokenId, to } = filter;
+    if (typeof tokenId === 'string' && typeof to === 'string') {
+      if (to === this._toMap[tokenId]) {
+        const from = this._fromMap[to];
+        return { tokenId, from, to };
+      }
+    } else if (typeof tokenId === 'string') {
+      const to = this._toMap[tokenId];
+      if (to) {
+        const from = this._fromMap[to];
+        return { tokenId, from, to };
+      }
+    } else if (typeof to === 'string') {
+      const tokenId = this._tokenIdMap[to];
+      if (tokenId) {
+        const from = this._fromMap[to];
+        return { tokenId, from, to };
+      }
+    }
+    return null;
+  }
+
+  findBy(filter: (Partial<Pick<Invitation, 'from'>>)) {
+    const res: Invitation[] = [];
+    const { from } = filter;
+    for (const to in this._fromMap) {
+      if (from === this._fromMap[to]) {
+        const tokenId = this._tokenIdMap[to];
+        res.push({ tokenId, from, to });
+      }
+    }
+    return res;
+  }
+
+  isActivated(tokenId: string) {
+    return !!this._activationMap[tokenId];
+  }
+
+  activate(tokenId: string) {
+    this._activationMap[tokenId] = true;
+  }
+
+  register(invivation: Invitation) {
+    const { tokenId, from, to } = invivation;
+    // ゼロアドレスは考えない
+    if (from === zeroAddress || to === zeroAddress) {
+      return { registered: false, message: 'zero_address' };
+    }
+    // 完全重複のある招待は登録扱い
+    if (this.findOne({ tokenId, to })) {
+      return { registered: true };
+    }
+    // 使用済トークンIDは無効
+    if (this.findOne({ tokenId })) {
+      return { registered: false, message: 'tokenid_used' };
+    }
+    // 招待は重複できない
+    if (this.findOne({ to })) {
+      return { registered: false, message: 'duplicated_invitation' };
+    }
+    this._tokenIdMap[to] = tokenId;
+    this._fromMap[to] = from;
+    this._toMap[tokenId] = to;
+    this._activationMap[tokenId] = false;
+    return { registered: true };
+  }
+
+  array(): Invitation[] {
+    const array: Invitation[] = [];
+    for (const to in this._tokenIdMap) {
+      const tokenId = this._tokenIdMap[to];
+      const from = this._fromMap[to];
+      array.push({ tokenId, from, to });
+    }
+    return array;
+  }
+
+  static from(invivations: Invitation[]) {
+    const invitationMap = new InvivationMap();
+    invivations.map((e) => invitationMap.register(e));
+    return invitationMap;
+  }
+}
+
+/**
+ * 招待者が招待したプレイヤーの対戦回数の合計を返す。
+ * なお、招待の集計は14日で対戦の集計は7日である。
+ * @param invivations 前回のレスポンスのinvivationsを渡すと、重複した招待をブロックできる。
+ * @returns 
+ */
+export const countInvitationBattles = async (invivations: Invitation[]) => {
+  const invitationMap = InvivationMap.from(invivations);
   const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
   // 14 days before
   const startInvivationDateUnix = currentUnixTime - 14 * 24 * 60 * 60;
   // 7 days before
   const startGameDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
-
   const [invivationLogs, gameLogs] = await Promise.all([
     getInvivationTransferLogs(startInvivationDateUnix, currentUnixTime),
     getGameRevealedLogs(startGameDateUnix, currentUnixTime),
   ]);
-
-  const invitedBy: { [to: string]: string } = {};
-  const battleMap: { [address: string]: number } = {};
-  for (const { from, to, tokenId } of invivationLogs) {
-    if (from !== zeroAddress && to !== zeroAddress) {
-      if (!ignoredAddressList.includes(to) && !ignoredTokenIdList.includes(tokenId.hex)) {
-        if (invitedBy[to]) {
-          // ここのエラーは起きないはず
-          throw new Error('already invited by ' + invitedBy[to]);
-        }
-        invitedBy[to] = from;
-        ignoredAddressList.push(to);
-        ignoredTokenIdList.push(tokenId.hex);
-      }  
+  for (const { from, to, tokenId: { hex: tokenId } } of invivationLogs) {
+    const { registered } = invitationMap.register({ tokenId, from, to });
+    if (registered) {
+      invitationMap.activate(tokenId);
     }
   }
-  for (const { maker, challenger } of gameLogs) {
-    if (invitedBy[maker]) {
-      if (battleMap[invitedBy[maker]]) {
-        battleMap[invitedBy[maker]]++;
-      } else {
-        battleMap[invitedBy[maker]] = 1;
-      }
-    }
-    if (invitedBy[challenger]) {
-      if (battleMap[invitedBy[challenger]]) {
-        battleMap[invitedBy[challenger]]++;
-      } else {
-        battleMap[invitedBy[challenger]] = 1;
-      }
-    }
-  }
-  // console.log(ignoredAddressList);
-  // console.log(ignoredTokenIdList);
-  // console.log(battles);
+  const battleMap: { [from: string]: number } = {};
   const battles: { address: string; battles: number }[] = [];
-  for (const address in battleMap) {
-    battles.push({ address, battles: battleMap[address] })
+  for (const { maker, challenger } of gameLogs) {
+    const invitations = [
+      invitationMap.findOne({ to: maker }),
+      invitationMap.findOne({ to: challenger }),
+    ];
+    for (const invitation of invitations) {
+      if (invitation && invitationMap.isActivated(invitation.tokenId)) {
+        if (battleMap[invitation.from]) {
+          battleMap[invitation.from]++;
+        } else {
+          battleMap[invitation.from] = 1;
+        }
+      }
+    }
   }
-  return { ignoredAddressList, ignoredTokenIdList, battles };
-};
-
+  for (const address in battleMap) {
+    battles.push({ address, battles: battleMap[address] });
+  }
+  return { invivations: invitationMap.array(), battles };
+}
+// 以下コメントを外して動作
 // calcLatest7DaysResult()
 //   .then((res) => console.log(res));
-// calcInvitationEffect([], [])
+// countInvitationBattles([])
 //   .then((res) => console.log(res));

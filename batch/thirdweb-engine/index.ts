@@ -1,7 +1,7 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './thirdweb-engine-schema';
-// import { THIRDWEB_ENGINE_ENDPOINT } from 'src/utils/env';
 import axios from 'axios';
+
 const THIRDWEB_ENGINE_ENDPOINT = process.env.THIRDWEB_ENGINE_ENDPOINT || '';
 const THIRDWEB_ENGINE_ACCESS_TOKEN = process.env.THIRDWEB_ENGINE_ACCESS_TOKEN || '';
 
