@@ -1,9 +1,10 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './thirdweb-engine-schema';
 import axios from 'axios';
-
-const THIRDWEB_ENGINE_ENDPOINT = process.env.THIRDWEB_ENGINE_ENDPOINT || '';
-const THIRDWEB_ENGINE_ACCESS_TOKEN = process.env.THIRDWEB_ENGINE_ACCESS_TOKEN || '';
+import {
+  THIRDWEB_ENGINE_ACCESS_TOKEN,
+  THIRDWEB_ENGINE_ENDPOINT,
+} from '../config';
 
 const tweClient = createClient<paths>({
   baseUrl: THIRDWEB_ENGINE_ENDPOINT,

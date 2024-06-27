@@ -1,5 +1,5 @@
 import tweClient from '.';
-const ENGINE_WALLET_ADDRESS = process.env.ENGINE_WALLET_ADDRESS || '';
+import { ENGINE_WALLET_ADDRESS } from '../config';
 
 export const sendTransaction = async (
   address: string,

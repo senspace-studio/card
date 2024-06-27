@@ -1,9 +1,7 @@
 import 'dotenv/config';
 import { zeroAddress } from 'viem';
 import tweClient from './thirdweb-engine';
-
-const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';
-const INVITATION_CONTRACT_ADDRESS = process.env.INVITATION_CONTRACT_ADDRESS || '';
+import { INVITATION_CONTRACT_ADDRESS, WAR_CONTRACT_ADDRESS } from './config';
 
 type GameRevealedEventLog = {
   gameId: string;
@@ -15,16 +13,25 @@ type GameRevealedEventLog = {
 type TransferEventLog = {
   from: string;
   to: string;
-  tokenId: { type: string, hex: string };
+  tokenId: { type: string; hex: string };
 };
 
 const getBlockNumberFromTimestamp = async (timestamp: number) => {
-  const res = await fetch(`https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=after`);
-  const { result: { blockNumber } } = await res.json() as { result: { blockNumber: string } };
+  const res = await fetch(
+    `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=after`,
+  );
+  const {
+    result: { blockNumber },
+  } = (await res.json()) as { result: { blockNumber: string } };
   return blockNumber;
-}
+};
 
-const getContractEventLogs = async <E>(contractAddress: string, eventName: string, startDateUnix: number, endDateUnix: number) => {
+const getContractEventLogs = async <E>(
+  contractAddress: string,
+  eventName: string,
+  startDateUnix: number,
+  endDateUnix: number,
+) => {
   const [fromBlock, toBlock] = await Promise.all([
     getBlockNumberFromTimestamp(startDateUnix),
     getBlockNumberFromTimestamp(endDateUnix),
@@ -45,78 +52,44 @@ const getContractEventLogs = async <E>(contractAddress: string, eventName: strin
       } as never,
     },
   )) as any;
-  const { result }: {
+  const {
+    result,
+  }: {
     result: {
-      eventName: string,
-      data: any,
-      transaction: any,
-    }[]
+      eventName: string;
+      data: any;
+      transaction: any;
+    }[];
   } = res.data;
   // 古いログが小さいインデックス
   return result.reverse().map((r) => ({ ...r.data })) as unknown as E[];
 };
 
-const getGameRevealedLogs = async (startDateUnix: number, endDateUnix: number) => {
+export const getGameRevealedLogs = async (
+  startDateUnix: number,
+  endDateUnix: number,
+) => {
   return await getContractEventLogs<GameRevealedEventLog>(
     WAR_CONTRACT_ADDRESS,
     'GameRevealed',
     startDateUnix,
     endDateUnix,
   );
-}
+};
 
-const getInvivationTransferLogs = async (startDateUnix: number, endDateUnix: number) => {
+const getInvivationTransferLogs = async (
+  startDateUnix: number,
+  endDateUnix: number,
+) => {
   return await getContractEventLogs<TransferEventLog>(
     INVITATION_CONTRACT_ADDRESS,
     'Transfer',
     startDateUnix,
     endDateUnix,
   );
-}
+};
 
-/**
- * 過去7日の対戦ログから対戦結果を集計する。
- * @returns 
- */
-export const calcLatest7DaysResult = async () => {
-  const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
-  // 7 days before
-  const startDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
-  const logs = await getGameRevealedLogs(startDateUnix, currentUnixTime);
-  const resultJson: { [address: string]: { win: number, lose: number, draw: number } } = {};
-  const init = (address: string) => {
-    if (!resultJson[address]) {
-      resultJson[address] = { win: 0, lose: 0, draw: 0 };
-    }
-  }
-  for (const { maker, challenger, winner } of logs) {
-    if (!resultJson[maker]) {
-      init(maker);
-    }
-    if (!resultJson[challenger]) {
-      init(challenger);
-    }
-    if (winner === zeroAddress) {
-      resultJson[maker].draw++;
-      resultJson[challenger].draw++;
-    } else if (winner === maker) {
-      resultJson[maker].win++;
-      resultJson[challenger].lose++;
-    } else if (winner === challenger) {
-      resultJson[maker].lose++;
-      resultJson[challenger].win++;
-    }
-  }
-  const result: { address: string, win: number, lose: number, draw: number }[] = [];
-  for (const address in resultJson) {
-    if (address !== zeroAddress) {
-      result.push({ address, ...resultJson[address] });
-    }
-  }
-  return result;
-}
-
-type Invitation = { tokenId: string; from: string, to: string };
+type Invitation = { tokenId: string; from: string; to: string };
 
 class InvivationMap {
   private _tokenIdMap: { [to: string]: string } = {};
@@ -125,7 +98,7 @@ class InvivationMap {
   // フラグ
   private _activationMap: { [tokenId: string]: boolean } = {};
 
-  findOne(filter: (Partial<Pick<Invitation, 'tokenId' | 'to'>>)) {
+  findOne(filter: Partial<Pick<Invitation, 'tokenId' | 'to'>>) {
     const { tokenId, to } = filter;
     if (typeof tokenId === 'string' && typeof to === 'string') {
       if (to === this._toMap[tokenId]) {
@@ -148,7 +121,7 @@ class InvivationMap {
     return null;
   }
 
-  findBy(filter: (Partial<Pick<Invitation, 'from'>>)) {
+  findBy(filter: Partial<Pick<Invitation, 'from'>>) {
     const res: Invitation[] = [];
     const { from } = filter;
     for (const to in this._fromMap) {
@@ -214,7 +187,7 @@ class InvivationMap {
  * 招待者が招待したプレイヤーの対戦回数の合計を返す。
  * なお、招待の集計は14日で対戦の集計は7日である。
  * @param invivations 前回のレスポンスのinvivationsを渡すと、重複した招待をブロックできる。
- * @returns 
+ * @returns
  */
 export const countInvitationBattles = async (invivations: Invitation[]) => {
   const invitationMap = InvivationMap.from(invivations);
@@ -227,7 +200,11 @@ export const countInvitationBattles = async (invivations: Invitation[]) => {
     getInvivationTransferLogs(startInvivationDateUnix, currentUnixTime),
     getGameRevealedLogs(startGameDateUnix, currentUnixTime),
   ]);
-  for (const { from, to, tokenId: { hex: tokenId } } of invivationLogs) {
+  for (const {
+    from,
+    to,
+    tokenId: { hex: tokenId },
+  } of invivationLogs) {
     const { registered } = invitationMap.register({ tokenId, from, to });
     if (registered) {
       invitationMap.activate(tokenId);
@@ -254,7 +231,7 @@ export const countInvitationBattles = async (invivations: Invitation[]) => {
     battles.push({ address, battles: battleMap[address] });
   }
   return { invivations: invitationMap.array(), battles };
-}
+};
 // 以下コメントを外して動作
 // calcLatest7DaysResult()
 //   .then((res) => console.log(res));
