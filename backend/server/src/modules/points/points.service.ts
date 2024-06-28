@@ -318,13 +318,16 @@ export class PointsService {
 
       const playerBaseScore = playerEvents.reduce((acc, eventLog) => {
         const invitee = eventLog.to.toLowerCase();
+
+        if (player.toLowerCase() === invitee.toLowerCase()) {
+          return acc;
+        }
+
         const playCount = gameLogs.filter(
           (gameLog) =>
             gameLog.maker.toLowerCase() === invitee ||
             gameLog.challenger.toLowerCase() === invitee,
         ).length;
-
-        console.log(player, invitee, playCount);
 
         const playCountBonus = this.referralPlayCountBonus(playCount);
 
