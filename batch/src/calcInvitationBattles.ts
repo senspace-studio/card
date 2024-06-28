@@ -1,93 +1,6 @@
-import 'dotenv/config';
 import { zeroAddress } from 'viem';
-import tweClient from './thirdweb-engine';
-import { INVITATION_CONTRACT_ADDRESS, WAR_CONTRACT_ADDRESS } from './config';
-
-type GameRevealedEventLog = {
-  gameId: string;
-  maker: string;
-  challenger: string;
-  winner: string;
-};
-
-type TransferEventLog = {
-  from: string;
-  to: string;
-  tokenId: { type: string; hex: string };
-};
-
-const getBlockNumberFromTimestamp = async (timestamp: number) => {
-  const res = await fetch(
-    `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=after`,
-  );
-  const {
-    result: { blockNumber },
-  } = (await res.json()) as { result: { blockNumber: string } };
-  return blockNumber;
-};
-
-const getContractEventLogs = async <E>(
-  contractAddress: string,
-  eventName: string,
-  startDateUnix: number,
-  endDateUnix: number,
-) => {
-  const [fromBlock, toBlock] = await Promise.all([
-    getBlockNumberFromTimestamp(startDateUnix),
-    getBlockNumberFromTimestamp(endDateUnix),
-  ]);
-  const res = (await tweClient.POST(
-    '/contract/{chain}/{contractAddress}/events/get',
-    {
-      params: {
-        path: {
-          chain: 'degen-chain',
-          contractAddress,
-        },
-      },
-      body: {
-        eventName,
-        fromBlock,
-        toBlock,
-      } as never,
-    },
-  )) as any;
-  const {
-    result,
-  }: {
-    result: {
-      eventName: string;
-      data: any;
-      transaction: any;
-    }[];
-  } = res.data;
-  // 古いログが小さいインデックス
-  return result.reverse().map((r) => ({ ...r.data })) as unknown as E[];
-};
-
-export const getGameRevealedLogs = async (
-  startDateUnix: number,
-  endDateUnix: number,
-) => {
-  return await getContractEventLogs<GameRevealedEventLog>(
-    WAR_CONTRACT_ADDRESS,
-    'GameRevealed',
-    startDateUnix,
-    endDateUnix,
-  );
-};
-
-export const getInvivationTransferLogs = async (
-  startDateUnix: number,
-  endDateUnix: number,
-) => {
-  return await getContractEventLogs<TransferEventLog>(
-    INVITATION_CONTRACT_ADDRESS,
-    'Transfer',
-    startDateUnix,
-    endDateUnix,
-  );
-};
+import { getGameRevealedLogs, getInvivationTransferLogs } from './batch';
+import { getFileFromS3, uploadS3 } from './utils/s3';
 
 type Invitation = { tokenId: string; from: string; to: string };
 
@@ -147,6 +60,9 @@ class InvivationMap {
     if (from === zeroAddress || to === zeroAddress) {
       return { registered: false, message: 'zero_address' };
     }
+    if (from === to) {
+      return { registered: false, message: 'same_address' };
+    }
     // 完全重複のある招待は登録扱い
     if (this.findOne({ tokenId, to })) {
       return { registered: true };
@@ -183,57 +99,64 @@ class InvivationMap {
   }
 }
 
-/**
- * 招待者が招待したプレイヤーの対戦回数の合計を返す。
- * なお、招待の集計は14日で対戦の集計は7日である。
- * @param invivations 前回のレスポンスのinvivationsを渡すと、重複した招待をブロックできる。
- * @returns
- */
-export const countInvitationBattles = async (invivations: Invitation[]) => {
-  const invitationMap = InvivationMap.from(invivations);
+export const handler = async () => {
+  const lastFile = await getFileFromS3('calcInvitationBattles/result.json');
+  const lastInvitations: Invitation[] = lastFile ? lastFile.invivations : [];
+
+  const invitationMap = InvivationMap.from(lastInvitations);
   const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
-  // 14 days before
+
   const startInvivationDateUnix = currentUnixTime - 14 * 24 * 60 * 60;
-  // 7 days before
   const startGameDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
+
   const [invivationLogs, gameLogs] = await Promise.all([
     getInvivationTransferLogs(startInvivationDateUnix, currentUnixTime),
     getGameRevealedLogs(startGameDateUnix, currentUnixTime),
   ]);
+
   for (const {
     from,
     to,
     tokenId: { hex: tokenId },
   } of invivationLogs) {
-    const { registered } = invitationMap.register({ tokenId, from, to });
+    const { registered } = invitationMap.register({
+      tokenId,
+      from: from.toLowerCase(),
+      to: to.toLowerCase(),
+    });
     if (registered) {
       invitationMap.activate(tokenId);
     }
   }
+
   const battleMap: { [from: string]: number } = {};
   const battles: { address: string; battles: number }[] = [];
+
   for (const { maker, challenger } of gameLogs) {
     const invitations = [
-      invitationMap.findOne({ to: maker }),
-      invitationMap.findOne({ to: challenger }),
+      invitationMap.findOne({ to: maker.toLowerCase() }),
+      invitationMap.findOne({ to: challenger.toLowerCase() }),
     ];
     for (const invitation of invitations) {
       if (invitation && invitationMap.isActivated(invitation.tokenId)) {
-        if (battleMap[invitation.from]) {
-          battleMap[invitation.from]++;
+        if (battleMap[invitation.from.toLowerCase()]) {
+          battleMap[invitation.from.toLowerCase()]++;
         } else {
-          battleMap[invitation.from] = 1;
+          battleMap[invitation.from.toLowerCase()] = 1;
         }
       }
     }
   }
+
   for (const address in battleMap) {
-    battles.push({ address, battles: battleMap[address] });
+    battles.push({
+      address: address.toLowerCase(),
+      battles: battleMap[address.toLowerCase()],
+    });
   }
-  return { invivations: invitationMap.array(), battles };
+
+  await uploadS3(
+    { invivations: invitationMap.array(), battles, updatedAt: currentUnixTime },
+    'calcInvitationBattles/result.json',
+  );
 };
-// 以下コメントを外して動作
-// calcLatest7DaysResult()
-//   .then((res) => console.log(res));
-// countInvitationBattles([])
-//   .then((res) => console.log(res));

@@ -12,7 +12,7 @@ interface AppProps {
   config: ReturnType<typeof getConfig>;
 }
 
-export class BatchCalcLast7DaysResultStack extends Stack {
+export class BatchStack extends Stack {
   constructor(
     scope: Construct,
     id: string,
@@ -40,7 +40,17 @@ export class BatchCalcLast7DaysResultStack extends Stack {
       }),
     );
 
-    const lambdaFunction = new lambdaNodeJs.NodejsFunction(
+    const envVars = {
+      ENGINE_WALLET_ADDRESS: config.thirdweb.engine_wallet_address,
+      THIRDWEB_ENGINE_ENDPOINT: config.thirdweb.engine_endpoint,
+      THIRDWEB_ENGINE_ACCESS_TOKEN: config.thirdweb.engine_access_token,
+      WAR_CONTRACT_ADDRESS: config.blockchain.contract_addresses.war,
+      INVITATION_CONTRACT_ADDRESS:
+        config.blockchain.contract_addresses.invitation,
+      S3_BACKET_NAME: bucket.bucketName,
+    };
+
+    const calcLast7DaysResultFunction = new lambdaNodeJs.NodejsFunction(
       this,
       `${config.stage}-${config.serviceName}-calcLast7DaysResult`,
       {
@@ -50,21 +60,28 @@ export class BatchCalcLast7DaysResultStack extends Stack {
         depsLockFilePath: '../batch/package-lock.json',
         timeout: Duration.minutes(5),
         memorySize: 1024,
-        environment: {
-          ENGINE_WALLET_ADDRESS: config.thirdweb.engine_wallet_address,
-          THIRDWEB_ENGINE_ENDPOINT: config.thirdweb.engine_endpoint,
-          THIRDWEB_ENGINE_ACCESS_TOKEN: config.thirdweb.engine_access_token,
-          WAR_CONTRACT_ADDRESS: config.blockchain.contract_addresses.war,
-          INVITATION_CONTRACT_ADDRESS:
-            config.blockchain.contract_addresses.invitation,
-          S3_BACKET_NAME: bucket.bucketName,
-        },
+        environment: envVars,
       },
     );
 
-    bucket.grantReadWrite(lambdaFunction);
+    const calcInvitationBattlesFunction = new lambdaNodeJs.NodejsFunction(
+      this,
+      `${config.stage}-${config.serviceName}-calcInvitationBattles`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: '../batch/src/calcInvitationBattles.ts',
+        depsLockFilePath: '../batch/package-lock.json',
+        timeout: Duration.minutes(5),
+        memorySize: 1024,
+        environment: envVars,
+      },
+    );
 
-    const rule = new events.Rule(
+    bucket.grantReadWrite(calcLast7DaysResultFunction);
+    bucket.grantReadWrite(calcInvitationBattlesFunction);
+
+    const calcLast7DaysResultRule = new events.Rule(
       this,
       `${config.stage}-${config.serviceName}-calcLast7DaysResultRule`,
       {
@@ -72,6 +89,20 @@ export class BatchCalcLast7DaysResultStack extends Stack {
       },
     );
 
-    rule.addTarget(new targets.LambdaFunction(lambdaFunction));
+    calcLast7DaysResultRule.addTarget(
+      new targets.LambdaFunction(calcLast7DaysResultFunction),
+    );
+
+    const calcInvitationBattlesRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-calcInvitationBattlesRule`,
+      {
+        schedule: events.Schedule.cron({ hour: '0', minute: '30' }),
+      },
+    );
+
+    calcInvitationBattlesRule.addTarget(
+      new targets.LambdaFunction(calcInvitationBattlesFunction),
+    );
   }
 }
