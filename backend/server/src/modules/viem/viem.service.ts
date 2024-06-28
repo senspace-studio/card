@@ -116,7 +116,20 @@ export class ViemService {
   }
 
   async getBlockTimestampByBlockNumber(blockNumber: bigint) {
-    const block = await this.client.getBlock({ blockNumber });
+    let block;
+    let retryCount = 0;
+    while (retryCount < 3) {
+      try {
+        block = await this.client.getBlock({ blockNumber });
+        break;
+      } catch (error) {
+        retryCount++;
+        if (retryCount === 3) {
+          throw new Error('Failed to get block timestamp');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
     return block.timestamp;
   }
 
