@@ -24,12 +24,14 @@ export type GameRevealedEventLog = {
   maker: string;
   challenger: string;
   winner: string;
-  timestamp: number;
+  date: number;
+  blockNumber: number;
 };
 
 export type TransferEventLog = {
   from: string;
   to: string;
   tokenId: number;
-  timestamp: number;
+  date: number;
+  blockNumber: number;
 };

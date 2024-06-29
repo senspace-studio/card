@@ -35,7 +35,7 @@
     "ethers": "^6.12.1",
     "helmet": "^7.1.0",
     "lodash": "^4.17.21",
-    "mysql2": "^3.9.2",
+    "mysql2": "^3.9.8",
     "openapi-fetch": "^0.9.7",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.0",

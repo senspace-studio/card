@@ -1,9 +1,6 @@
 import { zeroAddress } from 'viem';
 import { getGameRevealedLogs } from './batch';
-import { S3 } from 'aws-sdk';
-import { S3_BACKET_NAME } from './config';
-
-const s3 = new S3();
+import { uploadS3 } from './utils/s3';
 
 export const handler = async () => {
   const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
@@ -45,17 +42,8 @@ export const handler = async () => {
     }
   }
 
-  if (S3_BACKET_NAME) {
-    const params = {
-      Bucket: S3_BACKET_NAME,
-      Key: `calcLast7DaysResult/result.json`,
-      Body: JSON.stringify({ result, updatedAt: currentUnixTime }),
-      ContentType: 'application/json',
-    };
-    try {
-      await s3.putObject(params).promise();
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  await uploadS3(
+    { result, updatedAt: currentUnixTime },
+    'calcLast7DaysResult/result.json',
+  );
 };
