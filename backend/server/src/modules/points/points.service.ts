@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { zeroAddress } from 'viem';
@@ -18,6 +18,8 @@ const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
 export class PointsService {
+  private readonly logger = new Logger(PointsService.name);
+
   constructor(
     @InjectRepository(HeatScoreEntity)
     private readonly heatscoreRepository: Repository<HeatScoreEntity>,
@@ -425,6 +427,7 @@ export class PointsService {
     );
 
     for (const [player, score] of totalScore) {
+      this.logger.log(`SaveScore: player ${player}, score ${score}`);
       const exists = await this.heatscoreRepository.exists({
         where: {
           address: player,
