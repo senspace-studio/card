@@ -1,5 +1,28 @@
 # Related Smart Contract
 
+## BASE
+
+### Main
+
+| Name               | Address                                    | Notes                |
+| ------------------ | ------------------------------------------ | -------------------- |
+| Gasha.sol          | 0x6390Ff22Ad5e236d5Fdb692D22aa81822dA9fb39 | Draw card randomly   |
+| Card.sol           | 0xFe6989B0db606E52e22c7a0Eaf63cf179aEAAAaC | Card NFT (ERC1155)   |
+| War.sol            | 0xFf5F48863ec4aD97A7620c95A8b5A9Cd8646D1a9 | War game contract    |
+| WarPool.sol        | 0xB72B1143ef238e5CcB422035EC27e2AeF14C987e | War bet pool         |
+| StackVariables.sol | 0xa1924401b8A8935A41391004252e2Fb5EFDDA81A | Variables management |
+
+### External
+
+| Name                 | Address                                    | Notes      |
+| -------------------- | ------------------------------------------ | ---------- |
+| Host                 | 0x4C073B3baB6d8826b8C5b229f3cfdC1eC6E47E74 | Superfluid |
+| CFAv1                | 0x19ba78B9cDB05A877718841c574325fdB53601bb | Superfluid |
+| VestingScheduler     | ----                                       | Superfluid |
+| Native SuperToken    | 0x46fd5cfb4c12d87acd3a13e92baa53240c661d93 | Superfluid |
+| Invitation NFT       | 0x10e5B95D34dbE8e462c307F220C95a036a160d4b | thirdweb   |
+| SmartAccount Factory | ----                                       | thirdweb   |
+
 ## DEGEN L3
 
 ### Main

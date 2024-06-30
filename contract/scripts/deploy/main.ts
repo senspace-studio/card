@@ -12,7 +12,8 @@ const main = async () => {
   const gashaContract = await deployGashaContract(
     adminAddress,
     await gashaItemERC1155Contract.getAddress(),
-    0,
+    adminAddress,
+    100,
   );
 
   for (const tokenId of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
@@ -78,6 +79,18 @@ const main = async () => {
     await warContract.getAddress(),
     true,
   );
+  await tx.wait();
+  await new Promise((r) => setTimeout(r, 3000));
+
+  tx = await gashaContract.setInvitationAddress(
+    '0x10e5B95D34dbE8e462c307F220C95a036a160d4b',
+  );
+  await tx.wait();
+  await new Promise((r) => setTimeout(r, 3000));
+  tx = await warContract.setInvitationAddress(
+    '0x10e5B95D34dbE8e462c307F220C95a036a160d4b',
+  );
+  await tx.wait();
 
   console.log(
     'ZoraCreator1155 deployed to:',

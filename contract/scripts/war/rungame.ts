@@ -4,7 +4,7 @@ import { encodePacked, zeroAddress } from 'viem';
 
 const main = async () => {
   const provider = new ethers.JsonRpcProvider(
-    'https://nitrorpc-degen-mainnet-1.t.conduit.xyz',
+    'https://base-mainnet.g.alchemy.com/v2/3UkpGe2fpUEY91zV9ff2Bup-Bk2RTOnY',
   );
   const dealarAccount = new ethers.Wallet(
     process.env.LOCAL_PRIVATE_KEY!,
@@ -22,7 +22,7 @@ const main = async () => {
 
   const warContract = await ethers.getContractAt(
     'War',
-    process.env.WAR_CONTRACT_ADDRESS!,
+    '0xFf5F48863ec4aD97A7620c95A8b5A9Cd8646D1a9',
   );
 
   const makerCard = Math.floor(Math.random() * 10) + 1;
@@ -47,7 +47,7 @@ const main = async () => {
   const receipt = await tx.wait();
   const logs = receipt?.logs as EventLog[];
   const gameId = logs.find((log) => log.eventName === 'GameMade')
-    ?.args[1] as string;
+    ?.args[0] as string;
 
   await new Promise((resolve) => setTimeout(resolve, 3000));
 
