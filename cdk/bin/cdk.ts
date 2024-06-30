@@ -5,6 +5,7 @@ import * as cdk from 'aws-cdk-lib';
 import { getConfig } from '../config';
 import { AppStack, FrameAppStack } from '../lib/app-stack';
 import { RdsStack } from '../lib/rds-stack';
+import { BatchStack } from '../lib/batch-stack';
 
 const app = new cdk.App();
 
@@ -85,5 +86,20 @@ new FrameAppStack(
     vpc,
     config,
     appRunnerSecurityGroup: frameAppRunnerSecurityGroup,
+  },
+);
+
+new BatchStack(
+  app,
+  `${stage}${serviceName}BatchStack`,
+  {
+    description: `${serviceName} Batch Stack`,
+    tags: {
+      service: serviceName,
+      environment: stage,
+    },
+  },
+  {
+    config,
   },
 );

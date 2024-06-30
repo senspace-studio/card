@@ -82,7 +82,6 @@ export class PointsController {
   @Get('/execute-scoring')
   async executeScoring() {
     this.logger.log('update score');
-
     try {
       await this.pointsService.executeScoring();
       return 'success';

@@ -225,6 +225,12 @@ export class WarService {
         `invalid game status (required: ${requiredStatus}, but: ${status})`,
       );
     }
+
+    const isSignatureUsed = await this.getWarGameBySignature(signature);
+    if (isSignatureUsed) {
+      throw new Error('signature already used');
+    }
+
     await this.warRepositry.save({
       seed: seed.toString(),
       maker,

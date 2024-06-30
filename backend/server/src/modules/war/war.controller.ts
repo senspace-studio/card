@@ -123,7 +123,7 @@ export class WarController {
     }
     for (let i = 0; i < 100; i++) {
       try {
-        const seed = Math.floor(Math.random() * 1000000);
+        const seed = Math.floor(Math.random() * 1000000000000);
         const signature = await this.warService.createNewGame(
           maker,
           BigInt(tokenId),
