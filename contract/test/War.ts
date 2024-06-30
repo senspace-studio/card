@@ -103,6 +103,7 @@ describe('War without betting', () => {
       0,
       true,
       signature,
+      zeroAddress,
       { value: 0 },
     );
     const receipt = await tx.wait();
@@ -154,6 +155,7 @@ describe('War without betting', () => {
       0,
       true,
       signature,
+      zeroAddress,
       { value: 0 },
     );
     const receipt = await tx.wait();
@@ -272,6 +274,7 @@ describe('War with betting native token', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -481,6 +484,7 @@ describe('Make two games with the same combination', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -518,6 +522,7 @@ describe('Make two games with the same combination', () => {
       parseEther('150'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('150') },
     );
     const receipt = await tx.wait();
@@ -696,6 +701,7 @@ describe('draw game', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -857,6 +863,7 @@ describe('One side abstains', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -1029,6 +1036,7 @@ describe('Both sides abstain', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -1213,6 +1221,7 @@ describe('Game expire', () => {
       parseEther('100'),
       true,
       signature,
+      zeroAddress,
       { value: parseEther('100') },
     );
     const receipt = await tx.wait();
@@ -1264,5 +1273,162 @@ describe('Game expire', () => {
     expect(afterBalanceOfWarPool).to.equal(
       beforeBalanceOfWarPool - Number(parseEther('100')),
     );
+  });
+});
+
+// Request challengeのテスト
+describe('Request challenge', () => {
+  let War: War;
+  let WarPool: WarPool;
+  let Gasha: Gasha;
+  let Card: Card;
+
+  let admin: SignerWithAddress;
+  let dealer: SignerWithAddress;
+  let maker: SignerWithAddress;
+  let challenger: SignerWithAddress;
+  let gameId: string;
+
+  before(async () => {
+    [admin, dealer, maker, challenger] = await ethers.getSigners();
+
+    Card = await deployCardContract(admin.address);
+
+    Gasha = await deployGashaContract(
+      admin.address,
+      await Card.getAddress(),
+      admin.address,
+      0,
+    );
+
+    for (const tokenId of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
+      let tx = await Card.setupNewToken(`${tokenId}.json`);
+      await tx.wait();
+
+      switch (true) {
+        case tokenId < 10:
+          tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
+          await tx.wait();
+          break;
+        case tokenId < 13:
+          tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
+          await tx.wait();
+          break;
+        case tokenId == 13:
+          tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
+          await tx.wait();
+          break;
+      }
+      tx = await Gasha.activateSeriesItem(tokenId);
+      await tx.wait();
+    }
+
+    let tx = await Gasha.setAvailableTime(0, 1893456000);
+    await tx.wait();
+
+    tx = await Card.setMinter(await Gasha.getAddress(), true);
+    await tx.wait();
+    tx = await Card.setBaseURI('https://zora.co/');
+
+    await tx.wait();
+
+    const deployedContracts = await deployWarAllContracts(
+      admin.address,
+      dealer.address,
+      24 * 60 * 60,
+    );
+    War = deployedContracts.warContract;
+    WarPool = deployedContracts.warPoolContract;
+
+    await War.setCardAddress(await Card.getAddress());
+    await Card.setBurner(await War.getAddress(), true);
+
+    await deployAndSetupInvitation(War, Gasha, [
+      maker.address,
+      challenger.address,
+    ]);
+
+    await Gasha.connect(admin).dropByOwner(
+      maker.address,
+      [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      Array(9).fill(10),
+    );
+    await Gasha.connect(admin).dropByOwner(
+      challenger.address,
+      [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      Array(9).fill(10),
+    );
+  });
+
+  it('should make game with challenger as admin', async () => {
+    const messageHash = keccak256(
+      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(1)]),
+    );
+
+    const signature = (await dealer.signMessage(
+      getBytes(messageHash),
+    )) as `0x${string}`;
+
+    const tx = await War.connect(maker).makeGame(
+      zeroAddress,
+      parseEther('100'),
+      true,
+      signature,
+      admin.address,
+      { value: parseEther('100') },
+    );
+    const receipt = await tx.wait();
+    const logs = receipt?.logs as EventLog[];
+    gameId = logs.find((log) => log.eventName === 'GameMade')
+      ?.args[0] as string;
+
+    const challengerAddress = await War.requestedChallengers(gameId);
+    expect(challengerAddress).to.equal(admin.address);
+  });
+
+  it('should fail when not requested challenger', async () => {
+    await expect(
+      War.connect(challenger).challengeGame(gameId, 8, {
+        value: parseEther('100'),
+      }),
+    ).to.be.revertedWith('War: you cannot challenge this game');
+  });
+
+  it('should make game with challenger as challenger', async () => {
+    const messageHash = keccak256(
+      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+    );
+
+    const signature = (await dealer.signMessage(
+      getBytes(messageHash),
+    )) as `0x${string}`;
+
+    const tx = await War.connect(maker).makeGame(
+      zeroAddress,
+      parseEther('100'),
+      true,
+      signature,
+      challenger.address,
+      { value: parseEther('100') },
+    );
+    const receipt = await tx.wait();
+    const logs = receipt?.logs as EventLog[];
+    gameId = logs.find((log) => log.eventName === 'GameMade')
+      ?.args[0] as string;
+
+    const challengerAddress = await War.requestedChallengers(gameId);
+    expect(challengerAddress).to.equal(challenger.address);
+  });
+
+  it('should challenge game', async () => {
+    await expect(
+      War.connect(challenger).challengeGame(gameId, 8, {
+        value: parseEther('100'),
+      }),
+    ).emit(War, 'GameChallenged');
+  });
+
+  it('should reveal game', async () => {
+    await War.connect(dealer).revealCard(gameId, 9, 2);
   });
 });
