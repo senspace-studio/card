@@ -8,7 +8,7 @@ export const readContract = async (
   const res = await tweClient.GET('/contract/{chain}/{contractAddress}/read', {
     params: {
       path: {
-        chain: 'degen-chain',
+        chain: 'base',
         contractAddress: address,
       },
       query: {

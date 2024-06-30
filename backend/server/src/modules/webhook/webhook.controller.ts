@@ -279,7 +279,7 @@ export class WebhookController {
               {
                 params: {
                   path: {
-                    chain: 'degen-chain',
+                    chain: 'base',
                     contractAddress: INVITATION_CONTRACT_ADDRESS,
                   },
                 },

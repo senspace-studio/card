@@ -21,7 +21,7 @@ export class GashaController {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: '0xAc49FAdA594056Bf878704753A04D812D450FBfa',
           },
         },

@@ -11,7 +11,7 @@ export const sendTransaction = async (
     {
       params: {
         path: {
-          chain: 'degen-chain',
+          chain: 'base',
           contractAddress: address,
         },
         header: {
@@ -35,7 +35,7 @@ export const sendBackendWalletTransaction = async (
   const res = await tweClient.POST('/backend-wallet/{chain}/send-transaction', {
     params: {
       path: {
-        chain: 'degen-chain',
+        chain: 'base',
       },
       header: {
         ['x-backend-wallet-address']: ENGINE_WALLET_ADDRESS,

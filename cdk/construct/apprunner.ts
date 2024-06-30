@@ -275,7 +275,7 @@ export class FrameAppRunner extends Construct {
         securityGroups: [appRunnerSecurityGroup.securityGroupId],
         vpcConnectorName: `${
           props.config.stage
-        }-${props.config.serviceName.toLowerCase()}-frame-apprunner-vpc-connector`,
+        }-${props.config.serviceName.toLowerCase()}-frame-vpc-connector`,
       },
     );
 

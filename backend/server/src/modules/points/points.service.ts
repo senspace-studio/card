@@ -97,7 +97,7 @@ export class PointsService {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: WAR_CONTRACT_ADDRESS,
           },
         },
@@ -149,7 +149,7 @@ export class PointsService {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: INVITATION_CONTRACT_ADDRESS,
           },
         },

@@ -1,5 +1,5 @@
 import { createPublicClient, createClient, getContract, http } from 'viem';
-import { degen } from 'viem/chains';
+import { base, degen } from 'viem/chains';
 import {
   GASHA_ABI,
   CARD_ABI,
@@ -17,7 +17,7 @@ import {
 } from '../constant/config.js';
 
 export const publicClient = createPublicClient({
-  chain: degen,
+  chain: base,
   transport: http(),
 });
 

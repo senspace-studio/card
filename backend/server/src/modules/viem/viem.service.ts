@@ -205,7 +205,7 @@ export class ViemService {
     } = await tweClient.GET('/contract/{chain}/{contractAddress}/read', {
       params: {
         path: {
-          chain: 'degen-chain',
+          chain: 'base',
           contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
         },
         query: {
@@ -225,7 +225,7 @@ export class ViemService {
       await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
           },
           header: {
@@ -248,7 +248,7 @@ export class ViemService {
       await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
           },
           header: {
@@ -276,7 +276,7 @@ export class ViemService {
     await tweClient.POST('/contract/{chain}/{contractAddress}/write', {
       params: {
         path: {
-          chain: 'degen-chain',
+          chain: 'base',
           contractAddress: '0xcfA132E353cB4E398080B9700609bb008eceB125',
         },
         header: {

@@ -26,7 +26,7 @@ type State = {
   verifiedAddresses: `0x${string}`[];
 };
 
-const MINIMUM_NATIVE_TOKEN = 100;
+const MINIMUM_NATIVE_TOKEN = 0;
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -172,7 +172,7 @@ drawApp.frame('/score', async (c) => {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             txHash: transactionId as `0x${string}`,
           },
         },
@@ -273,7 +273,7 @@ drawApp.frame('/score/:transactionId', async (c) => {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             txHash: transactionId as `0x${string}`,
           },
         },
@@ -428,7 +428,7 @@ drawApp.transaction('/transaction/:numOfMint', async (c) => {
   );
 
   return c.contract({
-    chainId: 'eip155:666666666',
+    chainId: 'eip155:8453',
     to: GASHA_CONTRACT_ADDRESS,
     abi: GASHA_ABI,
     functionName: 'spin',

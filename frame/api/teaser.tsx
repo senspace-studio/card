@@ -33,7 +33,7 @@ teaserApp.frame('/invitation', async (c) => {
     {
       params: {
         path: {
-          chain: 'degen-chain',
+          chain: 'base',
           contractAddress: INVITATION_NFT_CONTRACT_ADDRESS,
         },
         query: {

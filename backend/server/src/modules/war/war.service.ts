@@ -409,7 +409,7 @@ export class WarService {
       {
         params: {
           path: {
-            chain: 'degen-chain',
+            chain: 'base',
             contractAddress: WAR_CONTRACT_ADDRESS,
           },
         },

@@ -369,7 +369,7 @@ warApp.transaction('/duel-letter', async (c) => {
   });
 
   return c.contract({
-    chainId: 'eip155:666666666',
+    chainId: 'eip155:8453',
     to: WAR_CONTRACT_ADDRESS,
     abi: WAR_ABI,
     functionName: 'makeGame',
@@ -383,36 +383,45 @@ warApp.frame('/find', async (c) => {
   const transactionId = c.transactionId;
   const { userName, pfp_url, card, wager, address } = c.previousState;
 
-  const { data: receipt } = await tweClient.GET(
-    '/transaction/{chain}/tx-hash/{txHash}',
-    {
-      params: {
-        path: {
-          chain: 'degen-chain',
-          txHash: transactionId as `0x${string}`,
+  let gameId = null;
+  let retryCount = 0;
+  while (gameId === null && retryCount < 3) {
+    const { data: receipt } = await tweClient.GET(
+      '/transaction/{chain}/tx-hash/{txHash}',
+      {
+        params: {
+          path: {
+            chain: 'base',
+            txHash: transactionId as `0x${string}`,
+          },
         },
       },
-    },
-  );
+    );
 
-  const gameMadeEvent = await receipt?.result?.logs
-    ?.map((log: any) => {
-      try {
-        return decodeEventLog({
-          abi: WAR_ABI,
-          data: log.data,
-          topics: log.topics,
-        });
-      } catch (error) {
-        return undefined;
-      }
-    })
-    .find((l) => l?.eventName === 'GameMade');
+    const gameMadeEvent = await receipt?.result?.logs
+      ?.map((log: any) => {
+        try {
+          return decodeEventLog({
+            abi: WAR_ABI,
+            data: log.data,
+            topics: log.topics,
+          });
+        } catch (error) {
+          return undefined;
+        }
+      })
+      .find((l) => l?.eventName === 'GameMade');
 
-  const gameId =
-    gameMadeEvent?.args && 'gameId' in gameMadeEvent.args
-      ? gameMadeEvent.args.gameId
-      : null;
+    gameId =
+      gameMadeEvent?.args && 'gameId' in gameMadeEvent.args
+        ? gameMadeEvent.args.gameId
+        : null;
+
+    // sleep 300 ms
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    console.log('retry');
+    retryCount++;
+  }
 
   if (!gameId) {
     const params = encodeURIComponent(
@@ -846,7 +855,7 @@ warApp.transaction('/challengeGame', async (c) => {
     });
 
     return c.contract({
-      chainId: 'eip155:666666666',
+      chainId: 'eip155:8453',
       to: WAR_CONTRACT_ADDRESS,
       abi: WAR_ABI,
       functionName: 'challengeGame',
@@ -860,12 +869,15 @@ warApp.transaction('/challengeGame', async (c) => {
 
 warApp.frame('/loading', async (c) => {
   if (c.transactionId === undefined) return c.error({ message: 'No txId' });
-  const transactionReceipt = await publicClient.getTransactionReceipt({
-    hash: c.transactionId,
-  });
-  if (transactionReceipt && transactionReceipt.status == 'reverted') {
-    return c.error({ message: 'Transaction failed' });
-  }
+
+  try {
+    const transactionReceipt = await publicClient.getTransactionReceipt({
+      hash: c.transactionId,
+    });
+    if (transactionReceipt && transactionReceipt.status == 'reverted') {
+      return c.error({ message: 'Transaction failed' });
+    }
+  } catch (error) {}
 
   const { userName, pfp_url, wager, c_address, c_userName, c_pfp_url, gameId } =
     c.previousState;

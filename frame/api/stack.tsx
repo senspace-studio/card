@@ -19,7 +19,7 @@ type State = {
 
 const title = 'Stack | House of Cardians';
 
-const superFluidURLBase = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=`;
+const superFluidURLBase = `https://app.superfluid.finance/token/base/0x46fd5cfb4c12d87acd3a13e92baa53240c661d93?view=`;
 
 const resultS3URLBase =
   'https://maincardbatchstack-maincard28027c69-zfmx3izxftm1.s3.ap-northeast-1.amazonaws.com';

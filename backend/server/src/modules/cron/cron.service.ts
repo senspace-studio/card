@@ -362,7 +362,7 @@ export class CronService {
   ) {
     return {
       path: {
-        chain: 'degen-chain',
+        chain: 'base',
         contractAddress,
       },
       header: {
