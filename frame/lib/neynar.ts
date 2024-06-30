@@ -32,3 +32,21 @@ export const getFarcasterUserInfoByAddress = async (address: `0x${string}`) => {
 
   return { pfp_url, userName, verifiedAddresses };
 };
+
+export const getFarcasterUserInfoByCastHash = async (castHash: string) => {
+  const response = await fetch(
+    `https://api.neynar.com/v2/farcaster/cast?type=hash&identifier=${castHash}`,
+
+    {
+      method: 'GET',
+      headers: { accept: 'application/json', api_key: NEYNAR_API_KEY },
+    },
+  );
+
+  const { cast } = await response.json();
+
+  const { pfp_url, username: userName, verified_addresses } = cast.author;
+  const verifiedAddresses = verified_addresses.eth_addresses;
+
+  return { pfp_url, userName, verifiedAddresses };
+};
