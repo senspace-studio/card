@@ -107,7 +107,10 @@ export class WebhookController {
 
     if (body.type === 'event-log') {
       const getNeynarUserName = async (address: string) => {
-        const account = (await this.neynarService.getUserInfo(address))[0];
+        const accounts = await this.neynarService.getUserInfo(address);
+        const account = accounts.find(
+          (e) => typeof e.username === 'string' && !e.username.startsWith('!'),
+        );
         return account && account.username ? `@${account.username}` : '???';
       };
       if (
