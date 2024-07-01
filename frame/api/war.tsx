@@ -403,36 +403,43 @@ warApp.frame('/find', async (c) => {
   const transactionId = c.transactionId;
   const { userName, pfp_url, card, wager, address } = c.previousState;
 
-  const { data: receipt } = await tweClient.GET(
-    '/transaction/{chain}/tx-hash/{txHash}',
-    {
-      params: {
-        path: {
-          chain: 'degen-chain',
-          txHash: transactionId as `0x${string}`,
+  let gameId = null;
+  let retryCount = 0;
+  while (gameId === null && retryCount < 3) {
+    const { data: receipt } = await tweClient.GET(
+      '/transaction/{chain}/tx-hash/{txHash}',
+      {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            txHash: transactionId as `0x${string}`,
+          },
         },
       },
-    },
-  );
+    );
 
-  const gameMadeEvent = await receipt?.result?.logs
-    ?.map((log: any) => {
-      try {
-        return decodeEventLog({
-          abi: WAR_ABI,
-          data: log.data,
-          topics: log.topics,
-        });
-      } catch (error) {
-        return undefined;
-      }
-    })
-    .find((l) => l?.eventName === 'GameMade');
+    const gameMadeEvent = receipt?.result?.logs
+      ?.map((log: any) => {
+        try {
+          return decodeEventLog({
+            abi: WAR_ABI,
+            data: log.data,
+            topics: log.topics,
+          });
+        } catch (error) {
+          return undefined;
+        }
+      })
+      .find((l) => l?.eventName === 'GameMade');
 
-  const gameId =
-    gameMadeEvent?.args && 'gameId' in gameMadeEvent.args
-      ? gameMadeEvent.args.gameId
-      : null;
+    gameId =
+      gameMadeEvent?.args && 'gameId' in gameMadeEvent.args
+        ? gameMadeEvent.args.gameId
+        : null;
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    retryCount++;
+  }
 
   if (!gameId) {
     const params = encodeURIComponent(
@@ -468,7 +475,9 @@ warApp.frame('/find', async (c) => {
       c_pfp_url,
     }),
   );
-  const shareLink = `${shareUrlBase}${shareText}${embedParam}${BASE_URL}/war/challenge/${gameId}`;
+  const shareLink = `${shareUrlBase}${
+    c_userName ? `Hey @${c_userName}! Let's Duel!` : shareText
+  }${embedParam}${BASE_URL}/war/challenge/${gameId}`;
 
   return c.res({
     title,
@@ -476,7 +485,11 @@ warApp.frame('/find', async (c) => {
     browserLocation: '/war/image/find/' + params,
 
     imageAspectRatio: '1:1',
-    intents: [<Button.Link href={shareLink}>Share Game</Button.Link>],
+    intents: [
+      <Button.Link href={shareLink}>
+        {c_userName ? 'Dare to Duel' : 'Share Game'}
+      </Button.Link>,
+    ],
   });
 });
 
@@ -1046,14 +1059,15 @@ warApp.frame('/addAction', (c) => {
   return c.res({
     // TODO
     image: '/images/war/title.png',
+    imageAspectRatio: '1:1',
     intents: [
-      <Button.AddCastAction action="/directAction">Add</Button.AddCastAction>,
+      <Button.AddCastAction action="/vs-match">Add</Button.AddCastAction>,
     ],
   });
 });
 
 warApp.castAction(
-  '/directAction',
+  '/vs-match',
   async (c) => {
     const { actionData } = c;
     const castHash = actionData?.castId.hash;
@@ -1065,7 +1079,7 @@ warApp.castAction(
     });
   },
   // TODO
-  { name: 'direct match', icon: 'zap', description: 'direct match' },
+  { name: 'VS Match🃏', icon: 'zap', description: 'direct match' },
 );
 
 warApp.frame('/make-direct-duel/:castHash', async (c) => {

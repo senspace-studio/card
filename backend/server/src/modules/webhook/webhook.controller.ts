@@ -123,6 +123,7 @@ export class WebhookController {
             await this.warService.onGameMade(gameId.value, signature.value);
 
             // gameIdを元にゲームの情報を取得してBotからCast
+            const {} = await readContract(WAR_CONTRACT_ADDRESS, '');
             let botMessageText = '';
             botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched with another player.\n\nCheck out the /card channel to find games to play.`;
             const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
