@@ -38,43 +38,16 @@ export class PointsController {
   }
 
   @Get('/calcurate-score')
-  async calcurateScore(@Query('end_date_unix') endDateUnix: number) {
+  async calcurateScore(@Query('end_date_unix') endDateUnixMilli: number) {
     this.logger.log(this.calcurateScore.name);
 
-    if (!endDateUnix) {
+    if (!endDateUnixMilli) {
       throw new Error('Invalid query params');
     }
 
-    const startDateUnix = dayjs(Number(endDateUnix)).subtract(3, 'days').unix();
-    const startInviteDateUnix = dayjs(Number(endDateUnix))
-      .subtract(14, 'days')
-      .unix();
-    endDateUnix = dayjs(Number(endDateUnix)).unix();
+    const baseDate = dayjs(Number(endDateUnixMilli));
 
-    const gameRevealedlogs = await this.pointsService.getGameLogs(
-      startDateUnix,
-      endDateUnix,
-    );
-
-    const warScore = this.pointsService.calcWarScore(
-      endDateUnix,
-      gameRevealedlogs,
-    );
-
-    const inviteLogs = await this.pointsService.getInviteLogs(
-      startInviteDateUnix,
-      endDateUnix,
-    );
-
-    const inviteScore = this.pointsService.calcReferralScore(
-      endDateUnix,
-      inviteLogs,
-      gameRevealedlogs,
-    );
-
-    const totalScore = this.pointsService
-      .sumScores([warScore, inviteScore])
-      .filter(([_, score]) => score > 0);
+    const totalScore = await this.pointsService.calcTotalScore(baseDate);
 
     return totalScore;
   }

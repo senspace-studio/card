@@ -390,13 +390,7 @@ export class PointsService {
     return Array.from(totalScore.entries());
   }
 
-  async executeScoring() {
-    const currentCronDate = cronParser
-      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
-      .prev()
-      .toDate();
-    const baseDate = dayjs(currentCronDate);
-
+  async calcTotalScore(baseDate: dayjs.Dayjs) {
     const startDate_game = baseDate.subtract(3, 'days');
 
     const gameRevealedlogs = await this.getGameLogs(
@@ -425,6 +419,18 @@ export class PointsService {
     const totalScore = this.sumScores([warScore, inviteScore]).filter(
       ([_, score]) => score > 0,
     );
+
+    return totalScore;
+  }
+
+  async executeScoring() {
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+    const baseDate = dayjs(currentCronDate);
+
+    const totalScore = await this.calcTotalScore(baseDate);
 
     for (const [player, score] of totalScore) {
       this.logger.log(`SaveScore: player ${player}, score ${score}`);
