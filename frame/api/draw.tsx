@@ -4,6 +4,7 @@ import {
   BASE_URL,
   GASHA_CONTRACT_ADDRESS,
   GASHA_UNIT_PRICE,
+  IS_MAINTENANCE,
 } from '../constant/config.js';
 import { decodeEventLog, formatEther, parseEther } from 'viem';
 import tweClient from '../lib/thirdweb-engine/index.js';
@@ -44,6 +45,9 @@ export const drawApp = new Frog<{ State: State }>({
 });
 
 drawApp.frame('/', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   if (c.frameData?.fid) {
     const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
 
@@ -89,6 +93,9 @@ drawApp.frame('/', async (c) => {
 });
 
 drawApp.frame('/input', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const numOfMint = Number(c.inputText);
 
   const verifiedAddresses =
@@ -164,6 +171,9 @@ drawApp.frame('/input', async (c) => {
 });
 
 drawApp.frame('/score', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const transactionId = c.transactionId || c.previousState.transactionId;
 
   while (true) {
@@ -229,6 +239,9 @@ drawApp.frame('/score', async (c) => {
 });
 
 drawApp.frame('/card/:id', (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { ids, quantities } = c.previousState;
   const id = Number(c.req.param('id'));
 
@@ -265,6 +278,9 @@ drawApp.frame('/card/:id', (c) => {
 });
 
 drawApp.frame('/score/:transactionId', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const transactionId = c.req.param('transactionId');
 
   while (true) {
@@ -320,6 +336,9 @@ drawApp.frame('/score/:transactionId', async (c) => {
 });
 
 drawApp.frame('/mycards', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const verifiedAddresses =
     c.previousState.verifiedAddresses.length > 0
       ? c.previousState.verifiedAddresses
