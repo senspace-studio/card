@@ -32,6 +32,8 @@ contract War is
 
     mapping(bytes => bool) signatures;
 
+    mapping(bytes8 => address) public requestedChallengers;
+
     modifier onlyDealer() {
         require(
             dealerAddress == msg.sender,
@@ -75,6 +77,16 @@ contract War is
         _;
     }
 
+    modifier onlyOpenOrRequestedGame(bytes8 gameId, address challenger) {
+        address requestedChallenger = requestedChallengers[gameId];
+        require(
+            requestedChallenger == address(0) ||
+                requestedChallenger == challenger,
+            'War: you cannot challenge this game'
+        );
+        _;
+    }
+
     function initialize(
         address _initialOwner,
         address _dealerAddress,
@@ -91,7 +103,8 @@ contract War is
         address currency,
         uint256 betAmount,
         bool isNativeToken,
-        bytes memory signature
+        bytes memory signature,
+        address requestChallenger
     ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
         require(signatures[signature] == false, 'War: signature already used');
 
@@ -116,6 +129,11 @@ contract War is
             createdAt: uint64(block.timestamp)
         });
 
+        if (requestChallenger != address(0)) {
+            requestedChallengers[gameId] = requestChallenger;
+            emit GameRequested(gameId, msg.sender, requestChallenger);
+        }
+
         warPool.deposit{value: isNativeToken ? betAmount : 0}(
             gameId,
             msg.sender,
@@ -137,6 +155,7 @@ contract War is
         nonReentrant
         onlyInvitationHolder
         onlyCreatedGame(gameId)
+        onlyOpenOrRequestedGame(gameId, msg.sender)
     {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');

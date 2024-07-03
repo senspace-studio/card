@@ -6,6 +6,7 @@ import { warApp } from './war.js';
 import { teaserApp } from './teaser.js';
 import { serve } from '@hono/node-server';
 import { stackApp } from './stack.js';
+import { IS_MAINTENANCE } from '../constant/config.js';
 
 export const app = new Frog({
   assetsPath: '/',
@@ -26,6 +27,9 @@ app.frame('/', (c) => {
 });
 
 app.frame('/top', (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   return c.res({
     title,
     image: '/images/menu-20240625.png',

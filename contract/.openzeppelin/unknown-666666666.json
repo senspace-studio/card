@@ -5602,6 +5602,564 @@
           ]
         }
       }
+    },
+    "589b3f4a8822bc4c8997dc7d5c53e0bd3dfc7023a582b1eaa61ae4471c9d99f9": {
+      "address": "0x6a79c70bAA7E9Bd5D56E9292150062242c80219E",
+      "txHash": "0xfec75db204f6c8b6e46b42d06485c7cc6fe50e877ec0fa8c14aea066e584125d",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "dealerAddress",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "War",
+            "src": "contracts/war/War.sol:21"
+          },
+          {
+            "label": "warPool",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IWarPool)7158",
+            "contract": "War",
+            "src": "contracts/war/War.sol:23"
+          },
+          {
+            "label": "card",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(ICard)6732",
+            "contract": "War",
+            "src": "contracts/war/War.sol:25"
+          },
+          {
+            "label": "invitation",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC721)3803",
+            "contract": "War",
+            "src": "contracts/war/War.sol:27"
+          },
+          {
+            "label": "games",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_bytes8,t_struct(Game)6968_storage)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:29"
+          },
+          {
+            "label": "expirationTime",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint64",
+            "contract": "War",
+            "src": "contracts/war/War.sol:31"
+          },
+          {
+            "label": "signatures",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_bytes_memory_ptr,t_bool)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:33"
+          },
+          {
+            "label": "requestedChallengers",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_bytes8,t_address)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:35"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)65_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(PausableStorage)313_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)377_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_bytes8": {
+            "label": "bytes8",
+            "numberOfBytes": "8"
+          },
+          "t_bytes_memory_ptr": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ICard)6732": {
+            "label": "contract ICard",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC721)3803": {
+            "label": "contract IERC721",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWarPool)7158": {
+            "label": "contract IWarPool",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes8,t_address)": {
+            "label": "mapping(bytes8 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes8,t_struct(Game)6968_storage)": {
+            "label": "mapping(bytes8 => struct IWar.Game)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_bool)": {
+            "label": "mapping(bytes => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Game)6968_storage": {
+            "label": "struct IWar.Game",
+            "members": [
+              {
+                "label": "maker",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "challenger",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "winner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "makerCard",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "challengerCard",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "dealerSignature",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "createdAt",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:40",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "cad8e39119fe4cf9038df87143ddcafda986ed12fb3934b87ca87934a01a3147": {
+      "address": "0x8D63E2138d1BE553f43cbdBb901b1c2e0072b9c0",
+      "txHash": "0xaa8d447ee3c5a64d93780e952cd819ab19e70c0601d97a28078b44c3c794dacc",
+      "layout": {
+        "solcVersion": "0.8.20",
+        "storage": [
+          {
+            "label": "dealerAddress",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_address",
+            "contract": "War",
+            "src": "contracts/war/War.sol:21"
+          },
+          {
+            "label": "warPool",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IWarPool)7166",
+            "contract": "War",
+            "src": "contracts/war/War.sol:23"
+          },
+          {
+            "label": "card",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(ICard)6732",
+            "contract": "War",
+            "src": "contracts/war/War.sol:25"
+          },
+          {
+            "label": "invitation",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IERC721)3803",
+            "contract": "War",
+            "src": "contracts/war/War.sol:27"
+          },
+          {
+            "label": "games",
+            "offset": 0,
+            "slot": "4",
+            "type": "t_mapping(t_bytes8,t_struct(Game)6968_storage)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:29"
+          },
+          {
+            "label": "expirationTime",
+            "offset": 0,
+            "slot": "5",
+            "type": "t_uint64",
+            "contract": "War",
+            "src": "contracts/war/War.sol:31"
+          },
+          {
+            "label": "signatures",
+            "offset": 0,
+            "slot": "6",
+            "type": "t_mapping(t_bytes_memory_ptr,t_bool)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:33"
+          },
+          {
+            "label": "requestedChallengers",
+            "offset": 0,
+            "slot": "7",
+            "type": "t_mapping(t_bytes8,t_address)",
+            "contract": "War",
+            "src": "contracts/war/War.sol:35"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)65_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(PausableStorage)313_storage": {
+            "label": "struct PausableUpgradeable.PausableStorage",
+            "members": [
+              {
+                "label": "_paused",
+                "type": "t_bool",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(ReentrancyGuardStorage)377_storage": {
+            "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
+            "members": [
+              {
+                "label": "_status",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_bytes8": {
+            "label": "bytes8",
+            "numberOfBytes": "8"
+          },
+          "t_bytes_memory_ptr": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_contract(ICard)6732": {
+            "label": "contract ICard",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IERC721)3803": {
+            "label": "contract IERC721",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IWarPool)7166": {
+            "label": "contract IWarPool",
+            "numberOfBytes": "20"
+          },
+          "t_mapping(t_bytes8,t_address)": {
+            "label": "mapping(bytes8 => address)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes8,t_struct(Game)6968_storage)": {
+            "label": "mapping(bytes8 => struct IWar.Game)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes_memory_ptr,t_bool)": {
+            "label": "mapping(bytes => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_struct(Game)6968_storage": {
+            "label": "struct IWar.Game",
+            "members": [
+              {
+                "label": "maker",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "challenger",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "winner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "makerCard",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "challengerCard",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "dealerSignature",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "createdAt",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.ReentrancyGuard": [
+            {
+              "contract": "ReentrancyGuardUpgradeable",
+              "label": "_status",
+              "type": "t_uint256",
+              "src": "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol:40",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Pausable": [
+            {
+              "contract": "PausableUpgradeable",
+              "label": "_paused",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol:21",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
     }
   }
 }
