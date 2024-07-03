@@ -592,19 +592,34 @@ warApp.frame('/challenge/random', async (c) => {
     });
   }
 
-  const response = await fetch(
-    `${BACKEND_URL!}/war/getRandomChallengableGame?exept_maker=${address}`,
-    {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
+  // Direct Matchを省くために、requestedChallengersがzeroAddressのものを取得
+  let gameId!: `0x${string}`;
+  let retryCount = 0;
+  while (!gameId && retryCount < 3) {
+    const response = await fetch(
+      `${BACKEND_URL!}/war/getRandomChallengableGame?exept_maker=${address}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    },
-  );
-  const game = await response.json();
-  if (!game.game_id) return c.error({ message: 'No game found' });
+    );
+    const game = await response.json();
+    if (!game.game_id) return c.error({ message: 'No game found' });
 
-  return await challengeFrame(c, game.game_id);
+    const requestedAddress = await warContract.read.requestedChallengers([
+      game.game_id,
+    ]);
+    retryCount++;
+    if (requestedAddress === zeroAddress) {
+      gameId = game.game_id;
+    } else if (retryCount >= 3) {
+      return c.error({ message: 'No game found' });
+    }
+  }
+
+  return await challengeFrame(c, gameId);
 });
 
 warApp.frame('/challenge/:gameId', async (c) => {
