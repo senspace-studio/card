@@ -5354,7 +5354,7 @@
             "label": "warPool",
             "offset": 0,
             "slot": "1",
-            "type": "t_contract(IWarPool)1322",
+            "type": "t_contract(IWarPool)7158",
             "contract": "War",
             "src": "contracts/war/War.sol:23"
           },
@@ -5362,7 +5362,7 @@
             "label": "card",
             "offset": 0,
             "slot": "2",
-            "type": "t_contract(ICard)1109",
+            "type": "t_contract(ICard)6732",
             "contract": "War",
             "src": "contracts/war/War.sol:25"
           },
@@ -5370,7 +5370,7 @@
             "label": "invitation",
             "offset": 0,
             "slot": "3",
-            "type": "t_contract(IERC721)1063",
+            "type": "t_contract(IERC721)3803",
             "contract": "War",
             "src": "contracts/war/War.sol:27"
           },
@@ -5378,7 +5378,7 @@
             "label": "games",
             "offset": 0,
             "slot": "4",
-            "type": "t_mapping(t_bytes8,t_struct(Game)1132_storage)",
+            "type": "t_mapping(t_bytes8,t_struct(Game)6968_storage)",
             "contract": "War",
             "src": "contracts/war/War.sol:29"
           },
@@ -5438,7 +5438,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(PausableStorage)138_storage": {
+          "t_struct(PausableStorage)313_storage": {
             "label": "struct PausableUpgradeable.PausableStorage",
             "members": [
               {
@@ -5450,7 +5450,7 @@
             ],
             "numberOfBytes": "32"
           },
-          "t_struct(ReentrancyGuardStorage)202_storage": {
+          "t_struct(ReentrancyGuardStorage)377_storage": {
             "label": "struct ReentrancyGuardUpgradeable.ReentrancyGuardStorage",
             "members": [
               {
@@ -5482,19 +5482,19 @@
             "label": "bytes",
             "numberOfBytes": "32"
           },
-          "t_contract(ICard)1109": {
+          "t_contract(ICard)6732": {
             "label": "contract ICard",
             "numberOfBytes": "20"
           },
-          "t_contract(IERC721)1063": {
+          "t_contract(IERC721)3803": {
             "label": "contract IERC721",
             "numberOfBytes": "20"
           },
-          "t_contract(IWarPool)1322": {
+          "t_contract(IWarPool)7158": {
             "label": "contract IWarPool",
             "numberOfBytes": "20"
           },
-          "t_mapping(t_bytes8,t_struct(Game)1132_storage)": {
+          "t_mapping(t_bytes8,t_struct(Game)6968_storage)": {
             "label": "mapping(bytes8 => struct IWar.Game)",
             "numberOfBytes": "32"
           },
@@ -5502,7 +5502,7 @@
             "label": "mapping(bytes => bool)",
             "numberOfBytes": "32"
           },
-          "t_struct(Game)1132_storage": {
+          "t_struct(Game)6968_storage": {
             "label": "struct IWar.Game",
             "members": [
               {

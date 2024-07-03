@@ -129,7 +129,7 @@ warApp.frame('/', async (c) => {
     intents: [
       <Button action="/make-duel">Make Game</Button>,
       <Button action="/challenge/random">Challenge</Button>,
-      // <Button action="/tools">Tools</Button>,
+      <Button action="/tools">Tools</Button>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
     ],
   });

@@ -135,7 +135,7 @@ export class WebhookController {
             if (address === zeroAddress) {
               botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched with another player.\n\nCheck out the /card channel to find games to play.`;
             } else {
-              botMessageText += `${await getNeynarUserName(address as string)} has challenged ${await getNeynarUserName(maker.value)} to a battle!\nComplete the battle below!`;
+              botMessageText += `${await getNeynarUserName(maker.value)} has challenged ${await getNeynarUserName(address as string)} to a battle!\nComplete the battle below!`;
             }
 
             const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
