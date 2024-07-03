@@ -1,7 +1,10 @@
 import { Button, Frog } from 'frog';
 import { getFarcasterUserInfo } from '../lib/neynar.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
-import { INVITATION_NFT_CONTRACT_ADDRESS } from '../constant/config.js';
+import {
+  INVITATION_NFT_CONTRACT_ADDRESS,
+  IS_MAINTENANCE,
+} from '../constant/config.js';
 
 export const teaserApp = new Frog({
   assetsPath: '/',
@@ -9,6 +12,9 @@ export const teaserApp = new Frog({
 });
 
 teaserApp.frame('/', (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   return c.res({
     image: '/images/teaser/title.png',
     imageAspectRatio: '1:1',
@@ -17,6 +23,9 @@ teaserApp.frame('/', (c) => {
 });
 
 teaserApp.frame('/invitation', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
   const address = verifiedAddresses[0];
 

@@ -129,7 +129,10 @@ contract War is
             createdAt: uint64(block.timestamp)
         });
 
-        requestedChallengers[gameId] = requestChallenger;
+        if (requestChallenger != address(0)) {
+            requestedChallengers[gameId] = requestChallenger;
+            emit GameRequested(gameId, msg.sender, requestChallenger);
+        }
 
         warPool.deposit{value: isNativeToken ? betAmount : 0}(
             gameId,

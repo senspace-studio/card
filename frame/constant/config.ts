@@ -33,3 +33,5 @@ export const INVITATION_NFT_CONTRACT_ADDRESS = process.env
   .INVITATION_NFT_CONTRACT_ADDRESS as `0x${string}`;
 
 export const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY as string;
+
+export const IS_MAINTENANCE = process.env.IS_MAINTENANCE === 'true';

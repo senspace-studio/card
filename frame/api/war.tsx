@@ -2,6 +2,7 @@ import { Button, FrameContext, Frog, TextInput } from 'frog';
 import {
   BACKEND_URL,
   BASE_URL,
+  IS_MAINTENANCE,
   WAR_CONTRACT_ADDRESS,
 } from '../constant/config.js';
 import tweClient from '../lib/thirdweb-engine/index.js';
@@ -82,6 +83,9 @@ export const warApp = new Frog<{ State: State }>({
 });
 
 warApp.frame('/', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   if (c.frameData?.fid) {
     const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
       c.frameData?.fid,
@@ -125,24 +129,33 @@ warApp.frame('/', async (c) => {
     intents: [
       <Button action="/make-duel">Make Game</Button>,
       <Button action="/challenge/random">Challenge</Button>,
-      <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
-        Rules
-      </Button.Link>,
+      // <Button action="/tools">Tools</Button>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
     ],
   });
 });
 
-warApp.frame('/rule', (c) => {
+warApp.frame('/tools', (c) => {
   return c.res({
     title,
-    image: '/images/war/bet.png',
+    image: '/images/war/tools.png',
     imageAspectRatio: '1:1',
-    intents: [<Button action={`/`}>Back</Button>],
+    intents: [
+      <Button.AddCastAction action="https://card-scouter.vercel.app/api/card-scouter">
+        Scouter
+      </Button.AddCastAction>,
+      <Button.AddCastAction action="/lets-play">
+        Let's Play
+      </Button.AddCastAction>,
+      <Button action="/">Back</Button>,
+    ],
   });
 });
 
 warApp.frame('/make-duel', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { frameData } = c;
   const fid = frameData?.fid;
   const { pfp_url, userName, verifiedAddresses } = c.previousState.userName
@@ -260,6 +273,9 @@ warApp.frame('/make-duel', async (c) => {
 //   });
 // });
 warApp.frame('/preview', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { inputText } = c;
   const { userName, pfp_url, card, quantities, address } = c.previousState;
 
@@ -400,6 +416,9 @@ warApp.transaction('/duel-letter', async (c) => {
 });
 
 warApp.frame('/find', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const transactionId = c.transactionId;
   const { userName, pfp_url, card, wager, address } = c.previousState;
 
@@ -475,8 +494,12 @@ warApp.frame('/find', async (c) => {
       c_pfp_url,
     }),
   );
+
+  // c_userNameをDirectMatchの条件にしてメッセージを変える
   const shareLink = `${shareUrlBase}${
-    c_userName ? `Hey @${c_userName}! Let's Duel!` : shareText
+    c_userName
+      ? `It's time to battle, @${c_userName}! Get your cards ready!`
+      : shareText
   }${embedParam}${BASE_URL}/war/challenge/${gameId}`;
 
   return c.res({
@@ -526,6 +549,9 @@ const generateErrorImage = async (
 };
 
 warApp.frame('/error/address', (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   return c.res({
     title,
     image: '/images/war/address_error.png',
@@ -535,6 +561,9 @@ warApp.frame('/error/address', (c) => {
 });
 
 warApp.frame('/challenge/random', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { frameData } = c;
   const fid = frameData?.fid;
   const { verifiedAddresses } = c.previousState.userName
@@ -579,6 +608,9 @@ warApp.frame('/challenge/random', async (c) => {
 });
 
 warApp.frame('/challenge/:gameId', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const gameId = c.req.param('gameId') as `0x${string}`;
   return await challengeFrame(c, gameId);
 });
@@ -593,6 +625,9 @@ const challengeFrame = async (
   >,
   gameId: `0x${string}`,
 ) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   let gameInfo = await getGameInfoByGameId(gameId);
 
   if (!gameInfo) {
@@ -707,6 +742,9 @@ const challengeFrame = async (
 };
 
 warApp.frame('/choose', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { quantities, c_address } = c.previousState;
 
   return c.res({
@@ -724,6 +762,9 @@ warApp.frame('/choose', async (c) => {
 });
 
 warApp.frame('/choose/:params', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, wager, gameId } = params;
 
@@ -789,14 +830,7 @@ warApp.frame('/choose/:params', async (c) => {
     requestedChallengers !== zeroAddress &&
     requestedChallengers.toLowerCase() !== address.toLowerCase()
   ) {
-    return c.res({
-      title,
-      // TODO
-      image: '/images/verify.png',
-      action: '/choose',
-      imageAspectRatio: '1:1',
-      intents: [<Button action={`/challenge/${gameId}`}>Back</Button>],
-    });
+    return c.error({ message: 'You are not the requested challenger' });
   }
 
   const totalBalance = quantities.reduce((acc, cur) => acc + cur, 0);
@@ -830,6 +864,9 @@ warApp.frame('/choose/:params', async (c) => {
 });
 
 warApp.frame('/duel', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { inputText } = c;
   const {
     userName,
@@ -923,6 +960,9 @@ warApp.transaction('/challengeGame', async (c) => {
 });
 
 warApp.frame('/loading', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   if (c.transactionId === undefined) return c.error({ message: 'No txId' });
   const transactionReceipt = await publicClient.getTransactionReceipt({
     hash: c.transactionId,
@@ -956,6 +996,9 @@ warApp.frame('/loading', async (c) => {
 });
 
 warApp.frame('/result/:gameId', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const gameId = c.req.param('gameId') as `0x${string}`;
   const recentCard = c.previousState.c_card;
 
@@ -1056,6 +1099,9 @@ warApp.frame('/result/:gameId', async (c) => {
 });
 
 warApp.frame('/addAction', (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   return c.res({
     // TODO
     image: '/images/war/title.png',
@@ -1067,7 +1113,7 @@ warApp.frame('/addAction', (c) => {
 });
 
 warApp.castAction(
-  '/vs-match',
+  '/lets-play',
   async (c) => {
     const { actionData } = c;
     const castHash = actionData?.castId.hash;
@@ -1075,14 +1121,19 @@ warApp.castAction(
     return c.res({
       type: 'frame',
       path: `/make-direct-duel/${castHash}`,
-      // path: '/rule',
     });
   },
-  // TODO
-  { name: 'VS Match🃏', icon: 'zap', description: 'direct match' },
+  {
+    name: "Let's Play🃏",
+    icon: 'zap',
+    description: 'Select a friend to play against!',
+  },
 );
 
 warApp.frame('/make-direct-duel/:castHash', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const castHash = c.req.param('castHash');
   // const params = JSON.parse(decodeURIComponent(c.req.param('params')));
 

@@ -36,6 +36,12 @@ interface IWar {
         address winner
     );
 
+    event GameRequested(
+        bytes8 indexed gameId,
+        address indexed maker,
+        address indexed challenger
+    );
+
     event GameExpired(bytes8 indexed gameId, address indexed maker);
 
     event SetDealer(address indexed dealer);

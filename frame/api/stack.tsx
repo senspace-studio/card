@@ -1,6 +1,6 @@
 import { Button, Frog } from 'frog';
 import sharp from 'sharp';
-import { BACKEND_URL, BASE_URL } from '../constant/config.js';
+import { BACKEND_URL, BASE_URL, IS_MAINTENANCE } from '../constant/config.js';
 import {
   getFarcasterUserInfo,
   getFarcasterUserInfoByAddress,
@@ -34,6 +34,9 @@ export const stackApp = new Frog<{ State: State }>({
 });
 
 stackApp.frame('/', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
 
@@ -86,6 +89,9 @@ stackApp.frame('/', async (c) => {
 });
 
 stackApp.frame('/leaderboard', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { username, verifiedAddress } = c.previousState;
 
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
@@ -104,6 +110,9 @@ stackApp.frame('/leaderboard', async (c) => {
 });
 
 stackApp.frame('/leaderboard-battle', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { username, verifiedAddress } = c.previousState;
 
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
@@ -122,6 +131,9 @@ stackApp.frame('/leaderboard-battle', async (c) => {
 });
 
 stackApp.frame('/leaderboard-invitation', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
   const { username, verifiedAddress } = c.previousState;
 
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
