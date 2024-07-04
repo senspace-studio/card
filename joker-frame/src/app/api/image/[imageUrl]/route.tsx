@@ -10,11 +10,11 @@ export async function GET(
   const { searchParams } = new URL(req.url);
   const download = searchParams.get('download') === 'true';
 
-  const overlayMaxWidth = 650; // オーバーレイ画像の最大幅
-  const overlayMaxHeight = 1500; // オーバーレイ画像の最大高さ
+  const overlayMaxWidth = 960; // オーバーレイ画像の最大幅
+  const overlayMaxHeight = 830; // オーバーレイ画像の最大高さ
 
   // 背景画像の取得
-  const backgroundUrl = `${process.env.SITE_URL}/joker.png`;
+  const backgroundUrl = `${process.env.SITE_URL}/frame_makeposter.png`;
   const backgroundResponse = await fetch(backgroundUrl);
   if (!backgroundResponse.ok) {
     return new Response('Failed to fetch background image', { status: 500 });
@@ -52,7 +52,7 @@ export async function GET(
         height: overlayMaxHeight,
         fit: sharp.fit.inside,
       })
-      .rotate(5.5, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) // 透明背景を維持して右に5度回転
+      .rotate(2, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) 
       .png() // PNG形式に変換して透明背景を維持
       .toBuffer();
   } else if (
@@ -66,13 +66,13 @@ export async function GET(
         height: overlayMaxHeight,
         fit: sharp.fit.inside,
       })
-      .rotate(5.5, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) // 透明背景を維持して右に5度回転
+      .rotate(2, { background: { r: 0, g: 0, b: 0, alpha: 0 } })
       .png() // PNG形式に変換して透明背景を維持
       .toBuffer();
   } else {
     // 画像サイズが適切な場合はそのまま使用
     overlayImageBuffer = await sharp(overlayBuffer)
-      .rotate(5.5, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) // 透明背景を維持して右に5度回転
+      .rotate(2, { background: { r: 0, g: 0, b: 0, alpha: 0 } }) 
       .png() // PNG形式に変換して透明背景を維持
       .toBuffer();
   }
@@ -80,9 +80,9 @@ export async function GET(
   // オーバーレイ画像のメタデータを再取得
   const overlayImageMetadata = await sharp(overlayImageBuffer).metadata();
 
-  // 上、左に寄せる量をピクセル単位で指定（例：10ピクセル左に寄せる）
-  const topOffset = 12;
-  const leftOffset = 7;
+  // 上、左に寄せる量をピクセル単位で指定
+  const topOffset = 250;
+  const leftOffset = 0;
 
   // 透明背景を追加して中央に配置するためにオーバーレイ画像の位置を調整
   const extendedOverlayImageBuffer = await sharp({
