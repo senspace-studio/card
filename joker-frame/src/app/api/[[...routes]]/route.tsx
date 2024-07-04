@@ -210,7 +210,12 @@ app.castAction(
     });
   },
   // TODO Descriptionを変える
-  { name, icon: 'image', description: 'Create a Your Joker Card' },
+  {
+    name,
+    icon: 'image',
+    description:
+      "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+  },
 );
 
 const getImageUrl = async (mediaUrl: string): Promise<string | null> => {
