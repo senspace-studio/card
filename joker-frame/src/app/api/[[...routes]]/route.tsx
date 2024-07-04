@@ -13,17 +13,19 @@ const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0xfb9874ec';
 
 // TODO シェア文言を変える
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
-const SHARE_TEXT = encodeURI('Check out my Joker Meme Card!');
+const SHARE_TEXT = encodeURI(
+  "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+);
 const SHARE_EMBEDS = '&embeds[]=';
 
 const app = new Frog({
-  title: 'Joker Maker',
+  title: 'Cardians Wanted!',
   basePath: '/api',
   assetsPath: '/',
   imageAspectRatio: '1:1',
 });
 
-const name = 'Joker Maker';
+const name = 'Cardians Wanted!';
 const actionPath = '/joker-maker-action';
 const framePath = '/joker-maker';
 
