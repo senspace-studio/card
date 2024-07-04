@@ -1183,6 +1183,10 @@ warApp.frame('/make-direct-duel/:castHash', async (c) => {
 
   const address = verifiedAddresses[0] as `0x${string}`;
 
+  if (address.toLowerCase() === c_address.toLowerCase()) {
+    return c.error({ message: 'You cannot battle yourself' });
+  }
+
   const [hasNFT, quantities] = await Promise.all([
     checkInvitation(address),
     getQuantities(address, c),

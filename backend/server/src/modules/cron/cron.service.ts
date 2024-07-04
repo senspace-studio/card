@@ -101,7 +101,7 @@ export class CronService {
         Number(bonusMultilrierTop.result) /
         Number(bonusMultilrierBottom.result);
 
-      const h = numOfWar * 200 * bonusMultiplier;
+      const h = numOfWar * 190 * bonusMultiplier;
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
       const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
       const y = h * (1 - Math.exp(-k * x));
@@ -159,7 +159,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
     } catch (error) {
       this.logger.error(error);
@@ -213,7 +213,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
 
       console.log('executedScores:', scores);
@@ -268,7 +268,7 @@ export class CronService {
             this.executeEndVesting(score.address, stream_smartaccount.address),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
     } catch (error) {
       this.logger.error(error);
