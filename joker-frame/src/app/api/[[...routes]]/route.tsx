@@ -17,6 +17,7 @@ const SHARE_TEXT = encodeURI('Check out my Joker Meme Card!');
 const SHARE_EMBEDS = '&embeds[]=';
 
 const app = new Frog({
+  title: 'Joker Maker',
   basePath: '/api',
   assetsPath: '/',
   imageAspectRatio: '1:1',
@@ -66,12 +67,12 @@ app.frame(framePath + '/:hash', async (c) => {
     image: `/api/image/${encodedImageUrl}`,
     browserLocation: `/api/image/${encodedImageUrl}`,
     intents: [
-      <Button.Link
-        key="download"
-        href={`${process.env.SITE_URL}/api/image/${encodedImageUrl}?download=true`}
-      >
-        Download
-      </Button.Link>,
+      // <Button.Link
+      //   key="download"
+      //   href={`${process.env.SITE_URL}/api/image/${encodedImageUrl}?download=true`}
+      // >
+      //   Download
+      // </Button.Link>,
       <Button.Link
         key="share"
         href={
