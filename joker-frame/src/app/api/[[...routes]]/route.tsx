@@ -211,8 +211,7 @@ app.castAction(
   {
     name,
     icon: 'image',
-    description:
-      "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+    description: 'Make a Cardian recruitment poster Cast Action!',
   },
 );
 
