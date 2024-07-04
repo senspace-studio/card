@@ -9,7 +9,7 @@ import {
 import { JSDOM } from 'jsdom';
 
 // TODO - replace url after cast
-const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0x46d70622';
+const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0x65ce75a9';
 
 // TODO シェア文言を変える
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
@@ -112,7 +112,7 @@ app.frame(framePath + '/share/:hash', async (c) => {
   // TODO browserLocationとボタンの文言を変える
   return c.res({
     image: `/api/image/${encodedImageUrl}`,
-    browserLocation: `https://warpcast.com/cardgamemaster/0x46d70622`,
+    browserLocation: `https://warpcast.com/cardgamemaster/0x65ce75a9`,
     intents: [
       <Button.Link key="create" href={ROOT_CAST_URL}>
         Create My Joker
