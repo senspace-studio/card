@@ -27,3 +27,4 @@ export const handler = async (year: number, month: number, day: number) => {
     `individual_stack_data/${year}-${`00${month}`.slice(-2)}-${`00${day}`.slice(-2)}.json`,
   );
 }
+// handler(2024, 6, 25);
