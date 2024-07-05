@@ -28,7 +28,7 @@ export type IndividualStackData = {
   data: {
     address: Address;
     score: number;
-  }
+  }[];
 }
 
 // Reward History Data (一つのファイル)
