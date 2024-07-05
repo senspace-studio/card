@@ -7,3 +7,4 @@ export const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';
 export const INVITATION_CONTRACT_ADDRESS =
   process.env.INVITATION_CONTRACT_ADDRESS || '';
 export const S3_BACKET_NAME = process.env.S3_BACKET_NAME || '';
+export const BLOCKCHAIN_API_DEGEN = process.env.BLOCKCHAIN_API_DEGEN || '';

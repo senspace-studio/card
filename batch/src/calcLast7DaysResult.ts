@@ -20,7 +20,7 @@ export const handler = async () => {
     }
   };
 
-  for (const { maker, challenger, winner } of logs) {
+  for (const { data: { maker, challenger, winner } } of logs) {
     if (!resultJson[maker]) {
       init(maker);
     }

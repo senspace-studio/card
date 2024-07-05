@@ -114,11 +114,11 @@ export const handler = async () => {
     getGameRevealedLogs(startGameDateUnix, currentUnixTime),
   ]);
 
-  for (const {
+  for (const { data: {
     from,
     to,
     tokenId: { hex: tokenId },
-  } of invivationLogs) {
+  }} of invivationLogs) {
     const { registered } = invitationMap.register({
       tokenId,
       from: from.toLowerCase(),
@@ -132,7 +132,7 @@ export const handler = async () => {
   const battleMap: { [from: string]: number } = {};
   const battles: { address: string; battles: number }[] = [];
 
-  for (const { maker, challenger } of gameLogs) {
+  for (const { data: { maker, challenger } } of gameLogs) {
     const invitations = [
       invitationMap.findOne({ to: maker.toLowerCase() }),
       invitationMap.findOne({ to: challenger.toLowerCase() }),
