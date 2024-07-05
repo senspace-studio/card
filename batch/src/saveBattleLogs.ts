@@ -40,7 +40,7 @@ export const handler = async (year: number, month: number, day: number) => {
       : winner === maker
       ? challenger : maker;
     const isDraw = winner === zeroAddress;
-    console.log({
+    const info = {
       gameId,
       maker,
       challenger,
@@ -49,18 +49,10 @@ export const handler = async (year: number, month: number, day: number) => {
       isDraw,
       createdBlockNumber: blockNumber,
       createdAt: timestampMap[blockNumber],
-    });
-    datas.push({
-      gameId,
-      maker,
-      challenger,
-      winner,
-      loser,
-      isDraw,
-      createdBlockNumber: blockNumber,
-      createdAt: timestampMap[blockNumber],
-    });
+    };
+    datas.push(info);
   }
+  console.log(datas);
   // ToDo: ファイル名変更
   await uploadS3(
     datas,

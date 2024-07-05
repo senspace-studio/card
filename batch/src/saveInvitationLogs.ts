@@ -33,21 +33,16 @@ export const handler = async (year: number, month: number, day: number) => {
     const inviter = log.data.from as Address;
     const invitee = log.data.to as Address;
     const tokenId = Number(log.data.tokenId.hex);
-    console.log({
+    const info = {
       inviter,
       invitee,
       tokenId,
       createdBlockNumber: blockNumber,
       createdAt: timestampMap[blockNumber],
-    });
-    datas.push({
-      inviter,
-      invitee,
-      tokenId,
-      createdBlockNumber: blockNumber,
-      createdAt: timestampMap[blockNumber],
-    });
+    };
+    datas.push(info);
   }
+  // console.log(datas);
   // ToDo: ファイル名変更
   await uploadS3(
     datas,

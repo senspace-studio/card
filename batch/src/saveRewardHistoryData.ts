@@ -10,7 +10,8 @@ import StackVariablesABI from './abi/StackVariables.json';
 const MAX_REWARD_AMOUNT_RATIO = 190;
 
 export const handler = async (year: number, month: number, day: number) => {
-  const historyFile = await getFileFromS3('reward_history/history.json');
+  const historyFile = null;
+  // const historyFile = await getFileFromS3('reward_history/history.json');
   const history: RewardHistoryData[] = historyFile || [];
 
   const startdate = Math.floor(Date.UTC(year, month - 1, day - 1, 3) / 1e3);
@@ -20,10 +21,10 @@ export const handler = async (year: number, month: number, day: number) => {
     `${API_ENDPOINT}/points/calcurate-score?end_date_unix=${enddate * 1e3}`
   );
   const resData = (await res.json()) as [Address, number][];
-  console.log(resData);
+  // console.log(resData);
   const totalStack = resData.map((e) => e[1]).reduce((a, b) => a + b);
   const battleLogs = await getGameRevealedLogs(beforedate, startdate);
-  console.log(battleLogs);
+  // console.log(battleLogs);
   const maxRewardAmount = battleLogs.length * MAX_REWARD_AMOUNT_RATIO;
 
   const contract = getContract({
@@ -48,20 +49,14 @@ export const handler = async (year: number, month: number, day: number) => {
   ]);
   const bonusMultiplier = bonusMultiprierTop / bonusMultiprierBottom
   const difficulty = difficultyTop / difficultyBottom;
-  console.log({
-    maxRewardAmount,
-    difficulty,
-    bonusMultiplier,
-    totalStack,
-    date: `${year}/${`00${month + 1}`.slice(-2)}/${`00${day}`.slice(-2)}`,
-  });
   history.push({
     maxRewardAmount,
     difficulty,
     bonusMultiplier,
     totalStack,
-    date: `${year}/${`00${month + 1}`.slice(-2)}/${`00${day}`.slice(-2)}`,
+    date: `${year}/${`00${month}`.slice(-2)}/${`00${day}`.slice(-2)}`,
   });
+  console.log(history);
   // ToDo: ファイル名変更
   await uploadS3(
     history,
