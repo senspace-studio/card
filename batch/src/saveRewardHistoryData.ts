@@ -11,7 +11,7 @@ const MAX_REWARD_AMOUNT_RATIO = 190;
 
 export const handler = async (year: number, month: number, day: number) => {
   // const historyFile = null;
-  const historyFile = await getFileFromS3('reward_history/history.json');
+  const historyFile = await getFileFromS3('reward/history.json');
   const history: RewardHistoryData[] = historyFile || [];
 
   const startdate = Math.floor(Date.UTC(year, month - 1, day - 1, 3) / 1e3);

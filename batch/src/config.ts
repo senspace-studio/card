@@ -12,3 +12,6 @@ export const S3_BACKET_NAME = process.env.S3_BACKET_NAME || '';
 export const BLOCKCHAIN_API_DEGEN = process.env.BLOCKCHAIN_API_DEGEN || '';
 export const API_ENDPOINT = process.env.API_ENDPOINT || '';
 export const STACK_ALGORITHM = process.env.STACK_ALGORITHM || '';
+export const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
+export const S3_ACCESSKEY = process.env.S3_ACCESSKEY || '';
+export const S3_SECRET_ACCESSKEY = process.env.S3_SECRET_ACCESSKEY || '';
