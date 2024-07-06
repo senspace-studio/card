@@ -270,11 +270,11 @@ export class PointsService {
   }
 
   private roleMultiplier(winner: string, player: string) {
-    return winner === player ? 1.2 : 1;
+    return winner === player ? 1.5 : 1;
   }
 
   private resultMultiplier(winner: string, player: string) {
-    return winner === zeroAddress ? 1 : winner === player ? 1.5 : 0.8;
+    return winner === zeroAddress ? 0.3 : winner === player ? 3 : 0.3;
   }
 
   private decayMultiplier(baseUnixtime: number, date: number) {
@@ -284,9 +284,9 @@ export class PointsService {
 
   private matchCountMultiplier(totalMatches: number) {
     if (totalMatches <= 50) {
-      return 1 + totalMatches / 50;
+      return 1 + totalMatches / 50 / 4;
     } else {
-      return Math.min(2 + (totalMatches - 50) / 50, 3);
+      return Math.min(1 + (totalMatches - 35) / 50, 2);
     }
   }
 
