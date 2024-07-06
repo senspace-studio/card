@@ -55,7 +55,6 @@ export const handler = async (year: number, month: number, day: number) => {
   // console.log(datas);
   await uploadS3(
     datas,
-    // battle_data/2024-07-01.json
     `battle/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
   );
 }
