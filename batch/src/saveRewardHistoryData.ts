@@ -54,10 +54,9 @@ export const handler = async (year: number, month: number, day: number) => {
     date: `${year}/${`00${month}`.slice(-2)}/${`00${day}`.slice(-2)}`,
   });
   // console.log(history);
-  // ToDo: ファイル名変更
   await uploadS3(
     history,
-    `reward_history/history.json`,
+    `reward/history.json`,
   );
 }
 // handler(2024, 6, 25);

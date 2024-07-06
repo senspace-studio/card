@@ -43,11 +43,9 @@ export const handler = async (year: number, month: number, day: number) => {
     datas.push(info);
   }
   // console.log(datas);
-  // ToDo: ファイル名変更
   await uploadS3(
     datas,
-    // invitation_data/2024-07-01.json
-    `invitation_data/${year}-${`00${month}`.slice(-2)}-${`00${day}`.slice(-2)}.json`,
+    `invite/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
   );
 }
 // handler(2024, 6, 25);

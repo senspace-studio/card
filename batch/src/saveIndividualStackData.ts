@@ -20,12 +20,10 @@ export const handler = async (year: number, month: number, day: number) => {
   for (const [address, score] of resData) {
     data.data.push({ address, score });
   }
-  // ToDo: ファイル名変更
-  console.log(data);
-  // await uploadS3(
-  //   data,
-  //   // individual_stack_data/2024-07-01.json
-  //   `individual_stack_data/${year}-${`00${month}`.slice(-2)}-${`00${day}`.slice(-2)}.json`,
-  // );
+  // console.log(data);
+  await uploadS3(
+    data,
+    `individualStack/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
+  );
 }
-handler(2024, 6, 25);
+// handler(2024, 6, 25);

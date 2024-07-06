@@ -52,12 +52,11 @@ export const handler = async (year: number, month: number, day: number) => {
     };
     datas.push(info);
   }
-  console.log(datas);
-  // ToDo: ファイル名変更
+  // console.log(datas);
   await uploadS3(
     datas,
     // battle_data/2024-07-01.json
-    `battle_data/${year}-${`00${month}`.slice(-2)}-${`00${day}`.slice(-2)}.json`,
+    `battle/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
   );
 }
 // handler(2024, 6, 25);
