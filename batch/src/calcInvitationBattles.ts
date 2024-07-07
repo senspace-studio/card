@@ -100,63 +100,68 @@ class InvivationMap {
 }
 
 export const handler = async () => {
-  const lastFile = await getFileFromS3('calcInvitationBattles/result.json');
-  const lastInvitations: Invitation[] = lastFile ? lastFile.invivations : [];
-
-  const invitationMap = InvivationMap.from(lastInvitations);
-  const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
-
-  const startInvivationDateUnix = currentUnixTime - 14 * 24 * 60 * 60;
-  const startGameDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
-
-  const [invivationLogs, gameLogs] = await Promise.all([
-    getInvivationTransferLogs(startInvivationDateUnix, currentUnixTime),
-    getGameRevealedLogs(startGameDateUnix, currentUnixTime),
-  ]);
-
-  for (const { data: {
-    from,
-    to,
-    tokenId: { hex: tokenId },
-  }} of invivationLogs) {
-    const { registered } = invitationMap.register({
-      tokenId,
-      from: from.toLowerCase(),
-      to: to.toLowerCase(),
-    });
-    if (registered) {
-      invitationMap.activate(tokenId);
+  try {
+    const lastFile = await getFileFromS3('calcInvitationBattles/result.json');
+    const lastInvitations: Invitation[] = lastFile ? lastFile.invivations : [];
+  
+    const invitationMap = InvivationMap.from(lastInvitations);
+    const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
+  
+    const startInvivationDateUnix = currentUnixTime - 14 * 24 * 60 * 60;
+    const startGameDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
+  
+    const [invivationLogs, gameLogs] = await Promise.all([
+      getInvivationTransferLogs(startInvivationDateUnix, currentUnixTime),
+      getGameRevealedLogs(startGameDateUnix, currentUnixTime),
+    ]);
+  
+    for (const { data: {
+      from,
+      to,
+      tokenId: { hex: tokenId },
+    }} of invivationLogs) {
+      const { registered } = invitationMap.register({
+        tokenId,
+        from: from.toLowerCase(),
+        to: to.toLowerCase(),
+      });
+      if (registered) {
+        invitationMap.activate(tokenId);
+      }
     }
-  }
-
-  const battleMap: { [from: string]: number } = {};
-  const battles: { address: string; battles: number }[] = [];
-
-  for (const { data: { maker, challenger } } of gameLogs) {
-    const invitations = [
-      invitationMap.findOne({ to: maker.toLowerCase() }),
-      invitationMap.findOne({ to: challenger.toLowerCase() }),
-    ];
-    for (const invitation of invitations) {
-      if (invitation && invitationMap.isActivated(invitation.tokenId)) {
-        if (battleMap[invitation.from.toLowerCase()]) {
-          battleMap[invitation.from.toLowerCase()]++;
-        } else {
-          battleMap[invitation.from.toLowerCase()] = 1;
+  
+    const battleMap: { [from: string]: number } = {};
+    const battles: { address: string; battles: number }[] = [];
+  
+    for (const { data: { maker, challenger } } of gameLogs) {
+      const invitations = [
+        invitationMap.findOne({ to: maker.toLowerCase() }),
+        invitationMap.findOne({ to: challenger.toLowerCase() }),
+      ];
+      for (const invitation of invitations) {
+        if (invitation && invitationMap.isActivated(invitation.tokenId)) {
+          if (battleMap[invitation.from.toLowerCase()]) {
+            battleMap[invitation.from.toLowerCase()]++;
+          } else {
+            battleMap[invitation.from.toLowerCase()] = 1;
+          }
         }
       }
     }
+  
+    for (const address in battleMap) {
+      battles.push({
+        address: address.toLowerCase(),
+        battles: battleMap[address.toLowerCase()],
+      });
+    }
+  
+    await uploadS3(
+      { invivations: invitationMap.array(), battles, updatedAt: currentUnixTime },
+      'calcInvitationBattles/result.json',
+    );
+  } catch (error) {
+    // ToDo: Discord webhook
+    console.log(error);
   }
-
-  for (const address in battleMap) {
-    battles.push({
-      address: address.toLowerCase(),
-      battles: battleMap[address.toLowerCase()],
-    });
-  }
-
-  await uploadS3(
-    { invivations: invitationMap.array(), battles, updatedAt: currentUnixTime },
-    'calcInvitationBattles/result.json',
-  );
 };
