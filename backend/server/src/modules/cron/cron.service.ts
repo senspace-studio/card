@@ -56,58 +56,7 @@ export class CronService {
 
     this.logger.log('update score');
 
-    const currentCronDate = cronParser
-      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
-      .prev()
-      .toDate();
-    const baseDate = dayjs(currentCronDate);
-
-    const startDate_game = baseDate.subtract(3, 'days');
-
-    console.log('Scoring range', startDate_game.toDate(), baseDate.toDate());
-
-    const gameRevealedlogs = await this.pointsService.getGameLogs(
-      startDate_game.unix(),
-      baseDate.unix(),
-    );
-
-    const warScore = this.pointsService.calcWarScore(
-      baseDate.unix(),
-      gameRevealedlogs,
-    );
-
-    const startDate_invite = baseDate.subtract(14, 'days');
-
-    const inviteLogs = await this.pointsService.getInviteLogs(
-      startDate_invite.unix(),
-      baseDate.unix(),
-    );
-
-    const inviteScore = this.pointsService.calcReferralScore(
-      baseDate.unix(),
-      inviteLogs,
-      gameRevealedlogs,
-    );
-
-    const totalScore = this.pointsService
-      .sumScores([warScore, inviteScore])
-      .filter(([_, score]) => score > 0);
-
-    for (const [player, score] of totalScore) {
-      const exists = await this.heatScoreRepository.exists({
-        where: {
-          address: player,
-          date: baseDate.toDate(),
-        },
-      });
-      if (!exists) {
-        await this.heatScoreRepository.save({
-          address: player,
-          score: score,
-          date: baseDate.toDate(),
-        });
-      }
-    }
+    await this.pointsService.executeScoring();
   }
 
   @Cron(STREAM_SET_SCHEDULE_CRON_EXPRESSION)
@@ -152,7 +101,7 @@ export class CronService {
         Number(bonusMultilrierTop.result) /
         Number(bonusMultilrierBottom.result);
 
-      const h = numOfWar * 200 * bonusMultiplier;
+      const h = numOfWar * 190 * bonusMultiplier;
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
       const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
       const y = h * (1 - Math.exp(-k * x));
@@ -210,7 +159,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
     } catch (error) {
       this.logger.error(error);
@@ -264,7 +213,7 @@ export class CronService {
             ),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
 
       console.log('executedScores:', scores);
@@ -319,7 +268,7 @@ export class CronService {
             this.executeEndVesting(score.address, stream_smartaccount.address),
           ),
         );
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+        await new Promise((resolve) => setTimeout(resolve, 15000));
       }
     } catch (error) {
       this.logger.error(error);

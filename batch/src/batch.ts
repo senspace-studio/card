@@ -2,34 +2,44 @@ import 'dotenv/config';
 import { Chain, createPublicClient, http, zeroAddress } from 'viem';
 import { degen } from 'viem/chains';
 import tweClient from './thirdweb-engine';
-import { BLOCKCHAIN_API_DEGEN, INVITATION_CONTRACT_ADDRESS, WAR_CONTRACT_ADDRESS } from './config';
+import {
+  BLOCKCHAIN_API_DEGEN,
+  INVITATION_CONTRACT_ADDRESS,
+  WAR_CONTRACT_ADDRESS,
+} from './config';
+import { S_VIP_ADDRESSES } from './constants/vip';
 
 export const degenClient = createPublicClient({
   chain: { ...degen, fees: { baseFeeMultiplier: 1.25 } } as Chain,
   transport: http(BLOCKCHAIN_API_DEGEN),
 });
 
-
-type GameRevealedEventLog = {
+export type GameRevealedEventLog = {
   gameId: string;
   maker: string;
   challenger: string;
   winner: string;
 };
 
-type TransferEventLog = {
+export type TransferEventLog = {
   from: string;
   to: string;
   tokenId: { type: string; hex: string };
+  blockNumber: number;
 };
 
-const getBlockNumberFromTimestamp = async (timestamp: number, closest: 'before' | 'after') => {
+const getBlockNumberFromTimestamp = async (
+  timestamp: number,
+  closest: 'before' | 'after',
+) => {
   const res = await fetch(
     `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=${closest}`,
   );
   const resJson = (await res.json()) as { result: { blockNumber: string } };
   console.log(resJson);
-  const { result: { blockNumber } } = resJson;
+  const {
+    result: { blockNumber },
+  } = resJson;
   return blockNumber;
 };
 
@@ -59,6 +69,7 @@ const getContractEventLogs = async <E>(
       } as never,
     },
   )) as any;
+
   const {
     result,
   }: {
@@ -98,22 +109,60 @@ export const getGameRevealedLogs = async (
   startDateUnix: number,
   endDateUnix: number,
 ) => {
-  return await getContractEventLogs<GameRevealedEventLog>(
+  const allLogs = await getContractEventLogs(
     WAR_CONTRACT_ADDRESS,
     'GameRevealed',
     startDateUnix,
     endDateUnix,
   );
+
+  return allLogs.map((log) => log.data) as GameRevealedEventLog[];
 };
 
 export const getInvivationTransferLogs = async (
   startDateUnix: number,
   endDateUnix: number,
+  lastLogs: TransferEventLog[],
 ) => {
-  return await getContractEventLogs<TransferEventLog>(
+  const allLogs = await getContractEventLogs<TransferEventLog>(
     INVITATION_CONTRACT_ADDRESS,
     'Transfer',
     startDateUnix,
     endDateUnix,
   );
+
+  const uniqueTransferLogs = new Map<number, TransferEventLog>();
+
+  for (const lastLog of lastLogs) {
+    uniqueTransferLogs.set(Number(lastLog.tokenId.hex), lastLog);
+  }
+
+  for (const log of allLogs) {
+    if (
+      log.data.from !== zeroAddress &&
+      log.data.to !== zeroAddress &&
+      !S_VIP_ADDRESSES.includes(log.data.to.toLowerCase()) &&
+      (!uniqueTransferLogs.has(Number(BigInt(log.data.tokenId.hex))) ||
+        log.transaction.blockNumber <
+          Number(
+            uniqueTransferLogs.get(Number(BigInt(log.data.tokenId.hex)))
+              ?.blockNumber || 0,
+          ))
+    ) {
+      uniqueTransferLogs.set(Number(BigInt(log.data.tokenId.hex)), {
+        from: log.data.from,
+        to: log.data.to,
+        tokenId: log.data.tokenId,
+        blockNumber: log.transaction.blockNumber,
+      });
+    }
+  }
+
+  const logs = Array.from(uniqueTransferLogs.values())
+    .sort((a, b) => a.blockNumber - b.blockNumber)
+    .filter(
+      (log, index, self) => index === self.findIndex((l) => l.to === log.to),
+    );
+
+  return logs as TransferEventLog[];
 };

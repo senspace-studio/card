@@ -122,9 +122,22 @@ export class WebhookController {
             // gameIdとsignatureを紐づける
             await this.warService.onGameMade(gameId.value, signature.value);
 
-            // gameIdを元にゲームの情報を取得してBotからCast
             let botMessageText = '';
-            botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched with another player.\n\nCheck out the /card channel to find games to play.`;
+
+            const {
+              data: { result: address },
+            } = await readContract(
+              WAR_CONTRACT_ADDRESS,
+              'requestedChallengers',
+              gameId.value,
+            );
+
+            if (address === zeroAddress) {
+              botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched with another player.\n\nCheck out the /card channel to find games to play.`;
+            } else {
+              botMessageText += `${await getNeynarUserName(maker.value)} has challenged ${await getNeynarUserName(address as string)} to a battle!\nComplete the battle below!`;
+            }
+
             const frameURL = `${FRAME_BASE_URL}/war/challenge/${gameId.value}`;
 
             const res = await this.neynarService.publishCast(botMessageText, {

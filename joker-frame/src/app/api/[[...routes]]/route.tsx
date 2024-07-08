@@ -11,24 +11,29 @@ import { JSDOM } from 'jsdom';
 // TODO - replace url after cast
 const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0xfb9874ec';
 
+// TODO シェア文言を変える
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
-const SHARE_TEXT = encodeURI('Check out my Joker Meme Card!');
+const SHARE_TEXT = encodeURI(
+  "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+);
 const SHARE_EMBEDS = '&embeds[]=';
 
 const app = new Frog({
+  title: 'Cardians Wanted!',
   basePath: '/api',
   assetsPath: '/',
   imageAspectRatio: '1:1',
 });
 
-const name = 'Joker Maker';
+const name = 'Cardians Wanted!';
 const actionPath = '/joker-maker-action';
 const framePath = '/joker-maker';
 
 // Add Cast Action Frame
 app.frame('/', (c) => {
   return c.res({
-    image: '/title.png',
+    // image: '/title.png',
+    image: '/frame_makeposter_cover.png',
     intents: [
       <Button.AddCastAction key="1" action={actionPath}>
         Add
@@ -38,8 +43,6 @@ app.frame('/', (c) => {
 });
 
 app.frame(framePath + '/:hash', async (c) => {
-  console.time('frame total time');
-
   const { req } = c;
   const hash = req.param('hash');
 
@@ -60,22 +63,18 @@ app.frame(framePath + '/:hash', async (c) => {
     });
   }
 
-  console.time('getEncodedImageUrlFromHash');
   const encodedImageUrl = await getEncodedImageUrlFromHash(hash);
-  console.timeEnd('getEncodedImageUrlFromHash');
-
-  console.timeEnd('frame total time');
 
   return c.res({
     image: `/api/image/${encodedImageUrl}`,
     browserLocation: `/api/image/${encodedImageUrl}`,
     intents: [
-      <Button.Link
-        key="download"
-        href={`${process.env.SITE_URL}/api/image/${encodedImageUrl}?download=true`}
-      >
-        Download
-      </Button.Link>,
+      // <Button.Link
+      //   key="download"
+      //   href={`${process.env.SITE_URL}/api/image/${encodedImageUrl}?download=true`}
+      // >
+      //   Download
+      // </Button.Link>,
       <Button.Link
         key="share"
         href={
@@ -112,6 +111,7 @@ app.frame(framePath + '/share/:hash', async (c) => {
   }
   const encodedImageUrl = await getEncodedImageUrlFromHash(hash);
 
+  // TODO browserLocationとボタンの文言を変える
   return c.res({
     image: `/api/image/${encodedImageUrl}`,
     browserLocation: `https://warpcast.com/cardgamemaster/0xfb9874ec`,
@@ -151,15 +151,28 @@ app.castAction(
     const data = await res.json();
 
     // get image url
-    const media = data.cast.embeds;
-    const mediaUrl = media[0]?.url;
+    // const media = data.cast.embeds;
+    // const mediaUrl = media[0]?.url;
 
-    if (!mediaUrl) {
+    // if (!mediaUrl) {
+    //   return c.res({
+    //     type: 'message',
+    //     message: 'Media URL Not Found',
+    //   });
+    // }
+
+    // Joker Frame → I Want Youへのアップデート対応　start
+
+    const pfp_url = data.cast.author.pfp_url;
+    if (!pfp_url) {
       return c.res({
         type: 'message',
-        message: 'Media URL Not Found',
+        message: 'PFP URL Not Found',
       });
     }
+    const mediaUrl = pfp_url;
+    // Joker Frame → I Want Youへのアップデート対応　end
+
     console.timeEnd('Fetch cast data');
 
     console.time('Check format and get ogp image');
@@ -196,7 +209,13 @@ app.castAction(
       path: framePath + '/' + castHash,
     });
   },
-  { name, icon: 'image', description: 'Create a Your Joker Card' },
+  // TODO Descriptionを変える
+  {
+    name,
+    icon: 'image',
+    description:
+      "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+  },
 );
 
 const getImageUrl = async (mediaUrl: string): Promise<string | null> => {

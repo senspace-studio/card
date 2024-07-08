@@ -183,37 +183,21 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
         Rareness rareness,
         uint256 weight
     ) public onlyOwner {
-        for (uint256 i = 0; i < series.length; i++) {
-            require(
-                series[i].tokenId != tokenId,
-                'Gasha: tokenId is already exist'
-            );
-        }
         series.push(SeriesItem(tokenId, rareness, weight, false));
 
         emit SetNewSeriesItem(tokenId, weight, rareness);
     }
 
-    function activateSeriesItem(uint256 tokenId) public onlyOwner {
-        for (uint256 i = 0; i < series.length; i++) {
-            if (series[i].tokenId == tokenId) {
-                series[i].isActive = true;
-                break;
-            }
-        }
+    function activateSeriesItem(uint256 index) public onlyOwner {
+        series[index].isActive = true;
 
-        emit ActivateSeriesItem(tokenId);
+        emit ActivateSeriesItem(index);
     }
 
-    function deactivateSeriesItem(uint256 tokenId) public onlyOwner {
-        for (uint256 i = 0; i < series.length; i++) {
-            if (series[i].tokenId == tokenId) {
-                series[i].isActive = false;
-                break;
-            }
-        }
+    function deactivateSeriesItem(uint256 index) public onlyOwner {
+        series[index].isActive = false;
 
-        emit DeactivateSeriesItem(tokenId);
+        emit DeactivateSeriesItem(index);
     }
 
     function resetSeed(uint256 newSeed) external onlyOwner {

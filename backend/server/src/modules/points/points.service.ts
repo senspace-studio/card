@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { zeroAddress } from 'viem';
@@ -7,14 +7,19 @@ import * as dayjs from 'dayjs';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import {
   INVITATION_CONTRACT_ADDRESS,
+  STREAM_SCORING_CRON_EXPRESSION,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient from 'src/lib/thirdweb-engine';
 import { ViemService } from '../viem/viem.service';
 import { S_VIP_ADDRESSES } from 'src/constants/Invitation';
+import parser from 'cron-parser';
+const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
 export class PointsService {
+  private readonly logger = new Logger(PointsService.name);
+
   constructor(
     @InjectRepository(HeatScoreEntity)
     private readonly heatscoreRepository: Repository<HeatScoreEntity>,
@@ -106,20 +111,19 @@ export class PointsService {
       },
     )) as any;
 
-    const timestampByBlockNumber = {} as Record<number, number>;
+    const blockRangeOfDays = await this.getBlockRangeOfDays(
+      startDateUnix,
+      endDateUnix,
+    );
 
     const gameRevealedlogs = await Promise.all(
       gameData.result.map(async (r) => {
-        let timestamp = timestampByBlockNumber[r.transaction.blockNumber];
-        if (!timestamp) {
-          timestamp = Number(
-            await this.viemService.getBlockTimestampByBlockNumber(
-              r.transaction.blockNumber,
-            ),
-          );
-          timestampByBlockNumber[r.transaction.blockNumber] = timestamp;
-        }
-        return { ...r.data, timestamp };
+        const date = blockRangeOfDays.find(
+          (b) =>
+            b.startBlockNumber <= r.transaction.blockNumber &&
+            b.endBlockNumber >= r.transaction.blockNumber,
+        )?.date;
+        return { ...r.data, date };
       }) as GameRevealedEventLog[],
     );
 
@@ -159,39 +163,44 @@ export class PointsService {
       },
     )) as any;
 
-    const timestampByBlockNumber = {} as Record<number, number>;
+    const blockRangeOfDays = await this.getBlockRangeOfDays(
+      startDateUnix,
+      endDateUnix,
+    );
 
     const inviteLogs = await Promise.all(
       inviteData.result.map(async (r) => {
-        let timestamp = timestampByBlockNumber[r.transaction.blockNumber];
-        if (!timestamp) {
-          timestamp = Number(
-            await this.viemService.getBlockTimestampByBlockNumber(
-              r.transaction.blockNumber,
-            ),
-          );
-          timestampByBlockNumber[r.transaction.blockNumber] = timestamp;
-        }
-        return { ...r.data, tokenId: Number(r.data.tokenId.hex), timestamp };
+        const date = blockRangeOfDays.find(
+          (b) =>
+            b.startBlockNumber <= r.transaction.blockNumber &&
+            b.endBlockNumber >= r.transaction.blockNumber,
+        )?.date;
+        return {
+          ...r.data,
+          tokenId: Number(r.data.tokenId.hex),
+          date,
+          blockNumber: r.transaction.blockNumber,
+        };
       }) as TransferEventLog[],
     ).then((logs) => {
       logs = logs.filter(
         (log) => log.from !== zeroAddress && log.to !== zeroAddress,
       );
+
       const uniqueTransferLogs = new Map<number, TransferEventLog>();
       for (const log of logs) {
         if (
-          (log.from !== zeroAddress &&
-            log.to !== zeroAddress &&
-            !S_VIP_ADDRESSES.includes(log.to.toLowerCase()) &&
-            !uniqueTransferLogs.has(log.tokenId)) ||
-          log.timestamp < uniqueTransferLogs.get(log.tokenId)?.timestamp
+          log.from !== zeroAddress &&
+          log.to !== zeroAddress &&
+          !S_VIP_ADDRESSES.includes(log.to.toLowerCase()) &&
+          (!uniqueTransferLogs.has(log.tokenId) ||
+            log.blockNumber < uniqueTransferLogs.get(log.tokenId)?.blockNumber)
         ) {
           uniqueTransferLogs.set(log.tokenId, log);
         }
       }
       logs = Array.from(uniqueTransferLogs.values())
-        .sort((a, b) => a.timestamp - b.timestamp)
+        .sort((a, b) => a.blockNumber - b.blockNumber)
         .filter(
           (log, index, self) =>
             index === self.findIndex((l) => l.to === log.to),
@@ -233,7 +242,7 @@ export class PointsService {
         );
         const decayMultiplier = this.decayMultiplier(
           baseUnixtime,
-          eventLog.timestamp,
+          eventLog.date,
         );
 
         return acc + resultMultiplier * roleMultiplier * decayMultiplier;
@@ -261,23 +270,23 @@ export class PointsService {
   }
 
   private roleMultiplier(winner: string, player: string) {
-    return winner === player ? 1.2 : 1;
+    return winner === player ? 1.5 : 1;
   }
 
   private resultMultiplier(winner: string, player: string) {
-    return winner === zeroAddress ? 1 : winner === player ? 1.5 : 0.8;
+    return winner === zeroAddress ? 0.3 : winner === player ? 3 : 0.3;
   }
 
-  private decayMultiplier(baseUnixtime: number, timestamp: number) {
-    const daysElapsed = Math.floor((baseUnixtime - timestamp) / 86400);
+  private decayMultiplier(baseUnixtime: number, date: number) {
+    const daysElapsed = Math.floor((baseUnixtime - date) / 86400);
     return Math.max(0, 1 - 0.25 * (daysElapsed - 1));
   }
 
   private matchCountMultiplier(totalMatches: number) {
     if (totalMatches <= 50) {
-      return 1 + totalMatches / 50;
+      return 1 + totalMatches / 50 / 4;
     } else {
-      return Math.min(2 + (totalMatches - 50) / 50, 3);
+      return Math.min(1 + (totalMatches - 35) / 50, 2);
     }
   }
 
@@ -329,20 +338,13 @@ export class PointsService {
         const playCountBonus = this.referralPlayCountBonus(playCount);
 
         // 基準日以前にTransferされた場合は、基準日に合わせる
-        const eventTimestamp =
-          eventLog.timestamp < 1718798400 ? 1718798400 : eventLog.timestamp;
+        const eventDate =
+          eventLog.date < 1718798400 ? 1718798400 : eventLog.date;
+
         const decayMultiplier = this.referralDecay(
-          dayjs(baseUnixtime).diff(eventTimestamp, 'days'),
+          dayjs(baseUnixtime * 1000).diff(dayjs(eventDate * 1000), 'days'),
           maxDays,
           decayRate,
-        );
-
-        console.log(
-          player,
-          invitee,
-          playCount,
-          playCountBonus,
-          decayMultiplier,
         );
 
         return acc + playCountBonus * decayMultiplier;
@@ -386,5 +388,110 @@ export class PointsService {
     }
 
     return Array.from(totalScore.entries());
+  }
+
+  async calcTotalScore(baseDate: dayjs.Dayjs) {
+    const startDate_game = baseDate.subtract(3, 'days');
+
+    const gameRevealedlogs = await this.getGameLogs(
+      startDate_game.unix(),
+      baseDate.unix(),
+    );
+
+    const warScore = this.calcWarScore(baseDate.unix(), gameRevealedlogs);
+
+    const startDate_invite =
+      baseDate.diff('2024-06-19', 'days') < 14
+        ? dayjs('2024-06-14')
+        : baseDate.subtract(14, 'days');
+
+    const inviteLogs = await this.getInviteLogs(
+      startDate_invite.unix(),
+      baseDate.unix(),
+    );
+
+    const inviteScore = this.calcReferralScore(
+      baseDate.unix(),
+      inviteLogs,
+      gameRevealedlogs,
+    );
+
+    const totalScore = this.sumScores([warScore, inviteScore]).filter(
+      ([_, score]) => score > 0,
+    );
+
+    return totalScore;
+  }
+
+  async executeScoring() {
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+    const baseDate = dayjs(currentCronDate);
+
+    const totalScore = await this.calcTotalScore(baseDate);
+
+    for (const [player, score] of totalScore) {
+      this.logger.log(`SaveScore: player ${player}, score ${score}`);
+      const exists = await this.heatscoreRepository.exists({
+        where: {
+          address: player,
+          date: baseDate.toDate(),
+        },
+      });
+      if (!exists) {
+        await this.heatscoreRepository.save({
+          address: player,
+          score: score,
+          date: baseDate.toDate(),
+        });
+      }
+    }
+  }
+
+  private async getBlockRangeOfDays(
+    startDateUnix: number,
+    endDateUnix: number,
+  ) {
+    const dateList: number[] = [];
+    // startDateUnixからendDateUnixまでの日付（YYYY/MM/DD）のユニークリストを作成取得
+    for (let i = startDateUnix; i <= endDateUnix; i += 86400) {
+      dateList.push(
+        dayjs(i * 1000)
+          .startOf('day')
+          .unix(),
+      );
+    }
+    // 各日付のブロック番号を取得
+    const blockNumberByDays: {
+      date: number;
+      startBlockNumber: number;
+      endBlockNumber;
+    }[] = [];
+    await Promise.all(
+      dateList.map(async (date) => {
+        const {
+          result: { blockNumber: startBlockNumber },
+        } = await (
+          await fetch(
+            `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${date}&closest=after`,
+          )
+        ).json();
+
+        const now = Math.ceil(new Date().getTime() / 1000) - 60;
+        const endOfDate = date + 86399 < now ? date + 86399 : now;
+        const {
+          result: { blockNumber: endBlockNumber },
+        } = await (
+          await fetch(
+            `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${endOfDate}&closest=after`,
+          )
+        ).json();
+        blockNumberByDays.push({ date, startBlockNumber, endBlockNumber });
+      }),
+    );
+
+    return blockNumberByDays;
   }
 }

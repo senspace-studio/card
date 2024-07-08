@@ -1,10 +1,6 @@
 import { zeroAddress } from 'viem';
 import { getGameRevealedLogs } from './batch';
-import { S3 } from 'aws-sdk';
-import { S3_BACKET_NAME } from './config';
 import { uploadS3 } from './utils/s3';
-
-const s3 = new S3();
 
 export const handler = async () => {
   try {
