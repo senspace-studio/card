@@ -1,4 +1,3 @@
-import { zeroAddress } from 'viem';
 import {
   getGameRevealedLogs,
   getInvivationTransferLogs,
@@ -51,8 +50,8 @@ export const handler = async () => {
 
         const playCount = gameLogs.filter(
           (gameLog) =>
-            gameLog.maker.toLowerCase() === invitee ||
-            gameLog.challenger.toLowerCase() === invitee,
+            gameLog.data.maker.toLowerCase() === invitee ||
+            gameLog.data.challenger.toLowerCase() === invitee,
         ).length;
 
         return acc + playCount;
@@ -73,6 +72,7 @@ export const handler = async () => {
       'calcInvitationBattles/result.json',
     );
   } catch (error) {
+    console.log(error);
     // ToDo: webhook
   }
 };

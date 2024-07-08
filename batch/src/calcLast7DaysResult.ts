@@ -4,7 +4,8 @@ import { uploadS3 } from './utils/s3';
 
 export const handler = async () => {
   try {
-    const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
+    // const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
+    const currentUnixTime = 1720397713;
 
     const startDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
     const logs = await getGameRevealedLogs(startDateUnix, currentUnixTime);
@@ -17,7 +18,9 @@ export const handler = async () => {
       }
     };
 
-    for (const { data: { maker, challenger, winner } } of logs) {
+    for (const {
+      data: { maker, challenger, winner },
+    } of logs) {
       if (!resultJson[maker]) {
         init(maker);
       }
@@ -35,8 +38,12 @@ export const handler = async () => {
         resultJson[challenger].win++;
       }
     }
-    const result: { address: string; win: number; lose: number; draw: number }[] =
-      [];
+    const result: {
+      address: string;
+      win: number;
+      lose: number;
+      draw: number;
+    }[] = [];
     for (const address in resultJson) {
       if (address !== zeroAddress) {
         result.push({ address, ...resultJson[address] });

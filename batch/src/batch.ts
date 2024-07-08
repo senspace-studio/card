@@ -109,14 +109,14 @@ export const getGameRevealedLogs = async (
   startDateUnix: number,
   endDateUnix: number,
 ) => {
-  const allLogs = await getContractEventLogs(
+  const allLogs = await getContractEventLogs<GameRevealedEventLog>(
     WAR_CONTRACT_ADDRESS,
     'GameRevealed',
     startDateUnix,
     endDateUnix,
   );
 
-  return allLogs.map((log) => log.data) as GameRevealedEventLog[];
+  return allLogs;
 };
 
 export const getInvivationTransferLogs = async (

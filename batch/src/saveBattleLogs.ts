@@ -3,6 +3,8 @@ import { Address, zeroAddress } from 'viem';
 import { degenClient, getGameRevealedLogs } from './batch';
 import { BattleData } from './type';
 import { uploadS3 } from './utils/s3';
+import dayjs from 'dayjs';
+import { sendErrorNotification } from './utils/ifttt';
 
 /**
  * 3 AM UTCを基準に過去23:59:59 の実績を参照
@@ -13,20 +15,28 @@ import { uploadS3 } from './utils/s3';
 export const handler = async (year: number, month: number, day: number) => {
   try {
     const startdate = Math.floor(Date.UTC(year, month - 1, day - 1, 3) / 1e3);
-    const enddate = startdate + (24 * 60 * 60);
+    const enddate = startdate + 24 * 60 * 60;
     const datas: BattleData[] = [];
     const logs = await getGameRevealedLogs(startdate, enddate);
     const timestampMap: { [blockNumber: string]: string } = {};
     for (const log of logs) {
       const blockNumber = log.transaction.blockNumber as number;
       if (!timestampMap[`${blockNumber}`]) {
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 10; i++) {
           try {
-            const block = await degenClient.getBlock({ blockNumber: BigInt(blockNumber) });
-            timestampMap[blockNumber] = new Date(Number(block.timestamp) * 1e3).toISOString();
+            const block = await degenClient.getBlock({
+              blockNumber: BigInt(blockNumber),
+            });
+            timestampMap[blockNumber] = new Date(
+              Number(block.timestamp) * 1e3,
+            ).toISOString();
             break;
           } catch (error) {
+            if (i === 9) {
+              throw new Error('Block Number api error');
+            }
             console.log(`api error count ${i}`);
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }
       }
@@ -34,11 +44,12 @@ export const handler = async (year: number, month: number, day: number) => {
       const maker = log.data.maker as Address;
       const challenger = log.data.challenger as Address;
       const winner = log.data.winner as Address;
-      const loser = 
+      const loser =
         winner === zeroAddress
-        ? zeroAddress
-        : winner === maker
-        ? challenger : maker;
+          ? zeroAddress
+          : winner === maker
+          ? challenger
+          : maker;
       const isDraw = winner === zeroAddress;
       const info = {
         gameId,
@@ -52,15 +63,13 @@ export const handler = async (year: number, month: number, day: number) => {
       };
       datas.push(info);
     }
-    // console.log(datas);
+
     await uploadS3(
-      datas,
-      `battle/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
+      { data: datas, startdate, enddate },
+      `battle/${dayjs(startdate * 1e3).format('YYYY-MM-DD')}.json`,
     );
-  } catch (error) {
-    console.log(error);
-    // ToDo: Discord webhook
+  } catch (error: any) {
+    console.error(error);
+    await sendErrorNotification(error);
   }
-  // 3AM UTC
-}
-// handler(2024, 6, 25);
+};
