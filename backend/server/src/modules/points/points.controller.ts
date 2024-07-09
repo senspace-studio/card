@@ -53,10 +53,12 @@ export class PointsController {
   }
 
   @Get('/execute-scoring')
-  async executeScoring() {
+  async executeScoring(@Query('end_date_unix') endDateUnixMilli: number) {
     this.logger.log('update score');
     try {
-      await this.pointsService.executeScoring();
+      await this.pointsService.executeScoring(
+        endDateUnixMilli && Number(endDateUnixMilli),
+      );
       return 'success';
     } catch (error) {
       throw new Error(error);
