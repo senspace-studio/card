@@ -423,12 +423,12 @@ export class PointsService {
     return totalScore;
   }
 
-  async executeScoring() {
+  async executeScoring(unixTimeMilli?: number) {
     const currentCronDate = cronParser
       .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
       .prev()
       .toDate();
-    const baseDate = dayjs(currentCronDate);
+    const baseDate = dayjs(unixTimeMilli || currentCronDate);
 
     const totalScore = await this.calcTotalScore(baseDate);
 
