@@ -72,13 +72,23 @@ stackApp.frame('/', async (c) => {
 
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
 
-  const res = await fetch(`${BACKEND_URL}/points/total`);
+  const date = 1720321201000;
+  const rewardAmount = 3500;
+  const totalRewardAmount = 1000000;
+  const rewardShare = 0.35;
 
-  const { totalScore } = await res.json();
+  const params = encodeURI(
+    JSON.stringify({
+      date,
+      rewardAmount,
+      totalRewardAmount,
+      rewardShare,
+    }),
+  );
 
   return c.res({
     title,
-    image: `/stack/image/${(Number(totalScore || 0) * 100).toFixed(0)}`,
+    image: `/stack/image/rewards/${params}`,
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/leaderboard">Leader Board</Button>,
@@ -151,40 +161,137 @@ stackApp.frame('/leaderboard-invitation', async (c) => {
   });
 });
 
-stackApp.hono.get('/image/:score', async (c) => {
-  const params = c.req.param();
-  const score = Number(params.score);
+stackApp.hono.get('/image/rewards/:params', async (c) => {
+  const { params } = c.req.param();
+  const { date, rewardAmount, totalRewardAmount, rewardShare } = JSON.parse(
+    decodeURIComponent(params),
+  );
 
-  let bgPath = './public/images/stack/stack_1.png';
-  if (score > 100000) {
-    bgPath = './public/images/stack/stack_2.png';
-  } else if (score > 300000) {
-    bgPath = './public/images/stack/stack_3.png';
-  }
+  console.log(date);
 
-  const canvas = sharp(bgPath).resize(1000, 1000);
+  const canvas = sharp('./public/images/stack/rewards.png').resize(1000, 1000);
 
-  const scoreImage = await sharp({
-    text: {
-      text: `<span foreground="#dbb930" letter_spacing="1000">${Number(
-        score,
-      ).toLocaleString()}</span>`,
-      font: 'Bigelow Rules',
-      fontfile: './public/fonts/BigelowRules-Regular.ttf',
-      rgba: true,
-      width: 550,
-      height: 90,
-      align: 'left',
-    },
-  })
-    .png()
-    .toBuffer();
+  const [
+    dateImage,
+    scoreImage,
+    scoreUnitImage,
+    ticketSymbolImage,
+    totalRewardImage,
+    rewardShareImage,
+    updatedAtImage,
+  ] = await Promise.all([
+    sharp({
+      text: {
+        text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
+          Number(date),
+        ).format('M/D/YYYY')}</span>`,
+        rgba: true,
+        width: 550,
+        height: 20,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${Number(
+          rewardAmount,
+        ).toLocaleString()}</span>`,
+        rgba: true,
+        width: 550,
+        height: 60,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">DEGEN</span>`,
+        rgba: true,
+        width: 550,
+        height: 45,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp('./public/images/stack/degen-degen.png').png().toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${Number(
+          totalRewardAmount,
+        ).toLocaleString()}</span>`,
+        rgba: true,
+        width: 550,
+        height: 40,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardShare}%</span>`,
+        rgba: true,
+        width: 550,
+        height: 30,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
+          date,
+        ).format('M/D')} 4:00 (UTC)</span>`,
+        rgba: true,
+        width: 550,
+        height: 20,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+  ]);
 
   canvas.composite([
     {
+      input: dateImage,
+      left: 240,
+      top: 450,
+    },
+    {
       input: scoreImage,
-      left: 80,
-      top: 160,
+      left: 380,
+      top: 435,
+    },
+    {
+      input: scoreUnitImage,
+      left: 565,
+      top: 440,
+    },
+    {
+      input: ticketSymbolImage,
+      left: 340,
+      top: 635,
+    },
+    {
+      input: totalRewardImage,
+      left: 410,
+      top: 635,
+    },
+    {
+      input: rewardShareImage,
+      left: 450,
+      top: 760,
+    },
+    {
+      input: updatedAtImage,
+      left: 500,
+      top: 953,
     },
   ]);
 
