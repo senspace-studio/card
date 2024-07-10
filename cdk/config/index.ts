@@ -34,6 +34,7 @@ export function getConfig(stage: string) {
         erc1155: process.env.CONTRACT_ADDRESS_ERC1155!,
         war: process.env.CONTRACT_ADDRESS_WAR!,
         invitation: process.env.CONTRACT_ADDRESS_INVITATION_NFT!,
+        stack_variables: process.env.CONTRACT_ADDRESS_STACK_VARIABLES!,
       },
     },
     stream: {
@@ -58,6 +59,10 @@ export function getConfig(stage: string) {
     backend: {
       url: process.env.BACKEND_URL!,
       node_env: process.env.BACKEND_NODE_ENV!,
+      scoring_algorithm_id: process.env.SCORING_ALGORITHM_ID!,
+    },
+    ifttt: {
+      webhook_url: process.env.IFTTT_WEBHOOK_URL!,
     },
   };
 }
