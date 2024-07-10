@@ -47,9 +47,14 @@ export class BatchStack extends Stack {
       WAR_CONTRACT_ADDRESS: config.blockchain.contract_addresses.war,
       INVITATION_CONTRACT_ADDRESS:
         config.blockchain.contract_addresses.invitation,
+      STACK_VARIABLES_CONTRACT_ADDRESS:
+        config.blockchain.contract_addresses.stack_variables,
+      BLOCKCHAIN_API_DEGEN: config.blockchain.rpc_endpoint,
       S3_BACKET_NAME: bucket.bucketName,
       API_ENDPOINT: config.backend.url,
       IFTTT_WEBHOOK_URL: config.ifttt.webhook_url,
+      NODE_ENV: 'production',
+      STACK_ALGORITHM: config.backend.scoring_algorithm_id,
     };
 
     // 過去7日間の試合結果を計算してS3に保存するバッチ
@@ -131,12 +136,111 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-saveBattleLogsRule`,
       {
-        schedule: events.Schedule.cron({ minute: '58' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '0' }),
       },
     );
 
     saveBattleLogsRule.addTarget(
       new targets.LambdaFunction(saveBattleLogsFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
+    );
+
+    // 当日の招待ログをS3に保存するバッチ
+    const saveInvitationLogsFunction = new lambdaNodeJs.NodejsFunction(
+      this,
+      `${config.stage}-${config.serviceName}-saveInvitationLogs`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: '../batch/src/saveInvitationLogs.ts',
+        depsLockFilePath: '../batch/package-lock.json',
+        timeout: Duration.minutes(5),
+        memorySize: 1024,
+        environment: envVars,
+      },
+    );
+
+    bucket.grantReadWrite(saveInvitationLogsFunction);
+
+    const saveInvitationLogsRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-saveInvitationLogsRule`,
+      {
+        schedule: events.Schedule.cron({ hour: '4', minute: '5' }),
+      },
+    );
+
+    saveInvitationLogsRule.addTarget(
+      new targets.LambdaFunction(saveInvitationLogsFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
+    );
+
+    // 当日のスタックポイントをS3に保存するバッチ
+    const saveIndividualStackDataFunction = new lambdaNodeJs.NodejsFunction(
+      this,
+      `${config.stage}-${config.serviceName}-saveIndividualStackData`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: '../batch/src/saveIndividualStackData.ts',
+        depsLockFilePath: '../batch/package-lock.json',
+        timeout: Duration.minutes(5),
+        memorySize: 1024,
+        environment: envVars,
+      },
+    );
+
+    bucket.grantReadWrite(saveIndividualStackDataFunction);
+
+    const saveIndividualStackDataRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-saveIndividualStackDataRule`,
+      {
+        schedule: events.Schedule.cron({ hour: '4', minute: '0' }),
+      },
+    );
+
+    saveIndividualStackDataRule.addTarget(
+      new targets.LambdaFunction(saveIndividualStackDataFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
+    );
+
+    // 当日のリワードデータをS3に保存するバッチ
+    const saveRewardHistoryDataFunction = new lambdaNodeJs.NodejsFunction(
+      this,
+      `${config.stage}-${config.serviceName}-saveRewardHistoryData`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: '../batch/src/saveRewardHistoryData.ts',
+        depsLockFilePath: '../batch/package-lock.json',
+        timeout: Duration.minutes(5),
+        memorySize: 1024,
+        environment: envVars,
+      },
+    );
+
+    bucket.grantReadWrite(saveRewardHistoryDataFunction);
+
+    const saveRewardHistoryDataRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-saveRewardHistoryDataRule`,
+      {
+        schedule: events.Schedule.cron({ hour: '4', minute: '10' }),
+      },
+    );
+
+    saveRewardHistoryDataRule.addTarget(
+      new targets.LambdaFunction(saveRewardHistoryDataFunction, {
         event: events.RuleTargetInput.fromObject({
           time: events.EventField.time,
         }),

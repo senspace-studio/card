@@ -32,6 +32,18 @@ export const handler = async (event: EventBridgeInput) => {
     const startDate = endDate - 24 * 60 * 60;
     const beforedate = startDate - 24 * 60 * 60;
 
+    if (
+      history.find(
+        (h) =>
+          h.date ===
+          `${dayjs(startDate * 1e3)
+            .add(1, 'day')
+            .format('YYYY-MM-DD')}`,
+      )
+    ) {
+      return;
+    }
+
     const [calcuratedScores, battleLogs] = await Promise.all([
       fetch(
         `${API_ENDPOINT}/points/calcurate-score?end_date_unix=${endDate * 1e3}`,
