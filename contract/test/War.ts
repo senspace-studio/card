@@ -49,16 +49,16 @@ describe('War without betting', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -210,16 +210,16 @@ describe('War with betting native token', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -420,16 +420,16 @@ describe('Make two games with the same combination', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -637,16 +637,16 @@ describe('draw game', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -799,16 +799,16 @@ describe('One side abstains', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -972,16 +972,16 @@ describe('Both sides abstain', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -1157,16 +1157,16 @@ describe('Game expire', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 
@@ -1310,16 +1310,16 @@ describe('Request challenge', () => {
           tx = await Gasha.setNewSeriesItem(tokenId, 0, 87);
           await tx.wait();
           break;
-        case tokenId < 13:
+        case tokenId < 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 1, 40);
           await tx.wait();
           break;
-        case tokenId == 13:
+        case tokenId == 14:
           tx = await Gasha.setNewSeriesItem(tokenId, 2, 10);
           await tx.wait();
           break;
       }
-      tx = await Gasha.activateSeriesItem(tokenId);
+      tx = await Gasha.activateSeriesItem(tokenId - 1);
       await tx.wait();
     }
 

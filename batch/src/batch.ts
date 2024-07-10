@@ -1,8 +1,18 @@
 import 'dotenv/config';
-import { zeroAddress } from 'viem';
+import { Chain, createPublicClient, http, zeroAddress } from 'viem';
+import { degen } from 'viem/chains';
 import tweClient from './thirdweb-engine';
-import { INVITATION_CONTRACT_ADDRESS, WAR_CONTRACT_ADDRESS } from './config';
+import {
+  BLOCKCHAIN_API_DEGEN,
+  INVITATION_CONTRACT_ADDRESS,
+  WAR_CONTRACT_ADDRESS,
+} from './config';
 import { S_VIP_ADDRESSES } from './constants/vip';
+
+export const degenClient = createPublicClient({
+  chain: { ...degen, fees: { baseFeeMultiplier: 1.25 } } as Chain,
+  transport: http(BLOCKCHAIN_API_DEGEN),
+});
 
 export type GameRevealedEventLog = {
   gameId: string;
@@ -18,13 +28,18 @@ export type TransferEventLog = {
   blockNumber: number;
 };
 
-const getBlockNumberFromTimestamp = async (timestamp: number) => {
+const getBlockNumberFromTimestamp = async (
+  timestamp: number,
+  closest: 'before' | 'after',
+) => {
   const res = await fetch(
-    `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=after`,
+    `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${timestamp}&closest=${closest}`,
   );
+  const resJson = (await res.json()) as { result: { blockNumber: string } };
+  console.log(resJson);
   const {
     result: { blockNumber },
-  } = (await res.json()) as { result: { blockNumber: string } };
+  } = resJson;
   return blockNumber;
 };
 
@@ -35,8 +50,8 @@ const getContractEventLogs = async <E>(
   endDateUnix: number,
 ) => {
   const [fromBlock, toBlock] = await Promise.all([
-    getBlockNumberFromTimestamp(startDateUnix),
-    getBlockNumberFromTimestamp(endDateUnix),
+    getBlockNumberFromTimestamp(startDateUnix, 'after'),
+    getBlockNumberFromTimestamp(endDateUnix, 'before'),
   ]);
   const res = (await tweClient.POST(
     '/contract/{chain}/{contractAddress}/events/get',
@@ -60,26 +75,48 @@ const getContractEventLogs = async <E>(
   }: {
     result: {
       eventName: string;
-      data: any;
+      data: E;
       transaction: any;
     }[];
   } = res.data;
-
-  return result;
+  // 古いログが小さいインデックス
+  return result.reverse().map((r) => ({ ...r })) as unknown as {
+    eventName: string;
+    data: E;
+    transaction: any;
+    // transaction: {
+    //   blockNumber: 23244908,
+    //   blockHash: '0x1fe272bc8733648cf8f7e51fb6acde0cf102827dca6e21b4a627459a71946ac1',
+    //   transactionIndex: 1,
+    //   removed: false,
+    //   address: '0xedCB16F9abA99F564B02c8f37a138317583D11a8',
+    //   data: '0x000000000000000000000000777ee5eeed30c3712bee6c83260d786857d9c556',
+    //   topics: [
+    //     '0xc1fa908c623b30abe36f5fe369b6a002b2afaacecc76d317fc070bdd87ea7969',
+    //     '0xe18439095793214a000000000000000000000000000000000000000000000000',
+    //     '0x000000000000000000000000dcb93093424447bf4fe9df869750950922f1e30b',
+    //     '0x000000000000000000000000777ee5eeed30c3712bee6c83260d786857d9c556'
+    //   ],
+    //   transactionHash: '0x501fbf8d19804b5f49d25bd6a2aeecdd0f3a96b9d3b810ecba7aeb08b65448a2',
+    //   logIndex: 3,
+    //   event: 'GameRevealed',
+    //   eventSignature: 'GameRevealed(bytes8,address,address,address)'
+    // }
+  }[];
 };
 
 export const getGameRevealedLogs = async (
   startDateUnix: number,
   endDateUnix: number,
 ) => {
-  const allLogs = await getContractEventLogs(
+  const allLogs = await getContractEventLogs<GameRevealedEventLog>(
     WAR_CONTRACT_ADDRESS,
     'GameRevealed',
     startDateUnix,
     endDateUnix,
   );
 
-  return allLogs.map((log) => log.data) as GameRevealedEventLog[];
+  return allLogs;
 };
 
 export const getInvivationTransferLogs = async (
@@ -105,16 +142,17 @@ export const getInvivationTransferLogs = async (
       log.data.from !== zeroAddress &&
       log.data.to !== zeroAddress &&
       !S_VIP_ADDRESSES.includes(log.data.to.toLowerCase()) &&
-      (!uniqueTransferLogs.has(log.data.tokenId.hex) ||
+      (!uniqueTransferLogs.has(Number(BigInt(log.data.tokenId.hex))) ||
         log.transaction.blockNumber <
           Number(
-            uniqueTransferLogs.get(log.data.tokenId.hex)?.blockNumber || 0,
+            uniqueTransferLogs.get(Number(BigInt(log.data.tokenId.hex)))
+              ?.blockNumber || 0,
           ))
     ) {
-      uniqueTransferLogs.set(log.data.tokenId.hex, {
+      uniqueTransferLogs.set(Number(BigInt(log.data.tokenId.hex)), {
         from: log.data.from,
         to: log.data.to,
-        tokenId: log.data.tokenId.hex,
+        tokenId: log.data.tokenId,
         blockNumber: log.transaction.blockNumber,
       });
     }
