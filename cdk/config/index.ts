@@ -59,5 +59,8 @@ export function getConfig(stage: string) {
       url: process.env.BACKEND_URL!,
       node_env: process.env.BACKEND_NODE_ENV!,
     },
+    ifttt: {
+      webhook_url: process.env.IFTTT_WEBHOOK_URL!,
+    },
   };
 }

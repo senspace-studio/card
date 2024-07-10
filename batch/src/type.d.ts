@@ -4,13 +4,13 @@ import { Address } from 'viem';
 export type BattleData = {
   gameId: string;
   maker: `0x${string}`;
-  challenger: Address,
-  winner: Address,
+  challenger: Address;
+  winner: Address;
   loser: Address;
   isDraw: boolean;
   createdBlockNumber: number;
   createdAt: string; // '2024-07-03T18:45:30.123Z'
-}
+};
 
 // InvitationTransfer Data (日付ごとに別ファイル)
 export type InvitationTransferData = {
@@ -19,7 +19,7 @@ export type InvitationTransferData = {
   tokenId: number;
   createdBlockNumber: number;
   createdAt: string; // '2024-07-03T15:30:00Z'
-}
+};
 
 // Individual Stack Data (日付ごとに別ファイル)
 export type IndividualStackData = {
@@ -29,7 +29,7 @@ export type IndividualStackData = {
     address: Address;
     score: number;
   }[];
-}
+};
 
 // Reward History Data (一つのファイル)
 export type RewardHistoryData = {
@@ -38,4 +38,8 @@ export type RewardHistoryData = {
   bonusMultiplier: number;
   totalStack: number;
   date: string; // '2024/07/03'
-}
+};
+
+export type EventBridgeInput = {
+  time: string;
+};

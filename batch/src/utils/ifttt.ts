@@ -1,6 +1,8 @@
-export const sendErrorNotification = async (error: Error) => {
+import { IFTTT_WEBHOOK_URL } from '../config';
+
+export const sendErrorNotification = async (name: string, error: Error) => {
   await fetch(
-    `https://maker.ifttt.com/trigger/Data_Flow_BatchError/with/key/dqfQO2K2rgvDK2Cq6pwo03?value1=SaveBattleLogs&value2=${encodeURIComponent(
+    `${IFTTT_WEBHOOK_URL}?value1=${name}&value2=${encodeURIComponent(
       JSON.stringify(error),
     )}`,
   );

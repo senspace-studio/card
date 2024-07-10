@@ -20,3 +20,4 @@ export const S3_ENDPOINT = process.env.S3_ENDPOINT || '';
 export const S3_ACCESSKEY = process.env.S3_ACCESSKEY || '';
 export const S3_SECRET_ACCESSKEY = process.env.S3_SECRET_ACCESSKEY || '';
 export const NODE_ENV = process.env.NODE_ENV || 'development';
+export const IFTTT_WEBHOOK_URL = process.env.IFTTT_WEBHOOK_URL || '';

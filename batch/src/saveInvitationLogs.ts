@@ -1,39 +1,65 @@
 import 'dotenv/config';
-import { degenClient, getInvivationTransferLogs } from './batch';
-import { InvitationTransferData } from './type';
+import {
+  degenClient,
+  getInvivationTransferLogs,
+  TransferEventLog,
+} from './batch';
+import { EventBridgeInput, InvitationTransferData } from './type';
 import { Address } from 'viem';
-import { uploadS3 } from './utils/s3';
+import { getFileFromS3, uploadS3 } from './utils/s3';
+import { sendErrorNotification } from './utils/ifttt';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-/**
- * 3 AM UTCを基準に過去23:59:59 の実績を参照
- * @param year (2024)年
- * @param month (7)月
- * @param day (1)日
- */
-export const handler = async (year: number, month: number, day: number) => {
+dayjs.extend(utc);
+
+export const handler = async (event: EventBridgeInput) => {
   try {
-    const startdate = Math.floor(Date.UTC(year, month - 1, day - 1, 3) / 1e3);
-    const enddate = startdate + (24 * 60 * 60);
+    const endDate = dayjs(event.time)
+      .utc()
+      .set('hours', 3)
+      .startOf('hours')
+      .unix();
+    const startDate = endDate - 24 * 60 * 60;
     const datas: InvitationTransferData[] = [];
-    const logs = await getInvivationTransferLogs(startdate, enddate);
+
+    const lastFile = await getFileFromS3('calcInvitationBattles/result.json');
+    const lastInvitations: TransferEventLog[] = lastFile
+      ? lastFile.invivations
+      : [];
+
+    const logs = await getInvivationTransferLogs(
+      startDate,
+      endDate,
+      lastInvitations,
+    );
     const timestampMap: { [blockNumber: string]: string } = {};
+
     for (const log of logs) {
-      const blockNumber = log.transaction.blockNumber as number;
+      const blockNumber = log.blockNumber as number;
       if (!timestampMap[`${blockNumber}`]) {
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 10; i++) {
           try {
-            const block = await degenClient.getBlock({ blockNumber: BigInt(blockNumber) });
-            timestampMap[blockNumber] = new Date(Number(block.timestamp) * 1e3).toISOString();
+            const block = await degenClient.getBlock({
+              blockNumber: BigInt(blockNumber),
+            });
+            timestampMap[blockNumber] = new Date(
+              Number(block.timestamp) * 1e3,
+            ).toISOString();
             break;
           } catch (error) {
+            if (i === 9) {
+              throw new Error('Block Number api error');
+            }
             console.log(`api error count ${i}`);
+            await new Promise((resolve) => setTimeout(resolve, 100));
           }
         }
       }
-  
-      const inviter = log.data.from as Address;
-      const invitee = log.data.to as Address;
-      const tokenId = Number(log.data.tokenId.hex);
+
+      const inviter = log.from as Address;
+      const invitee = log.to as Address;
+      const tokenId = Number(log.tokenId.hex);
       const info = {
         inviter,
         invitee,
@@ -45,12 +71,12 @@ export const handler = async (year: number, month: number, day: number) => {
     }
     // console.log(datas);
     await uploadS3(
-      datas,
-      `invite/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(-2)}.json`,
+      { datas, startDate, endDate },
+      `invite/${dayjs(startDate * 1e3).format('YYYY-MM-DD')}.json`,
     );
-  } catch (error) {
-    // ToDo: Discord webhook
-    console.log(error);
+  } catch (error: any) {
+    console.error(error);
+    await sendErrorNotification('SaveInvitationLogs', error);
   }
-}
+};
 // handler(2024, 6, 25);

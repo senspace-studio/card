@@ -1,22 +1,31 @@
 import 'dotenv/config';
 import { API_ENDPOINT, STACK_ALGORITHM } from './config';
-import { IndividualStackData } from './type';
+import { EventBridgeInput, IndividualStackData } from './type';
 import { Address } from 'viem';
 import { uploadS3 } from './utils/s3';
 import { sendErrorNotification } from './utils/ifttt';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-export const handler = async (year: number, month: number, day: number) => {
+dayjs.extend(utc);
+
+export const handler = async (event: EventBridgeInput) => {
   try {
-    const startdate = Math.floor(Date.UTC(year, month - 1, day - 1, 3) / 1e3);
-    const enddate = startdate + 24 * 60 * 60;
+    const endDate = dayjs(event.time)
+      .utc()
+      .set('hours', 3)
+      .startOf('hours')
+      .unix();
+    const startDate = endDate - 24 * 60 * 60;
     const res = await fetch(
-      `${API_ENDPOINT}/points/calcurate-score?end_date_unix=${enddate * 1e3}`,
+      `${API_ENDPOINT}/points/calcurate-score?end_date_unix=${endDate * 1e3}`,
     );
     const resData = (await res.json()) as [Address, number][];
     const algorithm = STACK_ALGORITHM;
     const data: IndividualStackData = {
-      date: `${dayjs(startdate * 1e3).format('YYYY-MM-DD')}`,
+      date: `${dayjs(startDate * 1e3)
+        .add(1, 'day')
+        .format('YYYY-MM-DD')}`,
       algorithm, // 'HC-01'
       data: [],
     };
@@ -26,14 +35,13 @@ export const handler = async (year: number, month: number, day: number) => {
     }
 
     await uploadS3(
-      data,
-      `individualStack/${year}${`00${month}`.slice(-2)}${`00${day}`.slice(
-        -2,
-      )}.json`,
+      { data, startDate, endDate },
+      `individualStack/${dayjs(startDate * 1e3)
+        .add(1, 'day')
+        .format('YYYY-MM-DD')}.json`,
     );
   } catch (error: any) {
     console.error(error);
-    await sendErrorNotification(error);
+    await sendErrorNotification('SaveIndividualStackData', error);
   }
 };
-// handler(2024, 6, 25);

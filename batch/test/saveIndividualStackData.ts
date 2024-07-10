@@ -1,3 +1,3 @@
 import { handler } from '../src/saveIndividualStackData';
 
-handler(2024, 7, 7);
+handler({ time: '2024-07-09T03:00:00Z' });

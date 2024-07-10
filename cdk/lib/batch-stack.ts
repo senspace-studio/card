@@ -48,8 +48,11 @@ export class BatchStack extends Stack {
       INVITATION_CONTRACT_ADDRESS:
         config.blockchain.contract_addresses.invitation,
       S3_BACKET_NAME: bucket.bucketName,
+      API_ENDPOINT: config.backend.url,
+      IFTTT_WEBHOOK_URL: config.ifttt.webhook_url,
     };
 
+    // 過去7日間の試合結果を計算してS3に保存するバッチ
     const calcLast7DaysResultFunction = new lambdaNodeJs.NodejsFunction(
       this,
       `${config.stage}-${config.serviceName}-calcLast7DaysResult`,
@@ -64,6 +67,21 @@ export class BatchStack extends Stack {
       },
     );
 
+    bucket.grantReadWrite(calcLast7DaysResultFunction);
+
+    const calcLast7DaysResultRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-calcLast7DaysResultRule`,
+      {
+        schedule: events.Schedule.cron({ hour: '0', minute: '15' }),
+      },
+    );
+
+    calcLast7DaysResultRule.addTarget(
+      new targets.LambdaFunction(calcLast7DaysResultFunction),
+    );
+
+    // 過去14日間の招待関連のデータを計算してS3に保存するバッチ
     const calcInvitationBattlesFunction = new lambdaNodeJs.NodejsFunction(
       this,
       `${config.stage}-${config.serviceName}-calcInvitationBattles`,
@@ -78,20 +96,7 @@ export class BatchStack extends Stack {
       },
     );
 
-    bucket.grantReadWrite(calcLast7DaysResultFunction);
     bucket.grantReadWrite(calcInvitationBattlesFunction);
-
-    const calcLast7DaysResultRule = new events.Rule(
-      this,
-      `${config.stage}-${config.serviceName}-calcLast7DaysResultRule`,
-      {
-        schedule: events.Schedule.cron({ hour: '0', minute: '15' }),
-      },
-    );
-
-    calcLast7DaysResultRule.addTarget(
-      new targets.LambdaFunction(calcLast7DaysResultFunction),
-    );
 
     const calcInvitationBattlesRule = new events.Rule(
       this,
@@ -103,6 +108,39 @@ export class BatchStack extends Stack {
 
     calcInvitationBattlesRule.addTarget(
       new targets.LambdaFunction(calcInvitationBattlesFunction),
+    );
+
+    // 当日の試合ログをS3に保存するバッチ
+    const saveBattleLogsFunction = new lambdaNodeJs.NodejsFunction(
+      this,
+      `${config.stage}-${config.serviceName}-saveBattleLogs`,
+      {
+        runtime: lambda.Runtime.NODEJS_20_X,
+        handler: 'handler',
+        entry: '../batch/src/saveBattleLogs.ts',
+        depsLockFilePath: '../batch/package-lock.json',
+        timeout: Duration.minutes(5),
+        memorySize: 1024,
+        environment: envVars,
+      },
+    );
+
+    bucket.grantReadWrite(saveBattleLogsFunction);
+
+    const saveBattleLogsRule = new events.Rule(
+      this,
+      `${config.stage}-${config.serviceName}-saveBattleLogsRule`,
+      {
+        schedule: events.Schedule.cron({ minute: '58' }),
+      },
+    );
+
+    saveBattleLogsRule.addTarget(
+      new targets.LambdaFunction(saveBattleLogsFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
     );
   }
 }
