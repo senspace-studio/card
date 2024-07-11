@@ -15,6 +15,7 @@ type State = {
   verifiedAddresses: `0x${string}`[];
   verifiedAddress: string;
   username: string;
+  pfpURL: string;
 };
 
 const title = 'Stack | House of Cardians';
@@ -41,7 +42,9 @@ stackApp.frame('/', async (c) => {
   let { verifiedAddress } = c.previousState;
 
   if (!verifiedAddress) {
-    const { verifiedAddresses, userName } = await getFarcasterUserInfo(fid);
+    const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
+      fid,
+    );
 
     if (!verifiedAddresses || verifiedAddresses.length === 0) {
       return c.res({
@@ -55,6 +58,7 @@ stackApp.frame('/', async (c) => {
     c.deriveState((prev) => {
       prev.verifiedAddress = verifiedAddresses[0];
       prev.username = userName;
+      prev.pfpURL = pfp_url;
     });
     verifiedAddress = verifiedAddresses[0];
 
@@ -91,9 +95,108 @@ stackApp.frame('/', async (c) => {
     image: `/stack/image/rewards/${params}`,
     imageAspectRatio: '1:1',
     intents: [
+      <Button action="/stats">Stats</Button>,
+      <Button.Link href={superFluidURL}>superfluid</Button.Link>,
       <Button action="/leaderboard">Leader Board</Button>,
-      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
       <Button action={`${BASE_URL}/top`}>Back</Button>,
+    ],
+  });
+});
+
+stackApp.frame('/stats', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
+  const { fid } = c.frameData!;
+  let { verifiedAddress } = c.previousState;
+
+  if (!verifiedAddress) {
+    const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
+      fid,
+    );
+
+    if (!verifiedAddresses || verifiedAddresses.length === 0) {
+      return c.res({
+        title,
+        image: '/images/verify.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action={BASE_URL}>Back</Button>],
+      });
+    }
+
+    c.deriveState((prev) => {
+      prev.verifiedAddress = verifiedAddresses[0];
+      prev.username = userName;
+      prev.pfpURL = pfp_url;
+    });
+    verifiedAddress = verifiedAddresses[0];
+
+    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
+
+    if (!hasInvitation) {
+      return c.res({
+        title,
+        image: '/images/war/no_invi.png',
+        imageAspectRatio: '1:1',
+        intents: [<Button action="/">Back</Button>],
+      });
+    }
+  }
+
+  const date = 1720494001000;
+  const dateFileKey = dayjs(date).format('YYYY-MM-DD') + '.json';
+
+  const resStack = await fetch(
+    `${resultS3URLBase}/individualStack/${dateFileKey}`,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  );
+  const dataStack = await resStack.json();
+  const totalStack = dataStack.data.data.reduce(
+    (acc: number, { score }: { score: number }) => acc + score,
+    0,
+  );
+  const userStack = dataStack.data.data.find(
+    ({ address }: { address: string }) =>
+      address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const rank = '1';
+  const name = c.previousState.username;
+  const pfpURL = encodeURIComponent(c.previousState.pfpURL);
+  const stats = {
+    rewardsAmount: '3500',
+    battleRecord: '10 / 2 / 3',
+    friendsPlays: '15',
+    rewardsShare: ((userStack.score / totalStack) * 100).toFixed(2),
+  };
+  const statsChange = {
+    rewardsAmountChange: '100',
+    battleRecordChange: '1 / 0 / 1',
+    friendsPlaysChange: '1',
+    rewardsShareChange: '0.01',
+  };
+
+  const params = {
+    rank,
+    name,
+    pfpURL,
+    date,
+    stats,
+    statsChange,
+  } as StatsImageParams;
+
+  return c.res({
+    title,
+    image: `/stack/image/stats/${encodeURIComponent(JSON.stringify(params))}`,
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/leaderboard">Leader Board</Button>,
+      <Button action="/top">Top</Button>,
+      <Button action="/">Back</Button>,
     ],
   });
 });
@@ -293,6 +396,287 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
       left: 500,
       top: 953,
     },
+  ]);
+
+  const png = await canvas.png().toBuffer();
+
+  return c.newResponse(png, 200, {
+    'Content-Type': 'image/png',
+    'Cache-Control': 'max-age=3600',
+  });
+});
+
+stackApp.hono.get('/image/stats/:params', async (c) => {
+  const { params } = c.req.param();
+
+  const {
+    rank,
+    name,
+    pfpURL,
+    date,
+    stats: { rewardsAmount, battleRecord, friendsPlays, rewardsShare },
+    statsChange: {
+      rewardsAmountChange,
+      battleRecordChange,
+      friendsPlaysChange,
+      rewardsShareChange,
+    },
+  } = JSON.parse(decodeURIComponent(params)) as StatsImageParams;
+
+  const canvas = sharp('./public/images/stack/stats.png').resize(1000, 1000);
+
+  const genPfP = async () => {
+    console.log(pfpURL);
+    const topPfpSize = 60;
+    const response = await fetch(pfpURL);
+    const pfpBuffer = await response.arrayBuffer();
+    const topCircleMask = Buffer.from(
+      `<svg><circle cx="${topPfpSize / 2}" cy="${topPfpSize / 2}" r="${
+        topPfpSize / 2
+      }" /></svg>`,
+    );
+    const topPfpImage = await sharp(pfpBuffer)
+      .resize(topPfpSize, topPfpSize)
+      .composite([{ input: topCircleMask, blend: 'dest-in' }])
+      .png()
+      .toBuffer();
+    return topPfpImage;
+  };
+
+  const [
+    rankImage,
+    nameImage,
+    pfpImage,
+    dateImage,
+    rewardsAmountImage,
+    battleRecordImage,
+    friendsPlaysImage,
+    rewardsShareImage,
+    rewardsAmountChangeImage,
+    battleRecordChangeImage,
+    friendsPlaysChangeImage,
+    rewardsShareChangeImage,
+    updatedAtImage,
+    upImage,
+    downImage,
+  ] = await Promise.all([
+    sharp({
+      text: {
+        text: `<span font_weight="bold" foreground="#fff" letter_spacing="1000">${rank}</span>`,
+        rgba: true,
+        width: 550,
+        height: rank.length > 2 ? 30 : 40,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span font_weight="bold" foreground="#fff" letter_spacing="1000">@${name}</span>`,
+        rgba: true,
+        width: 550,
+        height: 24,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    genPfP(),
+    sharp({
+      text: {
+        text: `<span foreground="#dcb92f" font_weight="bold" letter_spacing="1000">${dayjs(
+          date,
+        ).format('M/D/YYYY')}</span>`,
+        font: 'Bigelow Rules',
+        fontfile: './public/fonts/BigelowRules-Regular.ttf',
+        rgba: true,
+        width: 550,
+        height: 35,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${Number(
+          rewardsAmount,
+        ).toLocaleString()}</span>`,
+        rgba: true,
+        width: 550,
+        height: 42,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${battleRecord.replaceAll(
+          '／',
+          '/',
+        )}</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${friendsPlays}</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsShare}%</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsAmountChange}%</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${battleRecordChange.replaceAll(
+          '／',
+          '/',
+        )}</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${friendsPlaysChange}%</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsShareChange}%</span>`,
+        rgba: true,
+        width: 550,
+        height: 33,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
+          date,
+        ).format('M/D')} 4:00 (UTC)</span>`,
+        rgba: true,
+        width: 550,
+        height: 20,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp('./public/images/stack/up.png').resize(20, 20).png().toBuffer(),
+    sharp('./public/images/stack/down.png').resize(20, 20).png().toBuffer(),
+  ]);
+
+  canvas.composite([
+    {
+      input: rankImage,
+      left: 225 - (rank.length > 1 ? rank.length * 7 : 0),
+      top: 410,
+    },
+    { input: pfpImage, left: 340, top: 350 },
+    { input: nameImage, left: 430, top: 370 },
+    { input: dateImage, left: 435, top: 454 },
+    {
+      input: rewardsAmountImage,
+      left: 485 - rewardsAmount.length * 13,
+      top: 525,
+    },
+    {
+      input: battleRecordImage,
+      left: 440 - battleRecord.length * 5,
+      top: 620,
+    },
+    { input: friendsPlaysImage, left: 460, top: 710 },
+    { input: rewardsShareImage, left: 460 - rewardsShare.length * 5, top: 795 },
+    {
+      input: rewardsAmountChangeImage,
+      left: 760 - rewardsAmountChange.length * 7,
+      top: 525,
+    },
+    {
+      input: rewardsAmountChange.includes('-') ? downImage : upImage,
+      left: 730 - rewardsAmountChange.length * 7,
+      top: 531,
+    },
+    {
+      input: battleRecordChangeImage,
+      left: 755 - battleRecordChange.length * 7,
+      top: 620,
+    },
+    {
+      input:
+        Number(battleRecord.split('／')[0]) >
+        Number(battleRecordChange.split('／')[0])
+          ? upImage
+          : downImage,
+      left: 725 - battleRecordChange.length * 7,
+      top: 627,
+    },
+    {
+      input: friendsPlaysChangeImage,
+      left: 755 - friendsPlaysChange.length * 7,
+      top: 710,
+    },
+    {
+      input: friendsPlaysChange.includes('-') ? downImage : upImage,
+      left: 725 - friendsPlaysChange.length * 7,
+      top: 717,
+    },
+    {
+      input: rewardsShareChangeImage,
+      left: 755 - rewardsShareChange.length * 5,
+      top: 795,
+    },
+    {
+      input: rewardsShareChange.includes('-') ? downImage : upImage,
+      left: 725 - rewardsShareChange.length * 5,
+      top: 802,
+    },
+    { input: updatedAtImage, left: 500, top: 953 },
   ]);
 
   const png = await canvas.png().toBuffer();
@@ -676,3 +1060,22 @@ stackApp.hono.get('/image/leaderboard-invitation/:address/:name', async (c) => {
     'Cache-Control': 'max-age=3600',
   });
 });
+
+export type StatsImageParams = {
+  rank: string;
+  name: string;
+  pfpURL: string;
+  date: number;
+  stats: {
+    rewardsAmount: string;
+    battleRecord: string;
+    friendsPlays: string;
+    rewardsShare: string;
+  };
+  statsChange: {
+    rewardsAmountChange: string;
+    battleRecordChange: string;
+    friendsPlaysChange: string;
+    rewardsShareChange: string;
+  };
+};
