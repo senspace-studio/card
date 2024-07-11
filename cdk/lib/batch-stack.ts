@@ -57,14 +57,14 @@ export class BatchStack extends Stack {
       STACK_ALGORITHM: config.backend.scoring_algorithm_id,
     };
 
-    // 過去7日間の試合結果を計算してS3に保存するバッチ
-    const calcLast7DaysResultFunction = new lambdaNodeJs.NodejsFunction(
+    // 過去4日間の試合結果を計算してS3に保存するバッチ
+    const calcLast4DaysResultFunction = new lambdaNodeJs.NodejsFunction(
       this,
-      `${config.stage}-${config.serviceName}-calcLast7DaysResult`,
+      `${config.stage}-${config.serviceName}-calcLast4DaysResult`,
       {
         runtime: lambda.Runtime.NODEJS_20_X,
         handler: 'handler',
-        entry: '../batch/src/calcLast7DaysResult.ts',
+        entry: '../batch/src/calcLast4DaysResult.ts',
         depsLockFilePath: '../batch/package-lock.json',
         timeout: Duration.minutes(5),
         memorySize: 1024,
@@ -72,18 +72,22 @@ export class BatchStack extends Stack {
       },
     );
 
-    bucket.grantReadWrite(calcLast7DaysResultFunction);
+    bucket.grantReadWrite(calcLast4DaysResultFunction);
 
-    const calcLast7DaysResultRule = new events.Rule(
+    const calcLast4DaysResultRule = new events.Rule(
       this,
-      `${config.stage}-${config.serviceName}-calcLast7DaysResultRule`,
+      `${config.stage}-${config.serviceName}-calcLast4DaysResultRule`,
       {
-        schedule: events.Schedule.cron({ hour: '0', minute: '15' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '0' }),
       },
     );
 
-    calcLast7DaysResultRule.addTarget(
-      new targets.LambdaFunction(calcLast7DaysResultFunction),
+    calcLast4DaysResultRule.addTarget(
+      new targets.LambdaFunction(calcLast4DaysResultFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
     );
 
     // 過去14日間の招待関連のデータを計算してS3に保存するバッチ
@@ -107,12 +111,16 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-calcInvitationBattlesRule`,
       {
-        schedule: events.Schedule.cron({ hour: '0', minute: '30' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '3' }),
       },
     );
 
     calcInvitationBattlesRule.addTarget(
-      new targets.LambdaFunction(calcInvitationBattlesFunction),
+      new targets.LambdaFunction(calcInvitationBattlesFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
     );
 
     // 当日の試合ログをS3に保存するバッチ
@@ -136,7 +144,7 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-saveBattleLogsRule`,
       {
-        schedule: events.Schedule.cron({ hour: '4', minute: '0' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '6' }),
       },
     );
 
@@ -169,7 +177,7 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-saveInvitationLogsRule`,
       {
-        schedule: events.Schedule.cron({ hour: '4', minute: '5' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '9' }),
       },
     );
 
@@ -202,7 +210,7 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-saveIndividualStackDataRule`,
       {
-        schedule: events.Schedule.cron({ hour: '4', minute: '0' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '12' }),
       },
     );
 
@@ -235,7 +243,7 @@ export class BatchStack extends Stack {
       this,
       `${config.stage}-${config.serviceName}-saveRewardHistoryDataRule`,
       {
-        schedule: events.Schedule.cron({ hour: '4', minute: '10' }),
+        schedule: events.Schedule.cron({ hour: '4', minute: '15' }),
       },
     );
 
