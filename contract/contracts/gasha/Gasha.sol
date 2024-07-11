@@ -36,10 +36,10 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
     }
 
     modifier onlyInvitationHolder() {
-        require(
-            invitation.balanceOf(msg.sender) > 0,
-            'War: only invitation holder can call this function'
-        );
+        // require(
+        //     invitation.balanceOf(msg.sender) > 0,
+        //     'War: only invitation holder can call this function'
+        // );
         _;
     }
 
