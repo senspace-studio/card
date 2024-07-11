@@ -77,7 +77,9 @@ stackApp.frame('/', async (c) => {
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
 
   const date =
-    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+    dayjs().utc().get('hours') < 5
+      ? dayjs().utc().subtract(1, 'day')
+      : dayjs().utc();
 
   const { totalStack, userStack } = await getStack(
     date.subtract(1, 'day').valueOf(),
@@ -154,7 +156,9 @@ stackApp.frame('/stats', async (c) => {
   }
 
   const date =
-    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+    dayjs().utc().get('hours') < 5
+      ? dayjs().utc().subtract(1, 'day')
+      : dayjs().utc();
   const yesterday = date.subtract(1, 'day');
 
   const { totalStack, userStack, rank } = await getStack(
@@ -167,41 +171,38 @@ stackApp.frame('/stats', async (c) => {
   const yesterdayRewardsShare =
     (yesterdayUserStack / yesterdayTotalStack) * 100;
 
-  const { userRewards } = await getRewards(
-    date.valueOf(),
-    totalStack,
-    rewardsShare,
-  );
-  const { userRewards: yesterdayUserRewards } = await getRewards(
-    yesterday.valueOf(),
-    yesterdayTotalStack,
-    (yesterdayUserStack / yesterdayTotalStack) * 100,
-  );
+  const [
+    { userRewards },
+    { userRewards: yesterdayUserRewards },
+    { result: fourDaysBattleResult },
+    { result: yesterdayFourDaysBattleResult },
+    { battles: invitationBattles },
+    { battles: yesterdayInvitationBattles },
+  ] = await Promise.all([
+    getRewards(date.valueOf(), totalStack, rewardsShare),
+    getRewards(
+      yesterday.valueOf(),
+      yesterdayTotalStack,
+      (yesterdayUserStack / yesterdayTotalStack) * 100,
+    ),
+    getLast4DaysResult(date.valueOf()),
+    getLast4DaysResult(date.subtract(1, 'day').valueOf()),
+    getInvitationBattles(date.valueOf()),
+    getInvitationBattles(date.subtract(1, 'day').valueOf()),
+  ]);
 
-  const { result: fourDaysBattleResult } = await getLast4DaysResult(
-    date.valueOf(),
-  );
   const user4DaysBattleResult = fourDaysBattleResult.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
 
-  const { result: yesterdayFourDaysBattleResult } = await getLast4DaysResult(
-    date.subtract(1, 'day').valueOf(),
-  );
   const yesterdayUser4DaysBattleResult = yesterdayFourDaysBattleResult.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
 
-  const { battles: invitationBattles } = await getInvitationBattles(
-    date.valueOf(),
-  );
   const userInvitationBattles = invitationBattles.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
 
-  const { battles: yesterdayInvitationBattles } = await getInvitationBattles(
-    date.subtract(1, 'day').valueOf(),
-  );
   const yesterdayUserInvitationBattles = yesterdayInvitationBattles.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
@@ -210,7 +211,9 @@ stackApp.frame('/stats', async (c) => {
   const pfpURL = encodeURIComponent(c.previousState.pfpURL);
   const stats = {
     rewardsAmount: userRewards ? userRewards.toFixed(2) : '0',
-    battleRecord: `${user4DaysBattleResult.win}/${user4DaysBattleResult.lose}/${user4DaysBattleResult.draw}`,
+    battleRecord: `${user4DaysBattleResult?.win || 0}/${
+      user4DaysBattleResult?.lose || 0
+    }/${user4DaysBattleResult?.draw || 0}`,
     friendsPlays: userInvitationBattles?.battles?.toString() || '0',
     rewardsShare: rewardsShare.toFixed(2),
   };
@@ -223,15 +226,18 @@ stackApp.frame('/stats', async (c) => {
       user4DaysBattleResult?.win - yesterdayUser4DaysBattleResult?.win || 0
     }/${
       user4DaysBattleResult?.lose - yesterdayUser4DaysBattleResult?.lose || 0
-    }/${user4DaysBattleResult.draw - yesterdayUser4DaysBattleResult.draw || 0}`,
+    }/${
+      user4DaysBattleResult?.draw - yesterdayUser4DaysBattleResult?.draw || 0
+    }`,
     friendsPlaysChange: (
-      (userInvitationBattles.battles / yesterdayUserInvitationBattles.battles) *
+      (userInvitationBattles?.battles ||
+        0 / yesterdayUserInvitationBattles?.battles ||
+        1) *
         100 -
         100 || 0
     ).toFixed(1),
     rewardsShareChange: (
-      (rewardsShare / yesterdayRewardsShare) * 100 -
-      100
+      (rewardsShare / yesterdayRewardsShare) * 100 - 100 || 0
     ).toFixed(1),
   };
 
@@ -344,6 +350,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
           Number(date),
         ).format('M/D/YYYY')}</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 20,
@@ -357,6 +365,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${Number(
           rewardAmount,
         ).toLocaleString()}</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 55,
@@ -368,6 +378,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
     sharp({
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">DEGEN</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 35,
@@ -382,6 +394,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${Number(
           totalRewardAmount,
         ).toLocaleString()}</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 40,
@@ -393,6 +407,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
     sharp({
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardShare}%</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 30,
@@ -406,6 +422,8 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
           date,
         ).format('M/D')} 3:00 (UTC)</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: 20,
@@ -518,6 +536,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     sharp({
       text: {
         text: `<span font_weight="bold" foreground="#fff" letter_spacing="1000">${rank}</span>`,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         rgba: true,
         width: 550,
         height: rank.length > 2 ? 30 : 40,
@@ -530,8 +550,10 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span font_weight="bold" foreground="#fff" letter_spacing="1000">@${name}</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
-        height: 24,
+        height: 30,
         align: 'left',
       },
     })
@@ -559,6 +581,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
           rewardsAmount,
         ).toLocaleString()}</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: Number(rewardsAmount) > 1000 ? 42 : 35,
         align: 'left',
@@ -570,6 +594,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${battleRecord}</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -581,6 +607,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${friendsPlays}</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -592,6 +620,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsShare}%</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -603,6 +633,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsAmountChange}%</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -614,6 +646,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${battleRecordChange}</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -625,6 +659,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${friendsPlaysChange}%</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -636,6 +672,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">${rewardsShareChange}%</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 33,
         align: 'left',
@@ -649,6 +687,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
           date,
         ).format('M/D')} 3:00 (UTC)</span>`,
         rgba: true,
+        font: 'OpenSans',
+        fontfile: './public/fonts/OpenSans-Regular.ttf',
         width: 550,
         height: 20,
         align: 'left',
@@ -704,7 +744,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     {
       input: rewardsAmountChange.includes('-')
         ? downImage
-        : rewardsAmountChange === '0.0'
+        : rewardsAmountChange === '0'
         ? blankImage
         : upImage,
       left: 730 - rewardsAmountChange.length * 7,
@@ -749,7 +789,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
         : rewardsShareChange === '0.0'
         ? blankImage
         : upImage,
-      left: 725 - rewardsShareChange.length * 5,
+      left: 715 - rewardsShareChange.length * 5,
       top: 802,
     },
     { input: updatedAtImage, left: 500, top: 953 },
@@ -1147,9 +1187,9 @@ export type StatsImageParams = {
 // 共通関数
 const getLast4DaysResult = async (date: number) => {
   const res = await fetch(
-    `${resultS3URLBase}/calcLast4DaysResult/${dayjs(date).format(
-      'YYYY-MM-DD',
-    )}.json`,
+    `${resultS3URLBase}/calcLast4DaysResult/${dayjs(date)
+      .utc()
+      .format('YYYY-MM-DD')}.json`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -1161,9 +1201,9 @@ const getLast4DaysResult = async (date: number) => {
 
 const getInvitationBattles = async (date: number) => {
   const res = await fetch(
-    `${resultS3URLBase}/calcInvitationBattles/${dayjs(date).format(
-      'YYYY-MM-DD',
-    )}.json`,
+    `${resultS3URLBase}/calcInvitationBattles/${dayjs(date)
+      .utc()
+      .format('YYYY-MM-DD')}.json`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -1175,7 +1215,7 @@ const getInvitationBattles = async (date: number) => {
 };
 
 const getStack = async (date: number, userAddress?: string) => {
-  const dateFileKey = dayjs(date).format('YYYY-MM-DD') + '.json';
+  const dateFileKey = dayjs(date).utc().format('YYYY-MM-DD') + '.json';
 
   const resStack = await fetch(
     `${resultS3URLBase}/individualStack/${dateFileKey}`,
@@ -1226,7 +1266,7 @@ const getRewards = async (
     },
   });
   const rewardData = (await rewardRes.json()).find(
-    (r: any) => r.date === dayjs(date).format('YYYY-MM-DD'),
+    (r: any) => r.date === dayjs(date).utc().format('YYYY-MM-DD'),
   );
 
   const h = battleData.data.length * 190 * rewardData.bonusMultiplier;
