@@ -1,14 +1,23 @@
 import { zeroAddress } from 'viem';
 import { getGameRevealedLogs } from './batch';
 import { uploadS3 } from './utils/s3';
+import { EventBridgeInput } from './type';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import { sendErrorNotification } from './utils/ifttt';
 
-export const handler = async () => {
+dayjs.extend(utc);
+
+export const handler = async (event: EventBridgeInput) => {
   try {
-    // const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
-    const currentUnixTime = 1720397713;
+    const endDate = dayjs(event.time)
+      .utc()
+      .set('hours', 3)
+      .startOf('hours')
+      .unix();
 
-    const startDateUnix = currentUnixTime - 7 * 24 * 60 * 60;
-    const logs = await getGameRevealedLogs(startDateUnix, currentUnixTime);
+    const startDateUnix = endDate - 4 * 24 * 60 * 60;
+    const logs = await getGameRevealedLogs(startDateUnix, endDate);
     const resultJson: {
       [address: string]: { win: number; lose: number; draw: number };
     } = {};
@@ -51,11 +60,11 @@ export const handler = async () => {
     }
 
     await uploadS3(
-      { result, updatedAt: currentUnixTime },
-      'calcLast7DaysResult/result.json',
+      { result, updatedAt: endDate },
+      `calcLast4DaysResult/${dayjs(event.time).format('YYYY-MM-DD')}.json`,
     );
-  } catch (error) {
-    // ToDo: Discord webhook
-    console.log(error);
+  } catch (error: any) {
+    console.error(error);
+    await sendErrorNotification('calcInvitationBattles', error);
   }
 };

@@ -1,32 +1,42 @@
+import dayjs from 'dayjs';
 import {
   getGameRevealedLogs,
   getInvivationTransferLogs,
   TransferEventLog,
 } from './batch';
+import { EventBridgeInput } from './type';
 import { getFileFromS3, uploadS3 } from './utils/s3';
+import { sendErrorNotification } from './utils/ifttt';
+import utc from 'dayjs/plugin/utc';
 
-export const handler = async () => {
+dayjs.extend(utc);
+
+export const handler = async (event: EventBridgeInput) => {
   try {
-    const lastFile = await getFileFromS3('calcInvitationBattles/result.json');
+    const endDate = dayjs(event.time)
+      .utc()
+      .set('hours', 3)
+      .startOf('hours')
+      .unix();
+    const startInvivationDateUnix = endDate - 14 * 24 * 60 * 60;
+    const startGameDateUnix = endDate - 3 * 24 * 60 * 60;
+
+    const lastFile = await getFileFromS3(
+      `calcInvitationBattles/${dayjs(event.time)
+        .subtract(1, 'day')
+        .format('YYYY-MM-DD')}.json`,
+    );
     const lastInvitations: TransferEventLog[] = lastFile
       ? lastFile.invivations
       : [];
 
-    const currentUnixTime = Math.floor(new Date().getTime() / 1e3);
-
-    const startInvivationDateUnix =
-      currentUnixTime - 14 * 24 * 60 * 60 < 1718722800
-        ? Math.floor(new Date('2024-06-14').getTime() / 1e3)
-        : currentUnixTime - 14 * 24 * 60 * 60;
-    const startGameDateUnix = currentUnixTime - 3 * 24 * 60 * 60;
-
     const [invitationLogs, gameLogs] = await Promise.all([
       getInvivationTransferLogs(
         startInvivationDateUnix,
-        currentUnixTime,
+        endDate,
         lastInvitations,
       ),
-      getGameRevealedLogs(startGameDateUnix, currentUnixTime),
+      getGameRevealedLogs(startGameDateUnix, endDate),
     ]);
 
     const uniquePlayers = new Set<string>();
@@ -67,12 +77,12 @@ export const handler = async () => {
           address,
           battles,
         })),
-        updatedAt: currentUnixTime,
+        updatedAt: endDate,
       },
-      'calcInvitationBattles/result.json',
+      `calcInvitationBattles/${dayjs(event.time).format('YYYY-MM-DD')}.json`,
     );
-  } catch (error) {
-    console.log(error);
-    // ToDo: webhook
+  } catch (error: any) {
+    console.error(error);
+    await sendErrorNotification('calcInvitationBattles', error);
   }
 };
