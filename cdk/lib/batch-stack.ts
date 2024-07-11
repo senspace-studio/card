@@ -83,7 +83,11 @@ export class BatchStack extends Stack {
     );
 
     calcLast4DaysResultRule.addTarget(
-      new targets.LambdaFunction(calcLast4DaysResultFunction),
+      new targets.LambdaFunction(calcLast4DaysResultFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
     );
 
     // 過去14日間の招待関連のデータを計算してS3に保存するバッチ
@@ -112,7 +116,11 @@ export class BatchStack extends Stack {
     );
 
     calcInvitationBattlesRule.addTarget(
-      new targets.LambdaFunction(calcInvitationBattlesFunction),
+      new targets.LambdaFunction(calcInvitationBattlesFunction, {
+        event: events.RuleTargetInput.fromObject({
+          time: events.EventField.time,
+        }),
+      }),
     );
 
     // 当日の試合ログをS3に保存するバッチ

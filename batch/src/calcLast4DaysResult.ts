@@ -61,7 +61,7 @@ export const handler = async (event: EventBridgeInput) => {
 
     await uploadS3(
       { result, updatedAt: endDate },
-      `calcLast7DaysResult/${dayjs(event.time).format('YYYY-MM-DD')}.json`,
+      `calcLast4DaysResult/${dayjs(event.time).format('YYYY-MM-DD')}.json`,
     );
   } catch (error: any) {
     console.error(error);

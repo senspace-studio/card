@@ -23,7 +23,7 @@ const title = 'Stack | House of Cardians';
 const superFluidURLBase = `https://app.superfluid.finance/token/degen/0xda58fa9bfc3d3960df33ddd8d4d762cf8fa6f7ad?view=`;
 
 const resultS3URLBase =
-  'https://maincardbatchstack-maincard28027c69-zfmx3izxftm1.s3.ap-northeast-1.amazonaws.com';
+  'https://maincardbatchstack-maincard28027c69-lwnswwt35wuk.s3.ap-northeast-1.amazonaws.com';
 
 export const stackApp = new Frog<{ State: State }>({
   assetsPath: '/',
@@ -38,8 +38,7 @@ stackApp.frame('/', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  // const { fid } = c.frameData!;
-  const fid = 239622;
+  const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
 
   if (!verifiedAddress) {
@@ -77,17 +76,28 @@ stackApp.frame('/', async (c) => {
 
   const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
 
-  const date = 1720321201000;
-  const rewardAmount = 3500;
-  const totalRewardAmount = 1000000;
-  const rewardShare = 0.35;
+  const date =
+    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+
+  const { totalStack, userStack } = await getStack(
+    date.subtract(1, 'day').valueOf(),
+    verifiedAddress,
+  );
+  const rewardShare = (userStack / totalStack) * 100;
+  const { userRewards, totalRewards } = await getRewards(
+    date.valueOf(),
+    totalStack,
+    rewardShare,
+  );
+  const rewardAmount = userRewards?.toFixed(0) || '0';
+  const totalRewardAmount = totalRewards?.toFixed(0) || '0';
 
   const params = encodeURI(
     JSON.stringify({
-      date,
+      date: date.valueOf(),
       rewardAmount,
       totalRewardAmount,
-      rewardShare,
+      rewardShare: rewardShare.toFixed(2),
     }),
   );
 
@@ -97,8 +107,7 @@ stackApp.frame('/', async (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/stats">Stats</Button>,
-      <Button.Link href={superFluidURL}>superfluid</Button.Link>,
-      <Button action="/leaderboard">Leader Board</Button>,
+      <Button.Link href={superFluidURL}>Stream</Button.Link>,
       <Button action={`${BASE_URL}/top`}>Back</Button>,
     ],
   });
@@ -144,30 +153,56 @@ stackApp.frame('/stats', async (c) => {
     }
   }
 
-  const date = dayjs().valueOf();
-  const yesterday = dayjs().subtract(1, 'day').valueOf();
+  const date =
+    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+  const yesterday = date.subtract(1, 'day');
 
-  const { totalStack, userStack, rank } = await getStack(date, verifiedAddress);
+  const { totalStack, userStack, rank } = await getStack(
+    date.subtract(1, 'day').valueOf(),
+    verifiedAddress,
+  );
   const rewardsShare = (userStack / totalStack) * 100;
   const { totalStack: yesterdayTotalStack, userStack: yesterdayUserStack } =
-    await getStack(yesterday, verifiedAddress);
+    await getStack(yesterday.subtract(1, 'day').valueOf(), verifiedAddress);
   const yesterdayRewardsShare =
     (yesterdayUserStack / yesterdayTotalStack) * 100;
 
-  const { userRewards } = await getRewards(date, totalStack, rewardsShare);
+  const { userRewards } = await getRewards(
+    date.valueOf(),
+    totalStack,
+    rewardsShare,
+  );
   const { userRewards: yesterdayUserRewards } = await getRewards(
-    yesterday,
+    yesterday.valueOf(),
     yesterdayTotalStack,
     (yesterdayUserStack / yesterdayTotalStack) * 100,
   );
 
-  const { result: sevenDaysBattleResult } = await getLast7DaysResult();
-  const user7DaysBattleResult = sevenDaysBattleResult.find(
+  const { result: fourDaysBattleResult } = await getLast4DaysResult(
+    date.valueOf(),
+  );
+  const user4DaysBattleResult = fourDaysBattleResult.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
 
-  const { battles: invitationBattles } = await getInvitationBattles();
+  const { result: yesterdayFourDaysBattleResult } = await getLast4DaysResult(
+    date.subtract(1, 'day').valueOf(),
+  );
+  const yesterdayUser4DaysBattleResult = yesterdayFourDaysBattleResult.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const { battles: invitationBattles } = await getInvitationBattles(
+    date.valueOf(),
+  );
   const userInvitationBattles = invitationBattles.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const { battles: yesterdayInvitationBattles } = await getInvitationBattles(
+    date.subtract(1, 'day').valueOf(),
+  );
+  const yesterdayUserInvitationBattles = yesterdayInvitationBattles.find(
     (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
   );
 
@@ -175,39 +210,51 @@ stackApp.frame('/stats', async (c) => {
   const pfpURL = encodeURIComponent(c.previousState.pfpURL);
   const stats = {
     rewardsAmount: userRewards ? userRewards.toFixed(2) : '0',
-    battleRecord: `${user7DaysBattleResult.win} / ${user7DaysBattleResult.lose} / ${user7DaysBattleResult.draw}`,
+    battleRecord: `${user4DaysBattleResult.win}/${user4DaysBattleResult.lose}/${user4DaysBattleResult.draw}`,
     friendsPlays: userInvitationBattles?.battles?.toString() || '0',
     rewardsShare: rewardsShare.toFixed(2),
   };
   const statsChange = {
     rewardsAmountChange:
       userRewards && yesterdayUserRewards
-        ? ((userRewards / yesterdayUserRewards) * 100).toFixed(2)
+        ? ((userRewards / yesterdayUserRewards) * 100 - 100).toFixed(1)
         : '0',
-    battleRecordChange: '8 / 0 / 1',
-    friendsPlaysChange: '1',
-    rewardsShareChange: ((rewardsShare / yesterdayRewardsShare) * 100).toFixed(
-      2,
-    ),
+    battleRecordChange: `${
+      user4DaysBattleResult?.win - yesterdayUser4DaysBattleResult?.win || 0
+    }/${
+      user4DaysBattleResult?.lose - yesterdayUser4DaysBattleResult?.lose || 0
+    }/${user4DaysBattleResult.draw - yesterdayUser4DaysBattleResult.draw || 0}`,
+    friendsPlaysChange: (
+      (userInvitationBattles.battles / yesterdayUserInvitationBattles.battles) *
+        100 -
+        100 || 0
+    ).toFixed(1),
+    rewardsShareChange: (
+      (rewardsShare / yesterdayRewardsShare) * 100 -
+      100
+    ).toFixed(1),
   };
 
   const params = {
     rank: rank.toString(),
     name,
     pfpURL,
-    date,
+    date: date.valueOf(),
     stats,
     statsChange,
   } as StatsImageParams;
+
+  const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
 
   return c.res({
     title,
     image: `/stack/image/stats/${encodeURIComponent(JSON.stringify(params))}`,
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/leaderboard">Leader Board</Button>,
-      <Button action="/top">Top</Button>,
       <Button action="/">Back</Button>,
+      <Button.Link href="https://paragraph.xyz/@houseofcardians/house-of-cardians-simplified">
+        More Rewards
+      </Button.Link>,
     ],
   });
 });
@@ -249,7 +296,7 @@ stackApp.frame('/leaderboard-battle', async (c) => {
       <Button action="/leaderboard">Stack</Button>,
       <Button action="/leaderboard-invitation">Invitation</Button>,
       <Button action="/">Back</Button>,
-      <Button.Link href={superFluidURL}>Rewards</Button.Link>,
+      <Button.Link href={superFluidURL}>Stream</Button.Link>,
     ],
   });
 });
@@ -312,7 +359,7 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         ).toLocaleString()}</span>`,
         rgba: true,
         width: 550,
-        height: 60,
+        height: 55,
         align: 'left',
       },
     })
@@ -323,7 +370,7 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
         text: `<span foreground="#fff" font_weight="bold" letter_spacing="1000">DEGEN</span>`,
         rgba: true,
         width: 550,
-        height: 45,
+        height: 35,
         align: 'left',
       },
     })
@@ -358,7 +405,7 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
           date,
-        ).format('M/D')} 4:00 (UTC)</span>`,
+        ).format('M/D')} 3:00 (UTC)</span>`,
         rgba: true,
         width: 550,
         height: 20,
@@ -372,27 +419,27 @@ stackApp.hono.get('/image/rewards/:params', async (c) => {
   canvas.composite([
     {
       input: dateImage,
-      left: 240,
+      left: 230,
       top: 450,
     },
     {
       input: scoreImage,
-      left: 380,
-      top: 435,
+      left: 470 - rewardAmount.length * 15,
+      top: 437,
     },
     {
       input: scoreUnitImage,
-      left: 565,
-      top: 440,
+      left: 620,
+      top: 447,
     },
     {
       input: ticketSymbolImage,
-      left: 340,
+      left: 440 - totalRewardAmount.length * 10,
       top: 635,
     },
     {
       input: totalRewardImage,
-      left: 410,
+      left: 500 - totalRewardAmount.length * 10,
       top: 635,
     },
     {
@@ -600,7 +647,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       text: {
         text: `<span foreground="#fff" letter_spacing="1000">${dayjs(
           date,
-        ).format('M/D')} 4:00 (UTC)</span>`,
+        ).format('M/D')} 3:00 (UTC)</span>`,
         rgba: true,
         width: 550,
         height: 20,
@@ -630,8 +677,8 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       left: 225 - (rank.length > 1 ? rank.length * 10 : 0),
       top: 410,
     },
-    { input: pfpImage, left: 340, top: 350 },
-    { input: nameImage, left: 430, top: 370 },
+    { input: pfpImage, left: 385 - name.length * 4, top: 350 },
+    { input: nameImage, left: 470 - name.length * 4, top: 370 },
     { input: dateImage, left: 435, top: 454 },
     {
       input: rewardsAmountImage,
@@ -640,7 +687,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     },
     {
       input: battleRecordImage,
-      left: 440 - battleRecord.length * 5,
+      left: 470 - battleRecord.length * 8,
       top: 620,
     },
     {
@@ -648,7 +695,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
       left: 485 - friendsPlays.length * 10,
       top: 710,
     },
-    { input: rewardsShareImage, left: 460 - rewardsShare.length * 5, top: 795 },
+    { input: rewardsShareImage, left: 457 - rewardsShare.length * 5, top: 795 },
     {
       input: rewardsAmountChangeImage,
       left: 760 - rewardsAmountChange.length * 7,
@@ -657,7 +704,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     {
       input: rewardsAmountChange.includes('-')
         ? downImage
-        : rewardsAmountChange === '0'
+        : rewardsAmountChange === '0.0'
         ? blankImage
         : upImage,
       left: 730 - rewardsAmountChange.length * 7,
@@ -665,19 +712,16 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     },
     {
       input: battleRecordChangeImage,
-      left: 755 - battleRecordChange.length * 7,
+      left: 760 - battleRecordChange.length * 8,
       top: 620,
     },
     {
-      input:
-        Number(battleRecord.split('/')[0]) >
-        Number(battleRecordChange.split('/')[0])
-          ? upImage
-          : Number(battleRecord.split('/')[0]) ===
-            Number(battleRecordChange.split('/')[0])
-          ? blankImage
-          : downImage,
-      left: 725 - battleRecordChange.length * 7,
+      input: battleRecordChange.split('/')[0].includes('-')
+        ? downImage
+        : battleRecordChange.split('/')[0] === '0'
+        ? blankImage
+        : upImage,
+      left: 725 - battleRecordChange.length * 8,
       top: 627,
     },
     {
@@ -688,7 +732,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     {
       input: friendsPlaysChange.includes('-')
         ? downImage
-        : friendsPlaysChange === '0'
+        : friendsPlaysChange === '0.0'
         ? blankImage
         : upImage,
       left: 725 - friendsPlaysChange.length * 7,
@@ -702,7 +746,7 @@ stackApp.hono.get('/image/stats/:params', async (c) => {
     {
       input: rewardsShareChange.includes('-')
         ? downImage
-        : rewardsShareChange === '0'
+        : rewardsShareChange === '0.0'
         ? blankImage
         : upImage,
       left: 725 - rewardsShareChange.length * 5,
@@ -847,7 +891,9 @@ stackApp.hono.get('/image/leaderboard-battle/:address/:name', async (c) => {
     1000,
   );
 
-  const { result, updatedAt } = await getLast7DaysResult();
+  const now =
+    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+  const { result, updatedAt } = await getLast4DaysResult(now.valueOf());
 
   const getTop3Scores = async () => {
     // order result by win, and get top 3
@@ -966,7 +1012,9 @@ stackApp.hono.get('/image/leaderboard-invitation/:address/:name', async (c) => {
     1000,
   );
 
-  const { battles, updatedAt } = await getInvitationBattles();
+  const now =
+    dayjs().utc().get('hours') < 5 ? dayjs().subtract(1, 'day') : dayjs();
+  const { battles, updatedAt } = await getInvitationBattles(now.valueOf());
 
   const getTop3Scores = async () => {
     // order result by win, and get top 3
@@ -1097,9 +1145,11 @@ export type StatsImageParams = {
 };
 
 // 共通関数
-const getLast7DaysResult = async () => {
+const getLast4DaysResult = async (date: number) => {
   const res = await fetch(
-    `${resultS3URLBase}/calcLast7DaysResult/result.json`,
+    `${resultS3URLBase}/calcLast4DaysResult/${dayjs(date).format(
+      'YYYY-MM-DD',
+    )}.json`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -1109,9 +1159,11 @@ const getLast7DaysResult = async () => {
   return await res.json();
 };
 
-const getInvitationBattles = async () => {
+const getInvitationBattles = async (date: number) => {
   const res = await fetch(
-    `${resultS3URLBase}/calcInvitationBattles/result.json`,
+    `${resultS3URLBase}/calcInvitationBattles/${dayjs(date).format(
+      'YYYY-MM-DD',
+    )}.json`,
     {
       headers: {
         'Content-Type': 'application/json',
@@ -1163,7 +1215,7 @@ const getRewards = async (
 ) => {
   const battleRes = await fetch(
     `${resultS3URLBase}/battle/${dayjs(date)
-      .subtract(1, 'day')
+      .subtract(2, 'day')
       .format('YYYY-MM-DD')}.json`,
   );
   const battleData = await battleRes.json();
