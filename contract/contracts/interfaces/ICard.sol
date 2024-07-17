@@ -10,5 +10,11 @@ interface ICard is IERC1155, IERC1155MetadataURI {
 
     function burn(address account, uint256 tokenId, uint256 amount) external;
 
+    function burnBatch(
+        address account,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) external;
+
     function setupNewToken(string memory tokenURI) external returns (uint256);
 }

@@ -26,7 +26,7 @@ describe('War without betting', () => {
   let dealer: SignerWithAddress;
   let maker: SignerWithAddress;
   let challenger: SignerWithAddress;
-  let gameId: string;
+  let gameId: `0x${string}`;
 
   before(async () => {
     [admin, dealer, maker, challenger] = await ethers.getSigners();
@@ -90,8 +90,9 @@ describe('War without betting', () => {
   it('should make game', async () => {
     await Gasha.connect(maker).spin(50, { value: parseEther(`${50 * 100}`) });
 
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(8)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(8), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -109,7 +110,7 @@ describe('War without betting', () => {
     const receipt = await tx.wait();
     const logs = receipt?.logs as EventLog[];
     gameId = logs.find((log) => log.eventName === 'GameMade')
-      ?.args[0] as string;
+      ?.args[0] as `0x${string}`;
 
     const game = await War.games(gameId);
     expect(game.maker).to.equal(maker.address);
@@ -123,7 +124,7 @@ describe('War without betting', () => {
     });
 
     await expect(
-      War.connect(challenger).challengeGame(gameId, 5, {
+      War.connect(challenger).challengeGame(gameId, [5], {
         value: 0,
       }),
     ).emit(War, 'GameChallenged');
@@ -133,17 +134,18 @@ describe('War without betting', () => {
   });
 
   it('reveal game', async () => {
-    await War.connect(dealer).revealCard(gameId, 8, 2);
+    await War.connect(dealer).revealCard(gameId, [8], 2);
 
     const game = await War.games(gameId);
-
-    expect(game.makerCard).to.equal(8);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(8);
     expect(game.winner).to.equal(maker.address);
   });
 
   it('should win if 1 set against 14', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(1)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(1), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -161,18 +163,19 @@ describe('War without betting', () => {
     const receipt = await tx.wait();
     const logs = receipt?.logs as EventLog[];
     gameId = logs.find((log) => log.eventName === 'GameMade')
-      ?.args[0] as string;
+      ?.args[0] as `0x${string}`;
 
     await expect(
-      War.connect(challenger).challengeGame(gameId, 14, {
+      War.connect(challenger).challengeGame(gameId, [14], {
         value: 0,
       }),
     ).emit(War, 'GameChallenged');
 
-    await War.connect(dealer).revealCard(gameId, 1, 2);
+    await War.connect(dealer).revealCard(gameId, [1], 2);
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(1);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(1);
     expect(game.winner).to.equal(maker.address);
   });
 });
@@ -261,8 +264,9 @@ describe('War with betting native token', () => {
 
   // Makerが勝つようにゲームを作成
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(10)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(10), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -300,12 +304,12 @@ describe('War with betting native token', () => {
 
   it('should fail to challenge game with invalid bet amount', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 9, {
+      War.connect(challenger).challengeGame(gameId, [9], {
         value: parseEther('50'),
       }),
     ).to.be.revertedWith('War: invalid bet amount');
     await expect(
-      War.connect(challenger).challengeGame(gameId, 9, {
+      War.connect(challenger).challengeGame(gameId, [9], {
         value: parseEther('150'),
       }),
     ).to.be.revertedWith('War: invalid bet amount');
@@ -313,7 +317,7 @@ describe('War with betting native token', () => {
 
   it('shoud challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 9, {
+      War.connect(challenger).challengeGame(gameId, [9], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
@@ -343,13 +347,14 @@ describe('War with betting native token', () => {
       await ethers.provider.getBalance(await WarPool.getAddress()),
     );
 
-    await expect(War.connect(dealer).revealCard(gameId, 10, 2)).emit(
+    await expect(War.connect(dealer).revealCard(gameId, [10], 2)).emit(
       War,
       'GameRevealed',
     );
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(10);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(10);
     expect(game.winner).to.equal(maker.address);
 
     const rewardRate = await War.calcRewardRateTop(9);
@@ -471,8 +476,9 @@ describe('Make two games with the same combination', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -509,8 +515,9 @@ describe('Make two games with the same combination', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(3)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(3)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -548,7 +555,7 @@ describe('Make two games with the same combination', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
@@ -569,7 +576,7 @@ describe('Make two games with the same combination', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId2, 8, {
+      War.connect(challenger).challengeGame(gameId2, [8], {
         value: parseEther('150'),
       }),
     ).emit(War, 'GameChallenged');
@@ -589,16 +596,18 @@ describe('Make two games with the same combination', () => {
   });
 
   it('reveal game', async () => {
-    await War.connect(dealer).revealCard(gameId, 9, 2);
+    await War.connect(dealer).revealCard(gameId, [9], 2);
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(9);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(9);
     expect(game.winner).to.equal(maker.address);
 
-    await War.connect(dealer).revealCard(gameId2, 9, 3);
+    await War.connect(dealer).revealCard(gameId2, [9], 3);
 
     const game2 = await War.games(gameId2);
-    expect(game2.makerCard).to.equal(9);
+    const makerCard2 = await War.playerCards(game2.makerCard, 0);
+    expect(makerCard2).to.equal(9);
     expect(game2.winner).to.equal(maker.address);
   });
 });
@@ -688,8 +697,9 @@ describe('draw game', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -712,7 +722,7 @@ describe('draw game', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 9, {
+      War.connect(challenger).challengeGame(gameId, [9], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
@@ -726,10 +736,11 @@ describe('draw game', () => {
       await ethers.provider.getBalance(challenger.address),
     );
 
-    await War.connect(dealer).revealCard(gameId, 9, 2);
+    await War.connect(dealer).revealCard(gameId, [9], 2);
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(9);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(9);
     expect(game.winner).to.equal(zeroAddress);
 
     const status = await War.gameStatus(gameId);
@@ -850,8 +861,9 @@ describe('One side abstains', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -874,7 +886,7 @@ describe('One side abstains', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
@@ -898,10 +910,11 @@ describe('One side abstains', () => {
       await ethers.provider.getBalance(challenger.address),
     );
 
-    await War.connect(dealer).revealCard(gameId, 9, 2);
+    await War.connect(dealer).revealCard(gameId, [9], 2);
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(9);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(9);
     expect(game.winner).to.equal(challenger.address);
 
     const status = await War.gameStatus(gameId);
@@ -1023,8 +1036,9 @@ describe('Both sides abstain', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -1047,7 +1061,7 @@ describe('Both sides abstain', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
@@ -1081,13 +1095,14 @@ describe('Both sides abstain', () => {
       await ethers.provider.getBalance(admin.address),
     );
 
-    await expect(War.connect(dealer).revealCard(gameId, 9, 2)).emit(
+    await expect(War.connect(dealer).revealCard(gameId, [9], 2)).emit(
       WarPool,
       'WithdrawByAdmin',
     );
 
     const game = await War.games(gameId);
-    expect(game.makerCard).to.equal(9);
+    const makerCard = await War.playerCards(game.makerCard, 0);
+    expect(makerCard).to.equal(9);
     expect(game.winner).to.equal(zeroAddress);
 
     const status = await War.gameStatus(gameId);
@@ -1208,8 +1223,9 @@ describe('Game expire', () => {
   });
 
   it('should make game', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -1239,7 +1255,7 @@ describe('Game expire', () => {
 
   it('should fail to challenge expired game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).to.be.revertedWith('War: game status should be Created');
@@ -1361,8 +1377,9 @@ describe('Request challenge', () => {
   });
 
   it('should make game with challenger as admin', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(1)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(2)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -1388,15 +1405,16 @@ describe('Request challenge', () => {
 
   it('should fail when not requested challenger', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).to.be.revertedWith('War: you cannot challenge this game');
   });
 
   it('should make game with challenger as challenger', async () => {
+    const makerCardHash = keccak256(encodePacked(['uint256'], [BigInt(9)]));
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [BigInt(9), BigInt(2)]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, BigInt(3)]),
     );
 
     const signature = (await dealer.signMessage(
@@ -1422,13 +1440,13 @@ describe('Request challenge', () => {
 
   it('should challenge game', async () => {
     await expect(
-      War.connect(challenger).challengeGame(gameId, 8, {
+      War.connect(challenger).challengeGame(gameId, [8], {
         value: parseEther('100'),
       }),
     ).emit(War, 'GameChallenged');
   });
 
   it('should reveal game', async () => {
-    await War.connect(dealer).revealCard(gameId, 9, 2);
+    await War.connect(dealer).revealCard(gameId, [9], 3);
   });
 });
