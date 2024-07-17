@@ -250,7 +250,13 @@ stackApp.frame('/stats', async (c) => {
     statsChange,
   } as StatsImageParams;
 
-  const superFluidURL = `${superFluidURLBase}${verifiedAddress}`;
+  const shareUrlBase = 'https://warpcast.com/~/compose?text=';
+  const shareText = encodeURIComponent(
+    `Check out my Cardian Stats! I'm Ranked ${rank} 🃏`,
+  );
+  const embedParam = `&embeds[]=https://thecard.fun/stack/stats/${fid}`;
+
+  console.log(`${shareUrlBase}${shareText}${embedParam}`);
 
   return c.res({
     title,
@@ -258,10 +264,137 @@ stackApp.frame('/stats', async (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/">Back</Button>,
+      <Button.Link href={`${shareUrlBase}${shareText}${embedParam}`}>
+        Share
+      </Button.Link>,
       <Button.Link href="https://paragraph.xyz/@houseofcardians/house-of-cardians-simplified">
         More Rewards
       </Button.Link>,
     ],
+  });
+});
+
+stackApp.frame('/stats/:fid', async (c) => {
+  if (IS_MAINTENANCE)
+    return c.error({ message: 'Under maintenance, please try again later.' });
+
+  const fid = c.req.param('fid');
+
+  const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
+    Number(fid),
+  );
+
+  if (!verifiedAddresses || verifiedAddresses.length === 0) {
+    return c.res({
+      title,
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action={BASE_URL}>Back</Button>],
+    });
+  }
+
+  const verifiedAddress = verifiedAddresses[0];
+
+  const date =
+    dayjs().utc().get('hours') < 5
+      ? dayjs().utc().subtract(1, 'day')
+      : dayjs().utc();
+  const yesterday = date.subtract(1, 'day');
+
+  const { totalStack, userStack, rank } = await getStack(
+    date.subtract(1, 'day').valueOf(),
+    verifiedAddress,
+  );
+  const rewardsShare = (userStack / totalStack) * 100;
+  const { totalStack: yesterdayTotalStack, userStack: yesterdayUserStack } =
+    await getStack(yesterday.subtract(1, 'day').valueOf(), verifiedAddress);
+  const yesterdayRewardsShare =
+    (yesterdayUserStack / yesterdayTotalStack) * 100;
+
+  const [
+    { userRewards },
+    { userRewards: yesterdayUserRewards },
+    { result: fourDaysBattleResult },
+    { result: yesterdayFourDaysBattleResult },
+    { battles: invitationBattles },
+    { battles: yesterdayInvitationBattles },
+  ] = await Promise.all([
+    getRewards(date.valueOf(), totalStack, rewardsShare),
+    getRewards(
+      yesterday.valueOf(),
+      yesterdayTotalStack,
+      (yesterdayUserStack / yesterdayTotalStack) * 100,
+    ),
+    getLast4DaysResult(date.valueOf()),
+    getLast4DaysResult(date.subtract(1, 'day').valueOf()),
+    getInvitationBattles(date.valueOf()),
+    getInvitationBattles(date.subtract(1, 'day').valueOf()),
+  ]);
+
+  const user4DaysBattleResult = fourDaysBattleResult.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const yesterdayUser4DaysBattleResult = yesterdayFourDaysBattleResult.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const userInvitationBattles = invitationBattles.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const yesterdayUserInvitationBattles = yesterdayInvitationBattles.find(
+    (data: any) => data.address.toLowerCase() === verifiedAddress.toLowerCase(),
+  );
+
+  const name = userName;
+  const pfpURL = encodeURIComponent(pfp_url);
+  const stats = {
+    rewardsAmount: userRewards ? userRewards.toFixed(2) : '0',
+    battleRecord: `${user4DaysBattleResult?.win || 0}/${
+      user4DaysBattleResult?.lose || 0
+    }/${user4DaysBattleResult?.draw || 0}`,
+    friendsPlays: userInvitationBattles?.battles?.toString() || '0',
+    rewardsShare: rewardsShare.toFixed(2),
+  };
+  const statsChange = {
+    rewardsAmountChange:
+      userRewards && yesterdayUserRewards
+        ? ((userRewards / yesterdayUserRewards) * 100 - 100).toFixed(1)
+        : '0',
+    battleRecordChange: `${
+      user4DaysBattleResult?.win - yesterdayUser4DaysBattleResult?.win || 0
+    }/${
+      user4DaysBattleResult?.lose - yesterdayUser4DaysBattleResult?.lose || 0
+    }/${
+      user4DaysBattleResult?.draw - yesterdayUser4DaysBattleResult?.draw || 0
+    }`,
+    friendsPlaysChange: (
+      (userInvitationBattles?.battles ||
+        0 / yesterdayUserInvitationBattles?.battles ||
+        1) *
+        100 -
+        100 || 0
+    ).toFixed(1),
+    rewardsShareChange: (
+      (rewardsShare / yesterdayRewardsShare) * 100 - 100 || 0
+    ).toFixed(1),
+  };
+
+  const params = {
+    rank: rank.toString(),
+    name,
+    pfpURL,
+    date: date.valueOf(),
+    stats,
+    statsChange,
+  } as StatsImageParams;
+
+  return c.res({
+    title,
+    image: `/stack/image/stats/${encodeURIComponent(JSON.stringify(params))}`,
+    imageAspectRatio: '1:1',
+    intents: [<Button action={BASE_URL}>Top</Button>],
   });
 });
 
