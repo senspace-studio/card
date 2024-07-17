@@ -448,7 +448,7 @@ export class CronService {
               receiver,
               startDate,
               0,
-              flowRate,
+              flowRate.toString(),
               0,
               endDate,
               '0x',
