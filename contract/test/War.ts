@@ -104,6 +104,8 @@ describe('War without betting', () => {
       0,
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: 0 },
     );
@@ -157,6 +159,8 @@ describe('War without betting', () => {
       0,
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: 0 },
     );
@@ -278,6 +282,8 @@ describe('War with betting native token', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -490,6 +496,8 @@ describe('Make two games with the same combination', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -529,6 +537,8 @@ describe('Make two games with the same combination', () => {
       parseEther('150'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('150') },
     );
@@ -711,6 +721,8 @@ describe('draw game', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -875,6 +887,8 @@ describe('One side abstains', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -1050,6 +1064,8 @@ describe('Both sides abstain', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -1237,6 +1253,8 @@ describe('Game expire', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       zeroAddress,
       { value: parseEther('100') },
     );
@@ -1391,6 +1409,8 @@ describe('Request challenge', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       admin.address,
       { value: parseEther('100') },
     );
@@ -1426,6 +1446,8 @@ describe('Request challenge', () => {
       parseEther('100'),
       true,
       signature,
+      1,
+      0,
       challenger.address,
       { value: parseEther('100') },
     );

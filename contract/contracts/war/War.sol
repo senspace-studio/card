@@ -37,6 +37,10 @@ contract War is
 
     mapping(uint256 => uint256[]) public playerCards;
 
+    mapping(bytes8 => uint256) public numOfCards;
+
+    mapping(bytes8 => uint256) public sumOfCards;
+
     modifier onlyDealer() {
         require(
             dealerAddress == msg.sender,
@@ -90,6 +94,30 @@ contract War is
         _;
     }
 
+    modifier validCards(
+        bytes8 gameId,
+        uint256[] memory cards,
+        PlayerSide side
+    ) {
+        require(cards.length == numOfCards[gameId], 'War: invalid card length');
+
+        if (cards.length != 1) {
+            uint256 sum = 0;
+            for (uint256 i = 0; i < cards.length; i++) {
+                if (cards[i] == 14) continue;
+                sum += cards[i];
+            }
+            require(
+                (sum == sumOfCards[gameId] && side == PlayerSide.Maker) ||
+                    (sum <= sumOfCards[gameId] &&
+                        side == PlayerSide.Challenger),
+                'War: invalid card sum'
+            );
+        }
+
+        _;
+    }
+
     function initialize(
         address _initialOwner,
         address _dealerAddress,
@@ -103,49 +131,63 @@ contract War is
     }
 
     function makeGame(
-        address currency,
-        uint256 betAmount,
-        bool isNativeToken,
-        bytes memory signature,
-        address requestChallenger
+        address _currency,
+        uint256 _betAmount,
+        bool _isNativeToken,
+        bytes memory _signature,
+        uint256 _numOfCards,
+        uint256 _sumOfCards,
+        address _requestChallenger
     ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
-        require(signatures[signature] == false, 'War: signature already used');
+        require(signatures[_signature] == false, 'War: signature already used');
 
         require(
-            isNativeToken ? msg.value == betAmount : true,
+            _numOfCards == 1 || _numOfCards == 3 || _numOfCards == 5,
+            'War: only 1, 3, 5 cards are allowed'
+        );
+
+        require(
+            _numOfCards == 1 || (_sumOfCards >= 14 && _sumOfCards <= 25),
+            'War: sum should be b/w 14-25 for multi-cards'
+        );
+
+        require(
+            _isNativeToken ? msg.value == _betAmount : true,
             'War: invalid bet amount'
         );
 
-        signatures[signature] = true;
+        signatures[_signature] = true;
 
         bytes8 gameId = bytes8(
-            keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
+            keccak256(abi.encodePacked(msg.sender, block.timestamp, _signature))
         );
 
         games[gameId] = Game({
             maker: msg.sender,
             challenger: address(0),
             winner: address(0),
-            dealerSignature: signature,
+            dealerSignature: _signature,
             makerCard: 0,
             challengerCard: 0,
             createdAt: uint64(block.timestamp)
         });
+        numOfCards[gameId] = _numOfCards;
+        sumOfCards[gameId] = _sumOfCards;
 
-        if (requestChallenger != address(0)) {
-            requestedChallengers[gameId] = requestChallenger;
-            emit GameRequested(gameId, msg.sender, requestChallenger);
+        if (_requestChallenger != address(0)) {
+            requestedChallengers[gameId] = _requestChallenger;
+            emit GameRequested(gameId, msg.sender, _requestChallenger);
         }
 
-        warPool.deposit{value: isNativeToken ? betAmount : 0}(
+        warPool.deposit{value: _isNativeToken ? _betAmount : 0}(
             gameId,
             msg.sender,
-            currency,
-            isNativeToken,
-            betAmount
+            _currency,
+            _isNativeToken,
+            _betAmount
         );
 
-        emit GameMade(gameId, msg.sender, signature);
+        emit GameMade(gameId, msg.sender, _signature);
     }
 
     function challengeGame(
@@ -159,6 +201,7 @@ contract War is
         onlyInvitationHolder
         onlyCreatedGame(gameId)
         onlyOpenOrRequestedGame(gameId, msg.sender)
+        validCards(gameId, challengerCards, PlayerSide.Challenger)
     {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');
@@ -206,7 +249,13 @@ contract War is
         bytes8 gameId,
         uint256[] memory makerCards,
         uint256 nonce
-    ) external whenNotPaused nonReentrant onlyChallengedGame(gameId) {
+    )
+        external
+        whenNotPaused
+        nonReentrant
+        onlyChallengedGame(gameId)
+        validCards(gameId, makerCards, PlayerSide.Maker)
+    {
         Game storage game = games[gameId];
         require(game.maker != address(0), 'War: game not found');
 
@@ -372,13 +421,7 @@ contract War is
         for (uint256 i = 0; i < makerCards.length; i++) {
             uint256 makerCard = makerCards[i];
             uint256 challengerCard = challengerCards[i];
-            if (makerCard == 14) {
-                makerScore += 1;
-                continue;
-            } else if (challengerCard == 14) {
-                challengerScore += 1;
-                continue;
-            } else if (makerCard > challengerCard) {
+            if (makerCard > challengerCard) {
                 makerScore += 1;
                 continue;
             } else if (makerCard < challengerCard) {
@@ -419,8 +462,8 @@ contract War is
         if (i == j) return;
         uint256 pivot = _arr[uint256(left + (right - left) / 2)];
         while (i <= j) {
-            while (_arr[uint256(i)] < pivot) i++;
-            while (pivot < _arr[uint256(j)]) j--;
+            while (_arr[uint256(i)] > pivot) i++;
+            while (pivot > _arr[uint256(j)]) j--;
             if (i <= j) {
                 (_arr[uint256(i)], _arr[uint256(j)]) = (
                     _arr[uint256(j)],
