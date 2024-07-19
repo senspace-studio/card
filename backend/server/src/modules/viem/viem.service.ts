@@ -12,7 +12,7 @@ import {
   createPublicClient,
   Chain,
   Address,
-  getContract,
+  // getContract,
   createWalletClient,
   parseEther,
   encodeFunctionData,
@@ -23,7 +23,7 @@ import { Gasha, GashaABI } from 'src/constants/Gasha';
 import { SeriesItem } from 'src/types/contract';
 import { ZoraCreator1155ABI } from 'src/constants/ZoraCreator1155Impl';
 import { ERC1155ABI } from 'src/constants/ERC1155';
-import { HatABI } from 'src/constants/HatABI';
+// import { HatABI } from 'src/constants/HatABI';
 import { CFAv1ABI } from 'src/constants/Superfluid';
 import tweClient from 'src/lib/thirdweb-engine';
 
@@ -102,7 +102,7 @@ export class ViemService {
       args: [
         Array(6)
           .fill('')
-          .map((a) => address),
+          .map(() => address),
         [1n, 2n, 3n, 4n, 5n, 6n],
       ],
     });

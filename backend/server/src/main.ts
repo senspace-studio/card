@@ -71,7 +71,7 @@ function bootstrapCluster() {
   }
 }
 
-const clustering = true;
+const clustering = false;
 if (clustering) {
   bootstrapCluster();
 } else {
