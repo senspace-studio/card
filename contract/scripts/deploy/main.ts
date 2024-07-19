@@ -16,31 +16,32 @@ const main = async () => {
     0,
   );
 
-  // for (const tokenId of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
-  //   let tx = await gashaItemERC1155Contract.setupNewToken(`${tokenId}.json`);
-  //   await tx.wait();
-  // }
+  for (const tokenId of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]) {
+    let tx = await gashaItemERC1155Contract.setupNewToken(`${tokenId}.json`);
+    await tx.wait();
+  }
 
-  // // Add Gasha series
-  // for (let index = 0; index < 14; index++) {
-  //   let tx!: ContractTransactionResponse;
-  //   switch (true) {
-  //     case index < 10:
-  //       tx = await gashaContract.setNewSeriesItem(index + 1, 0, 87);
-  //       await tx.wait();
-  //       break;
-  //     case index < 13:
-  //       tx = await gashaContract.setNewSeriesItem(index + 1, 1, 40);
-  //       await tx.wait();
-  //       break;
-  //     case index == 13:
-  //       tx = await gashaContract.setNewSeriesItem(index + 1, 2, 10);
-  //       await tx.wait();
-  //       break;
-  //   }
-  //   tx = await gashaContract.activateSeriesItem(index + 1);
-  //   await tx.wait();
-  // }
+  // Add Gasha series
+  for (let index = 0; index < 14; index++) {
+    let tx!: ContractTransactionResponse;
+    switch (true) {
+      case index < 10:
+        tx = await gashaContract.setNewSeriesItem(index + 1, 0, 87);
+        await tx.wait();
+        break;
+      case index < 13:
+        tx = await gashaContract.setNewSeriesItem(index + 1, 1, 40);
+        await tx.wait();
+        break;
+      case index == 13:
+        tx = await gashaContract.setNewSeriesItem(index + 1, 2, 10);
+        await tx.wait();
+        break;
+    }
+    await new Promise((r) => setTimeout(r, 1000));
+    tx = await gashaContract.activateSeriesItem(index);
+    await tx.wait();
+  }
 
   // Set available time for gasha
   let tx = await gashaContract.setAvailableTime(1711000000, 1912300400);
