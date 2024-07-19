@@ -186,7 +186,10 @@ export class WarService {
         ),
       },
     });
-    if (!Number.isNaN(Number(params.hand_length))) {
+    if (
+      !Number.isNaN(Number(params.hand_length)) &&
+      [1, 3, 5].includes(Number(params.hand_length))
+    ) {
       games = games.filter((game) => {
         const cards = game.maker_token_id.split(',');
         return cards.length === Number(params.hand_length);
