@@ -271,9 +271,6 @@ export class WebhookController {
 
                 // ToDo: check message
                 if (winner.value.toLowerCase() === maker.value.toLowerCase()) {
-                  for (const card of challemgerCards) {
-                    loserCard += card === 14 ? 'Joker' : `${card}`;
-                  }
                   winnerCard = makerCards
                     .map((e) => (e === 14 ? 'Joker' : e))
                     .join(',');
