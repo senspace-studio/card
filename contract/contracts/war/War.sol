@@ -10,7 +10,6 @@ import '../interfaces/IWar.sol';
 import '../interfaces/IWarPool.sol';
 import '../interfaces/ICard.sol';
 import '../lib/SignatureVerifier.sol';
-import 'hardhat/console.sol';
 
 contract War is
     IWar,
@@ -103,10 +102,15 @@ contract War is
 
         if (cards.length != 1) {
             uint256 sum = 0;
+            uint256 numOfJokers = 0;
             for (uint256 i = 0; i < cards.length; i++) {
-                if (cards[i] == 14) continue;
+                if (cards[i] == 14) {
+                    numOfJokers++;
+                    continue;
+                }
                 sum += cards[i];
             }
+            require(numOfJokers < 2, 'War: Joker can be used only once');
             require(
                 (sum == sumOfCards[gameId] && side == PlayerSide.Maker) ||
                     (sum <= sumOfCards[gameId] &&
@@ -404,8 +408,6 @@ contract War is
         bool makerHas1 = makerCards[makerCards.length - 1] == 1;
         bool challengerHas1 = challengerCards[challengerCards.length - 1] == 1;
 
-        // If a player has 14 and the other has 1, the player with 1 wins
-        // If both have 14 and 1, it is a draw
         if (makerHas14 && challengerHas14 && makerHas1 && challengerHas1) {
             return address(0);
         } else if (makerHas14 && challengerHas1) {
@@ -417,7 +419,6 @@ contract War is
         uint8 makerScore = 0;
         uint8 challengerScore = 0;
 
-        // Compare cards one by one, then the player with the higher card wins
         for (uint256 i = 0; i < makerCards.length; i++) {
             uint256 makerCard = makerCards[i];
             uint256 challengerCard = challengerCards[i];
