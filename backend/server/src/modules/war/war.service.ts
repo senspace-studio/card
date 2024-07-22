@@ -106,7 +106,10 @@ export class WarService {
     return BigInt(amount) <= balanceOfAll[tokenId - 1];
   }
 
-  async getAllReservedGames(orderBy: 'ASC' | 'DESC' = 'ASC') {
+  async getAllReservedGames(
+    orderBy: 'ASC' | 'DESC' = 'ASC',
+    hand_length: string,
+  ) {
     this.logger.log(this.getAllReservedGames.name, JSON.stringify({ orderBy }));
     const now = new Date();
     const games = await this.warRepositry.find({
@@ -118,11 +121,21 @@ export class WarService {
       order: { created: orderBy },
     });
     // this.logger.debug(JSON.stringify(games));
-    const reservedGamnes = games.filter(
+    let reservedGamnes = games.filter(
       (e) =>
         this.getGameStatus(e) === GAME_STATUS.MADE ||
         this.getGameStatus(e) === GAME_STATUS.MADE_CASTED,
     );
+    if (
+      !Number.isNaN(Number(hand_length)) &&
+      [1, 3, 5].includes(Number(hand_length))
+    ) {
+      reservedGamnes = reservedGamnes.filter((game) => {
+        const cards = game.maker_token_id.split(',');
+        return cards.length === Number(hand_length);
+      });
+    }
+
     // this.logger.debug(JSON.stringify(reservedGamnes));
     return reservedGamnes;
   }

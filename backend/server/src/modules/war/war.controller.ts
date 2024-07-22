@@ -46,10 +46,13 @@ export class WarController {
   @Get('/getAllReservedGames')
   async getAllReservedGames(
     @Param('orderBy') orderBy: 'ASC' | 'DESC',
-    @Query('card_length') card_length: string,
+    @Query('hand_length') hand_length: string,
   ) {
-    this.logger.log(this.getAllReservedGames.name, { orderBy, card_length });
-    const games = await this.warService.getAllReservedGames(orderBy || 'ASC');
+    this.logger.log(this.getAllReservedGames.name, { orderBy, hand_length });
+    const games = await this.warService.getAllReservedGames(
+      orderBy || 'ASC',
+      hand_length,
+    );
     return games.map((game) => {
       const { game_id, maker, created } = game;
       return { game_id, maker, created: Number(created) };
