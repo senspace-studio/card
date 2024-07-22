@@ -1526,16 +1526,20 @@ warApp.hono.get('/image/result/:params', async (c) => {
     result,
   } = params;
 
-  const png = await generateResultImage(
-    userName,
-    pfp_url,
-    card,
-    wager,
-    c_userName,
-    c_pfp_url,
-    c_card,
-    result,
-  );
+  const jokerKilling = 'win';
+
+  const png = jokerKilling
+    ? await generateJokerKillingImage(pfp_url, c_pfp_url, jokerKilling)
+    : await generateResultImage(
+        userName,
+        pfp_url,
+        card,
+        wager,
+        c_userName,
+        c_pfp_url,
+        c_card,
+        result,
+      );
 
   return c.newResponse(png, 200, {
     'Content-Type': 'image/png',
@@ -2106,6 +2110,114 @@ const generateResultImage = async (
         left: opponentComponentLeft,
         top: opponentComponentTop,
       },
+    ])
+    .toBuffer();
+
+  return finalImage;
+};
+
+const generateJokerKillingImage = async (
+  pfp_url: string,
+  c_pfp_url: string,
+  jokerKilling: 'win' | 'lose',
+) => {
+  const seedString = pfp_url + c_pfp_url;
+  const seed = seedString
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const imageNo = (seed % 5) + 1;
+
+  const container = sharp(
+    `./public/images/war/jokerkilling/jokerkilling_${imageNo}_${jokerKilling}.png`,
+  ).resize(1000, 1000);
+
+  let pfpSize = 0;
+  let pfpLeft = 0;
+  let pfpTop = 0;
+  let c_pfpSize = 0;
+  let c_pfpLeft = 0;
+  let c_pfpTop = 0;
+
+  switch (imageNo) {
+    case 1:
+      pfpSize = 145;
+      pfpLeft = 383;
+      pfpTop = 45;
+      c_pfpSize = 145;
+      c_pfpLeft = 727;
+      c_pfpTop = 778;
+      break;
+    case 2:
+      pfpSize = 154;
+      pfpLeft = 173;
+      pfpTop = 276;
+      c_pfpSize = 154;
+      c_pfpLeft = 787;
+      c_pfpTop = 102;
+      break;
+    case 3:
+      pfpSize = 130;
+      pfpLeft = 375;
+      pfpTop = 683;
+      c_pfpSize = 105;
+      c_pfpLeft = 449;
+      c_pfpTop = 148;
+      break;
+    case 4:
+      pfpSize = 92;
+      pfpLeft = 452;
+      pfpTop = 231;
+      c_pfpSize = 85;
+      c_pfpLeft = 475;
+      c_pfpTop = 640;
+      break;
+    case 5:
+      pfpSize = 137;
+      pfpLeft = 372;
+      pfpTop = 287;
+      c_pfpSize = 144;
+      c_pfpLeft = 418;
+      c_pfpTop = 692;
+      break;
+  }
+
+  const [pfpImage, c_pfpImage] = await Promise.all([
+    sharp(Buffer.from(await fetch(pfp_url).then((res) => res.arrayBuffer())))
+      .resize(pfpSize, pfpSize)
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="${pfpSize}" height="${pfpSize}"><circle cx="${
+              pfpSize / 2
+            }" cy="${pfpSize / 2}" r="${pfpSize / 2}" fill="white" /></svg>`,
+          ),
+          blend: 'dest-in',
+        },
+      ])
+      .png()
+      .toBuffer(),
+    sharp(Buffer.from(await fetch(c_pfp_url).then((res) => res.arrayBuffer())))
+      .resize(c_pfpSize, c_pfpSize)
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="${c_pfpSize}" height="${c_pfpSize}"><circle cx="${
+              c_pfpSize / 2
+            }" cy="${c_pfpSize / 2}" r="${
+              c_pfpSize / 2
+            }" fill="white" /></svg>`,
+          ),
+          blend: 'dest-in',
+        },
+      ])
+      .png()
+      .toBuffer(),
+  ]);
+
+  const finalImage = await container
+    .composite([
+      { input: pfpImage, left: pfpLeft, top: pfpTop },
+      { input: c_pfpImage, left: c_pfpLeft, top: c_pfpTop },
     ])
     .toBuffer();
 
