@@ -31,6 +31,8 @@ import {
   getFarcasterUserInfoByCastHash,
 } from '../lib/neynar.js';
 import { BlankInput } from 'hono/types';
+// import { ethers, getBytes, keccak256 } from 'ethers';
+// import { encodePacked } from 'viem';
 
 const shareUrlBase = 'https://warpcast.com/~/compose?text=';
 const embedParam = '&embeds[]=';
@@ -48,16 +50,18 @@ type State = {
   address: `0x${string}`;
   pfp_url: string;
   userName: string;
-  card: number;
+  card: number[];
   wager: number;
   gameId: `0x${string}`;
   c_address?: `0x${string}`;
   c_pfp_url?: string;
   c_userName?: string;
-  c_card?: number;
+  c_card?: number[];
   signature?: Address;
   verifiedAddresses?: `0x${string}`[];
   hasInvitation?: boolean;
+  numOfCards?: number;
+  sumOfCards?: number;
 };
 
 enum Result {
@@ -67,15 +71,16 @@ enum Result {
 }
 
 export const warApp = new Frog<{ State: State }>({
+  title: '',
   initialState: {
     quantities: [],
     address: '',
     pfp_url: '',
     userName: '',
-    card: 0,
+    card: [],
     wager: 0,
     gameId: '',
-    haiInvitation: false,
+    hasInvitation: false,
   },
   headers: {
     'Cache-Control': 'max-age=300',
@@ -280,14 +285,38 @@ warApp.frame('/preview', async (c) => {
   const { userName, pfp_url, card, quantities, address } = c.previousState;
 
   // bet機能をリリースする時は/bet frameで行うためこの辺はスキップ
-  const inputCardNumber = inputText || card;
-  const cardNumber = convertCardValue(inputCardNumber as string);
-  const errorMessage = checkCardNumber(cardNumber, quantities);
 
-  if (errorMessage) {
+  // inputをsplitして配列にする
+  const inputCardNumberArray =
+    inputText && typeof inputText === 'string' ? inputText.split(',') : [];
+
+  // splitしたinputをコンバートする
+  const convertedArray = inputCardNumberArray.map((item) =>
+    convertCardValue(item),
+  );
+
+  const allInputsValid = convertedArray.every((value) => value !== -1);
+  if (!allInputsValid) {
+    return c.error({ message: 'Invalid Input Number.' });
+  }
+
+  // 入力数が1,3,5のいずれかをチェック
+  const isValidCardCount = [1, 3, 5].includes(convertedArray.length);
+  if (!isValidCardCount) {
+    return c.error({
+      message: 'Invalid number of cards. Please enter 1, 3, or 5 cards.',
+    });
+  }
+
+  // 入力値が1-14に収まっているか、各カードを保有しているかをチェック
+  const errorMessages = convertedArray
+    .map((cardNumber) => checkCardNumber(cardNumber, quantities))
+    .filter((message) => message !== '');
+
+  if (errorMessages.length > 0) {
     const params = encodeURIComponent(
       JSON.stringify({
-        message: errorMessage,
+        message: errorMessages.join(', '),
         quantities: quantities,
         address,
       }),
@@ -302,6 +331,21 @@ warApp.frame('/preview', async (c) => {
         <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
+  }
+
+  // 入力値が3,5個のいずれかなら合計値が25以下であることをチェック
+  if (convertedArray.length === 3 || convertedArray.length === 5) {
+    const sum = convertedArray.reduce((acc, curr) => {
+      // 14（ジョーカー）は合計に含めない
+      return curr !== 14 ? acc + curr : acc;
+    }, 0);
+
+    if (sum > 25) {
+      return c.error({
+        message:
+          'The sum of card values (excluding Jokers) must not exceed 25.',
+      });
+    }
   }
 
   const signature = await getSignature(c);
@@ -323,8 +367,12 @@ warApp.frame('/preview', async (c) => {
     });
   }
 
+  // cardを降順ソートする
+
+  const cardArray = convertedArray.sort((a, b) => b - a);
+
   c.deriveState((prevState) => {
-    prevState.card = cardNumber;
+    prevState.card = cardArray;
     prevState.signature = signature as Address;
   });
 
@@ -358,7 +406,7 @@ warApp.frame('/preview', async (c) => {
       JSON.stringify({
         userName,
         pfp_url,
-        card: cardNumber,
+        card: cardArray,
         wager,
         c_address,
         c_pfp_url,
@@ -370,7 +418,7 @@ warApp.frame('/preview', async (c) => {
       JSON.stringify({
         userName,
         pfp_url,
-        card: cardNumber,
+        card: cardArray,
         wager,
       }),
     );
@@ -389,16 +437,29 @@ warApp.frame('/preview', async (c) => {
 });
 
 warApp.transaction('/duel-letter', async (c) => {
-  const { address, signature, wager, c_address } = c.previousState;
+  const { address, card, signature, wager, c_address } = c.previousState;
 
   const targetAddress = c_address || zeroAddress;
+  const numOfCards = card.length;
+  const sumOfCards = card.reduce((total, card) => total + card, 0);
+
   const args: readonly [
     `0x${string}`,
     bigint,
     boolean,
     `0x${string}`,
+    bigint,
+    bigint,
     `0x${string}`,
-  ] = [zeroAddress, 0n, true, signature!, targetAddress];
+  ] = [
+    zeroAddress,
+    0n,
+    true,
+    signature!,
+    BigInt(numOfCards),
+    BigInt(sumOfCards),
+    targetAddress,
+  ];
 
   const estimatedGas = await warContract.estimateGas.makeGame(args, {
     account: address,
@@ -476,7 +537,18 @@ warApp.frame('/find', async (c) => {
 
   const game = await warContract.read.games([gameId]);
   const createdAt = game[6];
-  await setGameInfo(gameId, address, userName, pfp_url, wager, createdAt);
+  const numOfCards = card.length;
+  const sumOfCards = Number(await warContract.read.sumOfCards([gameId]));
+  await setGameInfo(
+    gameId,
+    address,
+    userName,
+    pfp_url,
+    wager,
+    createdAt,
+    numOfCards,
+    sumOfCards,
+  );
 
   // direct match
   const { c_address, c_userName, c_pfp_url } = c.previousState;
@@ -490,6 +562,8 @@ warApp.frame('/find', async (c) => {
       pfp_url,
       wager,
       gameId,
+      numOfCards,
+      sumOfCards,
       c_userName,
       c_pfp_url,
     }),
@@ -653,6 +727,9 @@ const challengeFrame = async (
         throw Error();
       }
 
+      const numOfCards = Number(await warContract.read.numOfCards([gameId]));
+      const sumOfCards = Number(await warContract.read.sumOfCards([gameId]));
+
       const createdAt = game[6];
       const gameDeposits = await warPoolContract.read.gameDeposits([gameId]);
       const wager = Number(gameDeposits[4]);
@@ -667,6 +744,8 @@ const challengeFrame = async (
         pfp_url,
         wager,
         createdAt,
+        numOfCards,
+        sumOfCards,
       );
 
       let challengerAddress = game[1];
@@ -685,6 +764,7 @@ const challengeFrame = async (
         await updateResult(gameId, makerCard, challengerCard, winner);
       }
     } catch (e) {
+      console.log(e);
       const params = encodeURIComponent(
         JSON.stringify({
           message: 'Invalid Game Id',
@@ -717,7 +797,7 @@ const challengeFrame = async (
     });
   }
 
-  const { userName, pfp_url, wager } = gameInfo;
+  const { userName, pfp_url, wager, numOfCards, sumOfCards } = gameInfo;
 
   const params = encodeURIComponent(
     JSON.stringify({
@@ -725,6 +805,8 @@ const challengeFrame = async (
       pfp_url,
       wager,
       gameId,
+      numOfCards,
+      sumOfCards,
     }),
   );
 
@@ -733,6 +815,8 @@ const challengeFrame = async (
     prevState.pfp_url = pfp_url;
     prevState.wager = wager;
     prevState.gameId = gameId;
+    prevState.numOfCards = numOfCards;
+    prevState.sumOfCards = sumOfCards;
   });
 
   const { c_userName, c_pfp_url } = gameInfo;
@@ -749,6 +833,8 @@ const challengeFrame = async (
           gameId,
           c_userName: c_userName || '',
           c_pfp_url: c_pfp_url || '',
+          numOfCards,
+          sumOfCards,
         }),
       ),
     imageAspectRatio: '1:1',
@@ -781,7 +867,7 @@ warApp.frame('/choose/:params', async (c) => {
     return c.error({ message: 'Under maintenance, please try again later.' });
 
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, gameId } = params;
+  const { userName, pfp_url, wager, gameId, numOfCards, sumOfCards } = params;
 
   const { frameData } = c;
   const fid = frameData?.fid;
@@ -859,6 +945,8 @@ warApp.frame('/choose/:params', async (c) => {
     prevState.c_userName = c_userName;
     prevState.c_pfp_url = c_pfp_url;
     prevState.c_address = address;
+    prevState.numOfCards = numOfCards;
+    prevState.sumOfCards = sumOfCards;
   });
 
   return c.res({
@@ -892,19 +980,43 @@ warApp.frame('/duel', async (c) => {
     quantities,
     gameId,
     c_address,
+    numOfCards,
+    sumOfCards,
   } = c.previousState;
 
-  const inputCardNumber = inputText;
+  // const inputCardNumber = inputText;
+  // inputをsplitして配列にする
+  const inputCardNumberArray =
+    inputText && typeof inputText === 'string' ? inputText.split(',') : [];
 
-  const c_card = convertCardValue(inputCardNumber as string);
-  const errorMessage = checkCardNumber(c_card, quantities);
+  // splitしたinputをコンバートする
+  const convertedArray = inputCardNumberArray.map((item) =>
+    convertCardValue(item),
+  );
 
-  if (errorMessage) {
+  const allInputsValid = convertedArray.every((value) => value !== -1);
+  if (!allInputsValid) {
+    return c.error({ message: 'Invalid Input Number.' });
+  }
+
+  // 入力数がゲームに対応しているかチェック
+  const isValidCardCount = numOfCards === convertedArray.length;
+  if (!isValidCardCount) {
+    return c.error({
+      message: `Invalid number of cards. Please enter ${numOfCards} cards.`,
+    });
+  }
+
+  const errorMessages = convertedArray
+    .map((cardNumber) => checkCardNumber(cardNumber, quantities))
+    .filter((message) => message !== '');
+
+  if (errorMessages.length > 0) {
     const params = encodeURIComponent(
       JSON.stringify({
-        message: errorMessage,
+        message: errorMessages.join(', '),
         quantities: quantities,
-        address: c_address,
+        c_address,
       }),
     );
 
@@ -913,12 +1025,30 @@ warApp.frame('/duel', async (c) => {
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [
-        <Button action="/choose">Back</Button>,
+        <Button action="/make-duel">Back</Button>,
         <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
   }
 
+  // 入力値が3,5個のいずれかなら合計値が25以下であることをチェック
+  if (convertedArray.length === 3 || convertedArray.length === 5) {
+    const sum = convertedArray.reduce((acc, curr) => {
+      // 14（ジョーカー）は合計に含めない
+      return curr !== 14 ? acc + curr : acc;
+    }, 0);
+
+    if (sum > 25) {
+      return c.error({
+        message:
+          'The sum of card values (excluding Jokers) must not exceed 25.',
+      });
+    }
+  }
+
+  const cardArray = convertedArray.sort((a, b) => b - a);
+
+  const c_card = cardArray;
   c.deriveState((prevState) => {
     prevState.c_card = c_card;
   });
@@ -935,6 +1065,7 @@ warApp.frame('/duel', async (c) => {
           c_userName,
           c_pfp_url,
           c_card,
+          numOfCards,
         }),
       ),
 
@@ -955,7 +1086,10 @@ warApp.transaction('/challengeGame', async (c) => {
       throw new Error('gameId or c_card is undefined');
     }
 
-    const args: readonly [`0x${string}`, bigint] = [gameId, BigInt(c_card)];
+    const args: readonly [`0x${string}`, bigint[]] = [
+      gameId,
+      c_card.map((num) => BigInt(num)),
+    ];
 
     const estimatedGas = await warContract.estimateGas.challengeGame(args, {
       account: c_address,
@@ -986,8 +1120,16 @@ warApp.frame('/loading', async (c) => {
     return c.error({ message: 'Transaction failed' });
   }
 
-  const { userName, pfp_url, wager, c_address, c_userName, c_pfp_url, gameId } =
-    c.previousState;
+  const {
+    userName,
+    pfp_url,
+    wager,
+    c_address,
+    c_userName,
+    c_pfp_url,
+    gameId,
+    numOfCards,
+  } = c.previousState;
 
   await updateChallenger(gameId, String(c_address), c_userName!, c_pfp_url!);
 
@@ -1002,6 +1144,7 @@ warApp.frame('/loading', async (c) => {
           wager,
           c_userName,
           c_pfp_url,
+          numOfCards,
         }),
       ),
     imageAspectRatio: '1:1',
@@ -1020,7 +1163,7 @@ warApp.frame('/result/:gameId', async (c) => {
   let gameInfo;
   let contractResult;
 
-  if (recentCard && recentCard > 0) {
+  if (recentCard && recentCard.length > 0) {
     // DBのreadとコントラクトのreadを同時に行う
     [gameInfo, contractResult] = await Promise.all([
       getGameInfoByGameId(gameId),
@@ -1052,13 +1195,15 @@ warApp.frame('/result/:gameId', async (c) => {
     card,
     c_card,
     winner,
+    numOfCards,
   } = gameInfo;
 
   if (!winner || winner === zeroAddress) {
     if (!contractResult) {
       contractResult = await warContract.read.games([gameId]);
     }
-    card = Number(contractResult[3]);
+    const makerCardIdentifier = contractResult[3];
+    const challengerCardIdentifier = contractResult[4];
     winner = contractResult[2];
     c_card = contractResult[4];
 
@@ -1066,16 +1211,51 @@ warApp.frame('/result/:gameId', async (c) => {
       return c.error({ message: 'Please wait …' });
     }
 
+    if (numOfCards === 1) {
+      // 1枚のカードの場合
+      card = Number(makerCardIdentifier);
+      c_card = Number(challengerCardIdentifier);
+    } else {
+      const makerCards: number[] = [];
+      const challengerCards: number[] = [];
+
+      for (let i = 0; i < numOfCards; i++) {
+        const [makerCard, challengerCard] = await Promise.all([
+          warContract.read.playerCards([makerCardIdentifier, BigInt(i)]),
+          warContract.read.playerCards([challengerCardIdentifier, BigInt(i)]),
+        ]);
+        makerCards.push(Number(makerCard));
+        challengerCards.push(Number(challengerCard));
+      }
+
+      card = makerCards;
+      c_card = challengerCards;
+    }
     // レスポンス改善のためDBへの書き込みはwaitしない
     updateResult(gameId, card, c_card, winner);
   }
 
-  const resultStatus =
-    card == c_card
-      ? Result.Draw
-      : winner.toLowerCase() === c_address
-      ? Result.Win
-      : Result.Lose;
+  let resultStatus: Result;
+
+  if (numOfCards === 1) {
+    // 1枚のカードの場合
+    resultStatus =
+      card === c_card
+        ? Result.Draw
+        : winner.toLowerCase() === c_address.toLowerCase()
+        ? Result.Win
+        : Result.Lose;
+  } else {
+    // 複数枚のカードの場合
+    if (winner === zeroAddress) {
+      resultStatus = Result.Draw;
+    } else {
+      resultStatus =
+        winner.toLowerCase() === c_address.toLowerCase()
+          ? Result.Win
+          : Result.Lose;
+    }
+  }
 
   const resultParams = JSON.stringify({
     userName,
@@ -1085,6 +1265,7 @@ warApp.frame('/result/:gameId', async (c) => {
     c_userName,
     c_pfp_url,
     c_card,
+    numOfCards,
     result: resultStatus,
   });
 
@@ -1254,6 +1435,38 @@ const generateLoadingImage = async (
   return finalImage;
 };
 
+const generateMultiLoadingImage = async (
+  userName: string,
+  pfp_url: string,
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+  numOfCards: number,
+  c_card?: number[],
+) => {
+  const backgroundImageBuffer = await generateMultiDuelImage(
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+    numOfCards,
+    c_card || [],
+  );
+
+  const backgroundImage = sharp(backgroundImageBuffer);
+
+  const overlayImage = await sharp('./public/images/war/loading_overlay.png')
+    .resize(1000, 1000)
+    .toBuffer();
+
+  const finalImage = await backgroundImage
+    .composite([{ input: overlayImage, gravity: 'center' }])
+    .toBuffer();
+
+  return finalImage;
+};
+
 warApp.hono.get('/image/error/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
 
@@ -1266,7 +1479,16 @@ warApp.hono.get('/image/error/:params', async (c) => {
 
 warApp.hono.get('/image/challenge/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, gameId, c_userName, c_pfp_url } = params;
+  const {
+    userName,
+    pfp_url,
+    wager,
+    gameId,
+    c_userName,
+    c_pfp_url,
+    numOfCards,
+    sumOfCards,
+  } = params;
 
   const status = await warContract.read.gameStatus([gameId]);
   // const gameInfo = await getGameInfoByGameId(gameId);
@@ -1280,19 +1502,38 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
 
   let png;
 
-  if (status.toString() == '1') {
-    png = await generateChallengeImage(
-      true,
-      userName,
-      pfp_url,
-      wager,
-      c_userName,
-      c_pfp_url,
-    );
-  } else if (status.toString() == '2' || status.toString() == '3') {
-    png = await generatePlayedSimpleImage();
+  if (numOfCards === 1) {
+    if (status.toString() == '1') {
+      png = await generateChallengeImage(
+        true,
+        userName,
+        pfp_url,
+        wager,
+        c_userName,
+        c_pfp_url,
+      );
+    } else if (status.toString() == '2' || status.toString() == '3') {
+      png = await generatePlayedSimpleImage();
+    } else {
+      png = await generateExpiredSimpleImage();
+    }
   } else {
-    png = await generateExpiredSimpleImage();
+    if (status.toString() == '1') {
+      png = await generateMultiChallengeImage(
+        true,
+        userName,
+        pfp_url,
+        wager,
+        c_userName,
+        c_pfp_url,
+        numOfCards,
+        sumOfCards,
+      );
+    } else if (status.toString() == '2' || status.toString() == '3') {
+      png = await generatePlayedSimpleImage();
+    } else {
+      png = await generateExpiredSimpleImage();
+    }
   }
 
   const response = c.newResponse(png, 200, {
@@ -1304,29 +1545,72 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
 
 warApp.hono.get('/image/duel/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
-
-  const png = await generateDuelImage(
+  const {
     userName,
     pfp_url,
     wager,
     c_userName,
     c_pfp_url,
-  );
+    c_card,
+    numOfCards,
+  } = params;
+
+  let png;
+
+  if (numOfCards === 1) {
+    png = await generateDuelImage(
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+    );
+  } else {
+    png = await generateMultiDuelImage(
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+      numOfCards,
+      c_card,
+    );
+  }
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
 warApp.hono.get('/image/loading/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
-
-  const png = await generateLoadingImage(
+  const {
     userName,
     pfp_url,
     wager,
     c_userName,
     c_pfp_url,
-  );
+    c_card,
+    numOfCards,
+  } = params;
+
+  let png;
+  if (numOfCards === 1)
+    png = await generateLoadingImage(
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+    );
+  else {
+    png = await generateMultiLoadingImage(
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+      numOfCards,
+      c_card,
+    );
+  }
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
@@ -1368,6 +1652,7 @@ const getQuantities = async (address: string, c: any) => {
       messageBytes: trustedData.messageBytes,
     }),
   });
+
   const usedQuantities = await response.json();
 
   const quantities = data.map((quantity, index) => {
@@ -1458,30 +1743,64 @@ warApp.hono.get('/image/score/:quantities', async (c) => {
 warApp.hono.get('/image/preview/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, card, wager, c_userName, c_pfp_url } = params;
-  const png = await generatePreviewImage({
-    userName,
-    pfp_url,
-    card,
-    wager,
-    c_userName,
-    c_pfp_url,
-  });
 
+  let png;
+  if (card.length === 1) {
+    png = await generatePreviewImage({
+      userName,
+      pfp_url,
+      card,
+      wager,
+      c_userName,
+      c_pfp_url,
+    });
+  } else {
+    png = await generateMultiPreviewImage({
+      userName,
+      pfp_url,
+      card,
+      wager,
+      c_userName,
+      c_pfp_url,
+    });
+  }
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
 warApp.hono.get('/image/find/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-  const { userName, pfp_url, wager, c_userName, c_pfp_url } = params;
-
-  const png = await generateChallengeImage(
-    false,
+  const {
     userName,
     pfp_url,
     wager,
     c_userName,
     c_pfp_url,
-  );
+    numOfCards,
+    sumOfCards,
+  } = params;
+
+  let png;
+  if (numOfCards === 1) {
+    png = await generateChallengeImage(
+      false,
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+    );
+  } else {
+    png = await generateMultiShareImage(
+      false,
+      userName,
+      pfp_url,
+      wager,
+      c_userName,
+      c_pfp_url,
+      numOfCards,
+      sumOfCards,
+    );
+  }
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
@@ -1524,18 +1843,34 @@ warApp.hono.get('/image/result/:params', async (c) => {
     c_pfp_url,
     c_card,
     result,
+    numOfCards,
   } = params;
 
-  const png = await generateResultImage(
-    userName,
-    pfp_url,
-    card,
-    wager,
-    c_userName,
-    c_pfp_url,
-    c_card,
-    result,
-  );
+  let png;
+  if (numOfCards === 1) {
+    png = await generateResultImage(
+      userName,
+      pfp_url,
+      card,
+      wager,
+      c_userName,
+      c_pfp_url,
+      c_card,
+      result,
+    );
+  } else {
+    png = await generateMultiResultImage(
+      userName,
+      pfp_url,
+      card,
+      wager,
+      c_userName,
+      c_pfp_url,
+      c_card,
+      result,
+      numOfCards,
+    );
+  }
 
   return c.newResponse(png, 200, {
     'Content-Type': 'image/png',
@@ -1732,6 +2067,211 @@ const generateChallengeImage = async (
   return png;
 };
 
+const generateMultiChallengeImage = async (
+  share: boolean,
+  userName: string,
+  pfp_url: string,
+  wager: number,
+  c_userName: string = '',
+  c_pfp_url: string = '',
+  numOfCards: number,
+  sumOfCards: number,
+) => {
+  const imageName =
+    numOfCards === 3 ? '3_card_challenge.png' : '5_card_challenge.png';
+
+  const response = await fetch(pfp_url);
+  const pfpBuffer = await response.arrayBuffer();
+
+  const canvas = sharp('./public/images/war/multi/' + imageName).resize(
+    1000,
+    1000,
+  );
+
+  const topUserTop = 56;
+  const topUserLeft = 460;
+  const bottomUserLeft = 320;
+  const bottomUserTop = 914;
+
+  const topPfpSize = 75;
+  const topUserNameFontSize = 40;
+
+  const userComponent = await generateUserComponent(userName, pfp_url);
+
+  const topCircleMask = Buffer.from(
+    `<svg><circle cx="${topPfpSize / 2}" cy="${topPfpSize / 2}" r="${
+      topPfpSize / 2
+    }" /></svg>`,
+  );
+
+  const topPfpImage = await sharp(pfpBuffer)
+    .resize(topPfpSize, topPfpSize)
+    .composite([{ input: topCircleMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const topSvgText = `
+    <svg width="500" height="${topPfpSize}">
+      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${topUserNameFontSize}" fill="white">${userName}</text>
+    </svg>
+  `;
+
+  const topUserNameImage = await sharp(Buffer.from(topSvgText))
+    .png()
+    .toBuffer();
+
+  const sumOfCardsImage = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="1000">${sumOfCards}</span>`,
+      font: 'Bigelow Rules',
+      fontfile: './public/fonts/BigelowRules-Regular.ttf',
+      rgba: true,
+      width: 40,
+      height: 40,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const composites = [
+    {
+      input: userComponent,
+      left: bottomUserLeft,
+      top: bottomUserTop,
+    },
+    {
+      input: topPfpImage,
+      left: topUserLeft,
+      top: topUserTop,
+    },
+    {
+      input: topUserNameImage,
+      left: topUserLeft + topPfpSize + 20,
+      top: topUserTop,
+    },
+    { input: sumOfCardsImage, left: 576, top: 168 },
+  ];
+
+  // direct match
+  if (c_userName && c_pfp_url) {
+    const opponentComponent = await generateUserComponent(
+      c_userName,
+      c_pfp_url,
+    );
+    composites.push({
+      input: opponentComponent,
+      left: bottomUserLeft,
+      top: 246,
+    });
+  }
+
+  const png = await canvas.composite(composites).png().toBuffer();
+  return png;
+};
+
+const generateMultiShareImage = async (
+  share: boolean,
+  userName: string,
+  pfp_url: string,
+  wager: number,
+  c_userName: string = '',
+  c_pfp_url: string = '',
+  numOfCards: number,
+  sumOfCards: number,
+) => {
+  const imageName = numOfCards === 3 ? '3_card_share.png' : '5_card_share.png';
+
+  const response = await fetch(pfp_url);
+  const pfpBuffer = await response.arrayBuffer();
+
+  const canvas = sharp('./public/images/war/multi/' + imageName).resize(
+    1000,
+    1000,
+  );
+
+  const topUserTop = 56;
+  const topUserLeft = 460;
+  const bottomUserLeft = 320;
+  const bottomUserTop = 914;
+
+  const topPfpSize = 75;
+  const topUserNameFontSize = 40;
+
+  const userComponent = await generateUserComponent(userName, pfp_url);
+
+  const topCircleMask = Buffer.from(
+    `<svg><circle cx="${topPfpSize / 2}" cy="${topPfpSize / 2}" r="${
+      topPfpSize / 2
+    }" /></svg>`,
+  );
+
+  const topPfpImage = await sharp(pfpBuffer)
+    .resize(topPfpSize, topPfpSize)
+    .composite([{ input: topCircleMask, blend: 'dest-in' }])
+    .png()
+    .toBuffer();
+
+  const topSvgText = `
+    <svg width="500" height="${topPfpSize}">
+      <text x="0" y="50%" dy="0.35em" font-family="Arial" font-size="${topUserNameFontSize}" fill="white">${userName}</text>
+    </svg>
+  `;
+
+  const topUserNameImage = await sharp(Buffer.from(topSvgText))
+    .png()
+    .toBuffer();
+
+  const sumOfCardsImage = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="1000">${sumOfCards}</span>`,
+      font: 'Bigelow Rules',
+      fontfile: './public/fonts/BigelowRules-Regular.ttf',
+      rgba: true,
+      width: 40,
+      height: 40,
+      align: 'left',
+    },
+  })
+    .png()
+    .toBuffer();
+
+  const composites = [
+    {
+      input: userComponent,
+      left: bottomUserLeft,
+      top: bottomUserTop,
+    },
+    {
+      input: topPfpImage,
+      left: topUserLeft,
+      top: topUserTop,
+    },
+    {
+      input: topUserNameImage,
+      left: topUserLeft + topPfpSize + 20,
+      top: topUserTop,
+    },
+    { input: sumOfCardsImage, left: 652, top: 168 },
+  ];
+
+  // direct match
+  if (c_userName && c_pfp_url) {
+    const opponentComponent = await generateUserComponent(
+      c_userName,
+      c_pfp_url,
+    );
+    composites.push({
+      input: opponentComponent,
+      left: bottomUserLeft,
+      top: 246,
+    });
+  }
+
+  const png = await canvas.composite(composites).png().toBuffer();
+  return png;
+};
+
 const generateUserComponent = async (userName: string, pfp_url: string) => {
   const response = await fetch(pfp_url);
   const pfpBuffer = await response.arrayBuffer();
@@ -1848,6 +2388,85 @@ const generatePreviewImage = async ({
       input: opponentComponent,
       left: 744,
       top: 480 + isBetAdjustment,
+    });
+  }
+
+  const png = await canvas.composite(composites).png().toBuffer();
+  return png;
+};
+
+const calculateCardPositions = (handSize: number, top: number) => {
+  const cardWidth = 100;
+  const spacing = 23; // カード間のスペース
+  const totalWidth = handSize * cardWidth + (handSize - 1) * spacing;
+  const startLeft = (1000 - totalWidth) / 2; // キャンバスの中央に配置
+
+  return Array.from({ length: handSize }, (_, index) => ({
+    left: startLeft + index * (cardWidth + spacing),
+    top: top,
+  }));
+};
+const generateMultiPreviewImage = async ({
+  userName,
+  pfp_url,
+  card,
+  wager,
+  c_userName,
+  c_pfp_url,
+}: {
+  userName: string;
+  pfp_url: string;
+  card: number[];
+  wager: number;
+  c_userName?: string;
+  c_pfp_url?: string;
+}) => {
+  const isBet = wager > 0;
+  const cardWidth = 100;
+
+  const handSize = card.length;
+  const imageName =
+    handSize === 3 ? '3_card_preview.png' : '5_card_preview.png';
+  const canvas = sharp(`./public/images/war/multi/${imageName}`).resize(
+    1000,
+    1000,
+  );
+
+  const cardImagePromises = card
+    .slice(0, handSize)
+    .map((cardValue) =>
+      sharp(`./public/images/war/multi/card/${cardValue}.png`)
+        .resize(cardWidth)
+        .png()
+        .toBuffer(),
+    );
+
+  const [userComponent, ...cardImages] = await Promise.all([
+    generateUserComponent(userName, pfp_url),
+    ...cardImagePromises,
+  ]);
+
+  const cardPositions = calculateCardPositions(handSize, 622);
+
+  const composites = [
+    { input: userComponent, left: 328, top: 914 },
+    ...cardImages.map((cardImage, index) => ({
+      input: cardImage,
+      left: cardPositions[index].left,
+      top: cardPositions[index].top,
+    })),
+  ];
+
+  // direct match
+  if (c_userName && c_pfp_url) {
+    const opponentComponent = await generateUserComponent(
+      c_userName,
+      c_pfp_url,
+    );
+    composites.push({
+      input: opponentComponent,
+      left: 328,
+      top: 244,
     });
   }
 
@@ -1974,6 +2593,87 @@ const generateDuelImage = async (
 
   if (isBet && wagerImage) {
     composites.push({ input: wagerImage, left: 490, top: 845 });
+  }
+
+  const finalImage = await baseImage.composite(composites).png().toBuffer();
+
+  return finalImage;
+};
+
+const generateMultiDuelImage = async (
+  userName: string,
+  pfp_url: string,
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+  numOfCards: number,
+  c_card?: number[],
+  card?: number[],
+) => {
+  const userLeft = 320;
+  const topUserTop = 246;
+  const bottomUserTop = 914;
+
+  const cardWidth = 100;
+
+  const imageName =
+    numOfCards === 3
+      ? '3_card_challenge_preview.png'
+      : '5_card_challenge_preview.png';
+
+  const baseImage = sharp('./public/images/war/multi/' + imageName).resize(
+    1000,
+    1000,
+  );
+
+  const cardList =
+    c_card && c_card.length > 0 ? c_card : Array(numOfCards).fill(0);
+
+  const cardImagePromises = cardList
+    .slice(0, numOfCards)
+    .map((cardValue) =>
+      sharp(`./public/images/war/multi/card/${cardValue}.png`)
+        .resize(cardWidth)
+        .png()
+        .toBuffer(),
+    );
+
+  const [userComponent, opponentComponent, ...cardImages] = await Promise.all([
+    generateUserComponent(userName, pfp_url),
+    generateUserComponent(c_userName, c_pfp_url),
+    ...cardImagePromises,
+  ]);
+
+  const cardPositions = calculateCardPositions(numOfCards, 444);
+
+  const composites = [
+    { input: userComponent, top: bottomUserTop, left: userLeft },
+    { input: opponentComponent, top: topUserTop, left: userLeft },
+    ...cardImages.map((cardImage, index) => ({
+      input: cardImage,
+      left: cardPositions[index].left,
+      top: cardPositions[index].top,
+    })),
+  ];
+
+  if (card && card.length > 0) {
+    const makerCardImagePromises = card
+      .slice(0, numOfCards)
+      .map((cardValue) =>
+        sharp(`./public/images/war/multi/card/${cardValue}.png`)
+          .resize(cardWidth)
+          .png()
+          .toBuffer(),
+      );
+    const [...cardImages] = await Promise.all([...makerCardImagePromises]);
+    const cardPositions = calculateCardPositions(numOfCards, 620);
+    composites.push(
+      ...cardImages.map((cardImage, index) => ({
+        input: cardImage,
+        left: cardPositions[index].left,
+        top: cardPositions[index].top,
+      })),
+    );
   }
 
   const finalImage = await baseImage.composite(composites).png().toBuffer();
@@ -2110,4 +2810,233 @@ const generateResultImage = async (
     .toBuffer();
 
   return finalImage;
+};
+
+const generateMultiResultImage = async (
+  userName: string,
+  pfp_url: string,
+  card: number[],
+  wager: number,
+  c_userName: string,
+  c_pfp_url: string,
+  c_card: number[],
+  result: Result,
+  numOfCards: number,
+) => {
+  // 定数定義
+  const CARD_SIZE = 120;
+  const CARD_SPACING = numOfCards === 3 ? 70 : 60;
+  const IMAGE_SIZE = 1000;
+  const HORIZONTAL_ADJUST = 20;
+  const cardLeft = 70;
+  const cardRight = IMAGE_SIZE - CARD_SIZE - cardLeft;
+
+  [card, c_card] = reorderCards(card, c_card);
+
+  // 背景画像生成
+  const backgroundImageBuffer = await generateMultiDuelImage(
+    userName,
+    pfp_url,
+    wager,
+    c_userName,
+    c_pfp_url,
+    numOfCards,
+    c_card || [],
+    card,
+  );
+  const backgroundImage = sharp(backgroundImageBuffer);
+
+  // 各カードの勝敗を判定
+  const results = card.map((card, index) => {
+    if (card > c_card[index]) return Result.Win;
+    if (card < c_card[index]) return Result.Lose;
+    return Result.Draw;
+  });
+
+  // 全体の結果を計算
+  const overallResult = results.reduce((acc, result) => {
+    if (acc === Result.Draw) return result;
+    if (result === Result.Draw) return acc;
+    if (acc === Result.Win && result === Result.Lose) return Result.Draw;
+    if (acc === Result.Lose && result === Result.Win) return Result.Draw;
+    return acc;
+  }, Result.Draw);
+
+  // オーバーレイ画像の選択と読み込み
+  const overlayImageName =
+    result === Result.Win
+      ? 'result_victory_overlay.png'
+      : result === Result.Lose
+      ? 'result_defeat_overlay.png'
+      : 'result_draw_overlay.png';
+  const overlayImage = await sharp('./public/images/war/' + overlayImageName)
+    .resize(IMAGE_SIZE, IMAGE_SIZE)
+    .toBuffer();
+
+  // カード画像とユーザーコンポーネントの生成
+  const [
+    userCardImages,
+    challengerCardImages,
+    userComponent,
+    opponentComponent,
+  ] = await Promise.all([
+    Promise.all(
+      card.map((cardValue, index) => {
+        const cardPath =
+          results[index] === Result.Win
+            ? `./public/images/war/multi/card/${cardValue}.png`
+            : `./public/images/war/multi/card/dark/${cardValue}.png`;
+        return sharp(cardPath).resize(CARD_SIZE).png().toBuffer();
+      }),
+    ),
+    Promise.all(
+      c_card.map((cardValue, index) => {
+        const cardPath =
+          results[index] === Result.Lose
+            ? `./public/images/war/multi/card/${cardValue}.png`
+            : `./public/images/war/multi/card/dark/${cardValue}.png`;
+        return sharp(cardPath).resize(CARD_SIZE).png().toBuffer();
+      }),
+    ),
+    generateUserComponent(userName, pfp_url),
+    generateUserComponent(c_userName, c_pfp_url),
+  ]);
+
+  // ユーザーコンポーネントのメタデータ取得
+  const userComponentMetadata = await sharp(userComponent).metadata();
+  const opponentComponentMetadata = await sharp(opponentComponent).metadata();
+
+  // カードとコンポーネントの配置計算
+  const totalCardsHeight =
+    (CARD_SIZE + CARD_SPACING) * numOfCards - CARD_SPACING;
+  const verticalOffset = numOfCards === 5 ? -50 : 0;
+  const cardsVerticalCenter =
+    (IMAGE_SIZE - totalCardsHeight) / 2 + verticalOffset;
+
+  const COMPONENT_VERTICAL_ADJUST = 10; // この値を調整して、下げる量を制御します
+  const componentTop =
+    cardsVerticalCenter + totalCardsHeight + 50 + COMPONENT_VERTICAL_ADJUST;
+
+  // ユーザーコンポーネントの位置計算
+  const userComponentLeft =
+    cardLeft +
+    (CARD_SIZE - (userComponentMetadata.width ?? 0)) / 2 -
+    HORIZONTAL_ADJUST;
+  const opponentComponentLeft =
+    cardRight +
+    (CARD_SIZE - (opponentComponentMetadata.width ?? 0)) / 2 -
+    HORIZONTAL_ADJUST;
+
+  // コンポーネントの位置がカードの範囲内に収まるように調整
+  const adjustedUserComponentLeft = Math.max(
+    cardLeft - HORIZONTAL_ADJUST,
+    Math.min(
+      userComponentLeft,
+      cardLeft + CARD_SIZE - (userComponentMetadata.width ?? 0),
+    ),
+  );
+  const adjustedOpponentComponentLeft = Math.max(
+    cardRight,
+    Math.min(
+      opponentComponentLeft,
+      cardRight + CARD_SIZE - (opponentComponentMetadata.width ?? 0),
+    ),
+  );
+
+  // 勝利数を計算する関数
+  const calculateWins = (results: Result[]): [number, number] => {
+    const playerWins = results.filter((r) => r === Result.Win).length;
+    const opponentWins = results.filter((r) => r === Result.Lose).length;
+    return [playerWins, opponentWins];
+  };
+
+  // 勝利数の計算
+  const [playerWins, opponentWins] = calculateWins(results);
+
+  // 結果テキストの作成
+  const resultText = await sharp({
+    text: {
+      text: `<span foreground="white" letter_spacing="1000">${playerWins}-${opponentWins}</span>`,
+      font: 'Bigelow Rules',
+      fontfile: './public/fonts/BigelowRules-Regular.ttf',
+      rgba: true,
+      width: 300,
+      height: 140,
+      align: 'center',
+    },
+  })
+    .png()
+    .toBuffer();
+  const resultTextMetadata = await sharp(resultText).metadata();
+
+  const textLeft = (IMAGE_SIZE - (resultTextMetadata.width ?? 0)) / 2;
+  const textTop = 700;
+
+  // 合成操作の定義
+  const compositeOperations = [
+    { input: overlayImage, gravity: 'center' },
+    ...userCardImages.map((cardImage, index) => ({
+      input: cardImage,
+      left: cardLeft,
+      top: cardsVerticalCenter + (CARD_SIZE + CARD_SPACING) * index,
+    })),
+    ...challengerCardImages.map((cardImage, index) => ({
+      input: cardImage,
+      left: cardRight,
+      top: cardsVerticalCenter + (CARD_SIZE + CARD_SPACING) * index,
+    })),
+    {
+      input: userComponent,
+      left: adjustedUserComponentLeft,
+      top: componentTop,
+    },
+    {
+      input: opponentComponent,
+      left: adjustedOpponentComponentLeft,
+      top: componentTop,
+    },
+
+    { input: resultText, left: textLeft, top: textTop },
+  ];
+
+  // 最終画像の生成
+  const finalImage = await backgroundImage
+    .composite(compositeOperations)
+    .toBuffer();
+
+  return finalImage;
+};
+
+// カードの並び替え処理
+const reorderCards = (
+  playerCards: number[],
+  opponentCards: number[],
+): [number[], number[]] => {
+  const playerHasJoker = playerCards.includes(14);
+  const opponentHasJoker = opponentCards.includes(14);
+  const playerHasAce = playerCards.includes(1);
+  const opponentHasAce = opponentCards.includes(1);
+
+  if (
+    (playerHasJoker && opponentHasAce) ||
+    (playerHasAce && opponentHasJoker)
+  ) {
+    const newPlayerCards = [...playerCards];
+    const newOpponentCards = [...opponentCards];
+
+    if (playerHasAce) {
+      const aceIndex = newPlayerCards.indexOf(1);
+      newPlayerCards.splice(aceIndex, 1);
+      newPlayerCards.unshift(1);
+    }
+    if (opponentHasAce) {
+      const aceIndex = newOpponentCards.indexOf(1);
+      newOpponentCards.splice(aceIndex, 1);
+      newOpponentCards.unshift(1);
+    }
+
+    return [newPlayerCards, newOpponentCards];
+  }
+
+  return [playerCards, opponentCards];
 };

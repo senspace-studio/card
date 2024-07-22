@@ -87,6 +87,8 @@ export const getGameInfoByGameId = async (id: string) => {
     card,
     c_card,
     winner,
+    numOfCards,
+    sumOfCards,
   } = rows[0];
 
   return {
@@ -100,6 +102,8 @@ export const getGameInfoByGameId = async (id: string) => {
     card,
     c_card,
     winner,
+    numOfCards,
+    sumOfCards,
   };
 };
 
@@ -110,9 +114,11 @@ export const setGameInfo = async (
   pfp_url: string,
   wager: number,
   createdAt: bigint,
+  numOfCards: number,
+  sumOfCards: number,
 ) => {
   const query =
-    'INSERT IGNORE INTO game (gameId, address, userName, pfp_url, wager, createdAt) VALUES (?, ?, ?, ?, ?, FROM_UNIXTIME(?))';
+    'INSERT IGNORE INTO game (gameId, address, userName, pfp_url, wager,createdAt, numOfCards, sumOfCards ) VALUES (?, ?, ?, ?, ?,FROM_UNIXTIME(?), ?, ?)';
   const connection = await connectToDatabase();
   await connection.execute(query, [
     id,
@@ -121,6 +127,8 @@ export const setGameInfo = async (
     pfp_url,
     wager,
     createdAt,
+    numOfCards,
+    sumOfCards,
   ]);
   connection.end();
 };
@@ -140,13 +148,25 @@ export const updateChallenger = async (
 
 export const updateResult = async (
   id: string,
-  card: number,
-  c_card: number,
+  card: number[],
+  c_card: number[],
   winner: string,
 ) => {
   const query =
     'UPDATE game SET card = ?, c_card = ?, winner = ? WHERE gameId = ?';
+
+  // 配列をJSON文字列に変換
+  const cardJson = JSON.stringify(card);
+  const c_cardJson = JSON.stringify(c_card);
+
   const connection = await connectToDatabase();
-  await connection.execute(query, [card, c_card, winner, id]);
-  connection.end();
+
+  try {
+    await connection.execute(query, [cardJson, c_cardJson, winner, id]);
+  } catch (error) {
+    console.error('Error updating result:', error);
+    throw error;
+  } finally {
+    await connection.end();
+  }
 };
