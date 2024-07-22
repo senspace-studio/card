@@ -45,13 +45,13 @@ export class WarController {
   // チャレンジャー待ちのゲームすべてを返す。
   @Get('/getAllReservedGames')
   async getAllReservedGames(
-    @Param('orderBy') orderBy: 'ASC' | 'DESC',
+    @Query('orderBy') orderBy: 'ASC' | 'DESC',
     @Query('hand_length') hand_length: string,
   ) {
     this.logger.log(this.getAllReservedGames.name, { orderBy, hand_length });
     const games = await this.warService.getAllReservedGames(
       orderBy || 'ASC',
-      hand_length,
+      hand_length || '1',
     );
     return games.map((game) => {
       const { game_id, maker, created } = game;
@@ -68,7 +68,7 @@ export class WarController {
     @Query('exept_maker') exept_maker: string,
     @Query('hand_length') hand_length: string,
   ) {
-    this.logger.log(this.getAllReservedGames.name, {
+    this.logger.log(this.getRandomChallengableGame.name, {
       maker,
       exept_maker,
       hand_length,

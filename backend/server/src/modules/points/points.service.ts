@@ -11,7 +11,6 @@ import {
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient from 'src/lib/thirdweb-engine';
-import { ViemService } from '../viem/viem.service';
 import { S_VIP_ADDRESSES } from 'src/constants/Invitation';
 import parser from 'cron-parser';
 const cronParser: typeof parser = require('cron-parser');
@@ -23,7 +22,6 @@ export class PointsService {
   constructor(
     @InjectRepository(HeatScoreEntity)
     private readonly heatscoreRepository: Repository<HeatScoreEntity>,
-    private readonly viemService: ViemService,
   ) {}
 
   async getScores() {
@@ -390,8 +388,8 @@ export class PointsService {
     return Array.from(totalScore.entries());
   }
 
-  async calcTotalScore(baseDate: dayjs.Dayjs) {
-    const startDate_game = baseDate.subtract(3, 'days');
+  async calcTotalScore(baseDate: dayjs.Dayjs, startDate?: dayjs.Dayjs) {
+    const startDate_game = startDate || baseDate.subtract(3, 'days');
 
     const gameRevealedlogs = await this.getGameLogs(
       startDate_game.unix(),

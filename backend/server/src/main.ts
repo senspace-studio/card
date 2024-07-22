@@ -5,9 +5,11 @@ import helmet from 'helmet';
 import { NestFactory } from '@nestjs/core';
 import { Logger } from '@nestjs/common';
 import { AppModule } from './modules/app.module';
+import { NODE_ENV } from './utils/env';
 
 const cluster = __cluster__ as unknown as Cluster;
-const numCPUs = os.cpus().length > 8 ? 8 : os.cpus().length;
+const numCPUs =
+  NODE_ENV === 'development' ? 1 : os.cpus().length > 8 ? 8 : os.cpus().length;
 
 const logger = new Logger(cluster.isPrimary ? 'Primary' : 'Worker');
 
