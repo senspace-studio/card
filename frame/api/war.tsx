@@ -757,11 +757,23 @@ const challengeFrame = async (
         await updateChallenger(gameId, challengerAddress, userName, pfp_url);
       }
 
-      let makerCard = Number(game[3]);
-      if (makerCard !== 0) {
+      let makerCardRaw = game[3];
+      if (makerCardRaw !== BigInt(0)) {
+        let challengerRaw = game[4];
+        const makerCards: number[] = [];
+        const challengerCards: number[] = [];
+        for (let i = 0; i < numOfCards; i++) {
+          const [makerCard, challengerCard] = await Promise.all([
+            warContract.read.playerCards([makerCardRaw, BigInt(i)]),
+            warContract.read.playerCards([challengerRaw, BigInt(i)]),
+          ]);
+          makerCards.push(Number(makerCard));
+          challengerCards.push(Number(challengerCard));
+        }
+
         let winner = game[2];
-        let challengerCard = Number(game[4]);
-        await updateResult(gameId, makerCard, challengerCard, winner);
+
+        await updateResult(gameId, makerCards, challengerCards, winner);
       }
     } catch (e) {
       console.log(e);
