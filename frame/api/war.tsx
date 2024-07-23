@@ -1849,6 +1849,7 @@ const extractFirstNumber = (value: string | number | number[]): number => {
   // それ以外の場合は、そのまま数値に変換して返す
   return Number(value);
 };
+
 warApp.hono.get('/image/result/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
 
@@ -1887,11 +1888,11 @@ warApp.hono.get('/image/result/:params', async (c) => {
     png = await generateMultiResultImage(
       userName,
       pfp_url,
-      card,
+      typeof card == 'string' ? JSON.parse(card) : card,
       wager,
       c_userName,
       c_pfp_url,
-      c_card,
+      typeof card == 'string' ? JSON.parse(c_card) : c_card,
       result,
       numOfCards,
     );
@@ -2431,6 +2432,7 @@ const calculateCardPositions = (handSize: number, top: number) => {
     top: top,
   }));
 };
+
 const generateMultiPreviewImage = async ({
   userName,
   pfp_url,
