@@ -31,7 +31,7 @@ import {
   getFarcasterUserInfoByCastHash,
 } from '../lib/neynar.js';
 import { BlankInput } from 'hono/types';
-import { isJokerKilling } from '../utils/wat.js';
+import { initLocalState, isJokerKilling } from '../utils/war.js';
 // import { ethers, getBytes, keccak256 } from 'ethers';
 // import { encodePacked } from 'viem';
 
@@ -46,7 +46,8 @@ const CARD_SIZE = 220;
 
 const title = 'Battle | House of Cardians';
 
-type State = {
+export type WarState = {
+  initialized: boolean;
   quantities: number[];
   address: `0x${string}`;
   pfp_url: string;
@@ -71,7 +72,7 @@ enum Result {
   Draw = 'Draw',
 }
 
-export const warApp = new Frog<{ State: State }>({
+export const warApp = new Frog<{ State: WarState }>({
   initialState: {
     quantities: [],
     address: '',
@@ -91,41 +92,7 @@ warApp.frame('/', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  if (c.frameData?.fid) {
-    const { verifiedAddresses, userName, pfp_url } = await getFarcasterUserInfo(
-      c.frameData?.fid,
-    );
-
-    if (!verifiedAddresses || verifiedAddresses.length === 0) {
-      return c.res({
-        title,
-        image: '/images/verify.png',
-        imageAspectRatio: '1:1',
-        intents: [<Button action={BASE_URL}>Back</Button>],
-      });
-    }
-
-    c.deriveState((prevState) => {
-      prevState.verifiedAddresses = verifiedAddresses;
-      prevState.userName = userName;
-      prevState.pfp_url = pfp_url;
-    });
-
-    const hasInvitation = await checkInvitation(verifiedAddresses[0]);
-
-    if (!hasInvitation) {
-      return c.res({
-        title,
-        image: '/images/war/no_invi.png',
-        imageAspectRatio: '1:1',
-        intents: [<Button action="/">Back</Button>],
-      });
-    }
-
-    c.deriveState((prevState) => {
-      prevState.hasInvitation = hasInvitation;
-    });
-  }
+  await initLocalState(c);
 
   return c.res({
     title,
@@ -157,12 +124,28 @@ warApp.frame('/tools', (c) => {
   });
 });
 
-warApp.frame('/make-duel', async (c) => {
+warApp.frame('/select-game-mode', async (c) => {
+  return c.res({
+    title,
+    image: '/images/war/select_game_mode.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/make-duel/1">1 card</Button>,
+      <Button action="/make-duel/3">3 cards</Button>,
+      <Button action="/make-duel/5">5 cards</Button>,
+    ],
+  });
+});
+
+warApp.frame('/make-duel/:game_mode', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
   const { frameData } = c;
   const fid = frameData?.fid;
+
+  await initLocalState(c);
+
   const { pfp_url, userName, verifiedAddresses } = c.previousState.userName
     ? c.previousState
     : await getFarcasterUserInfo(fid);
@@ -710,7 +693,7 @@ warApp.frame('/challenge/:gameId', async (c) => {
 const challengeFrame = async (
   c: FrameContext<
     {
-      State: State;
+      State: WarState;
     },
     '/challenge/:gameId' | '/challenge/random',
     BlankInput

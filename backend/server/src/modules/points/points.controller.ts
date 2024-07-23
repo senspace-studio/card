@@ -84,6 +84,27 @@ export class PointsController {
     }
   }
 
+  @CacheKey('realtime_total_reward')
+  @CacheTTL(300000)
+  @Get('/realtime-total-reward')
+  async getRealtimeTotalReward() {
+    this.logger.log(this.getRealtimeTotalReward.name);
+
+    const baseDate = dayjs();
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+
+    const numOfTodayGame = await this.pointsService.getGameLogs(
+      currentCronDate.getTime() / 1000,
+      baseDate.subtract(10, 'seconds').unix(),
+    );
+    const totalRewardsAmount = numOfTodayGame.length * 190 * 0.9;
+
+    return { totalRewardsAmount };
+  }
+
   @CacheKey('realtime_stackData')
   @CacheTTL(60000)
   @Get('/realtime-stack-data')
