@@ -20,23 +20,16 @@ export class WarController {
   ) {}
 
   // ToDo: 開発用なので削除
-  // @Get('/sign/:tokenId')
-  // async signGet(@Param('tokenId') tokenId: string) {
-  //   for (let i = 0; i < 100; i++) {
-  //     try {
-  //       const seed = Math.floor(Math.random() * 1000000);
-  //       const signature = await this.warService.createNewGame(
-  //         '0xD0575cA24D907b35d39383a53c3300D510446BaE',
-  //         BigInt(tokenId),
-  //         BigInt(seed),
-  //       );
-  //       return signature;
-  //     } catch (error) {
-  //       if (error.message !== 'signature already used') {
-  //         throw new Error(error);
-  //       }
-  //     }
-  //   }
+  // @Get('/sign/:maker/:tokenIds')
+  // async getSignForDev(
+  //   @Param('maker') maker: string,
+  //   @Param('tokenIds') tokenIds: string,
+  // ) {
+  //   const tokenIdList = tokenIds
+  //     .split(',')
+  //     .map((card) => this.warService.convertCardValue(card))
+  //     .sort((a, b) => b - a);
+  //   return await this.warService.sign(tokenIdList, maker);
   // }
 
   @Get('/balanceOf/:address/:tokenId')
@@ -51,8 +44,15 @@ export class WarController {
 
   // チャレンジャー待ちのゲームすべてを返す。
   @Get('/getAllReservedGames')
-  async getAllReservedGames(@Param('orderBy') orderBy: 'ASC' | 'DESC') {
-    const games = await this.warService.getAllReservedGames(orderBy || 'ASC');
+  async getAllReservedGames(
+    @Query('orderBy') orderBy: 'ASC' | 'DESC',
+    @Query('hand_length') hand_length: string,
+  ) {
+    this.logger.log(this.getAllReservedGames.name, { orderBy, hand_length });
+    const games = await this.warService.getAllReservedGames(
+      orderBy || 'ASC',
+      hand_length || '1',
+    );
     return games.map((game) => {
       const { game_id, maker, created } = game;
       return { game_id, maker, created: Number(created) };
@@ -66,10 +66,17 @@ export class WarController {
   async getRandomChallengableGame(
     @Query('maker') maker: string,
     @Query('exept_maker') exept_maker: string,
+    @Query('hand_length') hand_length: string,
   ) {
+    this.logger.log(this.getRandomChallengableGame.name, {
+      maker,
+      exept_maker,
+      hand_length,
+    });
     const game = await this.warService.getRandomChallengableGame({
       maker,
       exept_maker,
+      hand_length,
     });
     return game
       ? {
@@ -113,28 +120,10 @@ export class WarController {
       throw new Error('invalid message');
     }
     const maker = result.action.interactor.verified_addresses.eth_addresses[0];
-    const cardInput = result.action.input.text;
-
-    const tokenId = this.warService.convertCardValue(cardInput);
-
-    const hasToken = await this.warService.hasCard(maker, Number(tokenId));
-    if (!hasToken) {
-      throw new Error('Insufficient balance');
-    }
-    for (let i = 0; i < 100; i++) {
-      try {
-        const seed = Math.floor(Math.random() * 1000000000000);
-        const signature = await this.warService.createNewGame(
-          maker,
-          BigInt(tokenId),
-          BigInt(seed),
-        );
-        return signature;
-      } catch (error) {
-        if (error.message !== 'signature already used') {
-          throw new Error('Internal server error');
-        }
-      }
-    }
+    const cardInputList = result.action.input.text.split(',');
+    const tokenIdList = cardInputList
+      .map((cardInput) => this.warService.convertCardValue(cardInput))
+      .sort((a, b) => b - a);
+    return await this.warService.sign(tokenIdList, maker);
   }
 }

@@ -31,6 +31,7 @@ import {
   getFarcasterUserInfoByCastHash,
 } from '../lib/neynar.js';
 import { BlankInput } from 'hono/types';
+import { isJokerKilling } from '../utils/wat.js';
 // import { ethers, getBytes, keccak256 } from 'ethers';
 // import { encodePacked } from 'viem';
 
@@ -1221,10 +1222,11 @@ warApp.frame('/result/:gameId', async (c) => {
     }
     const makerCardIdentifier = contractResult[3];
     const challengerCardIdentifier = contractResult[4];
+
     winner = contractResult[2];
     c_card = contractResult[4];
 
-    if (winner === zeroAddress && card === 0) {
+    if (winner === zeroAddress && Number(makerCardIdentifier) === 0) {
       return c.error({ message: 'Please wait …' });
     }
 
@@ -1864,11 +1866,14 @@ warApp.hono.get('/image/result/:params', async (c) => {
   let { card, c_card } = params;
 
   let png;
-  if (numOfCards === 1) {
-    // card と c_card が配列の場合、最初の要素を取り出す
+
+  const jokerKilling = isJokerKilling(card, c_card);
+
+  if (jokerKilling) {
+    png = await generateJokerKillingImage(pfp_url, c_pfp_url, result);
+  } else if (numOfCards === 1) {
     const singleCard = extractFirstNumber(card);
     const singleCCard = extractFirstNumber(c_card);
-
     png = await generateResultImage(
       userName,
       pfp_url,
@@ -3060,4 +3065,112 @@ const reorderCards = (
   }
 
   return [playerCards, opponentCards];
+};
+
+const generateJokerKillingImage = async (
+  pfp_url: string,
+  c_pfp_url: string,
+  jokerKilling: 'Win' | 'Lose',
+) => {
+  const seedString = pfp_url + c_pfp_url;
+  const seed = seedString
+    .split('')
+    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const imageNo = (seed % 5) + 1;
+
+  const container = sharp(
+    `./public/images/war/jokerkilling/jokerkilling_${imageNo}_${jokerKilling.toLowerCase()}.png`,
+  ).resize(1000, 1000);
+
+  let pfpSize = 0;
+  let pfpLeft = 0;
+  let pfpTop = 0;
+  let c_pfpSize = 0;
+  let c_pfpLeft = 0;
+  let c_pfpTop = 0;
+
+  switch (imageNo) {
+    case 1:
+      pfpSize = 145;
+      pfpLeft = 383;
+      pfpTop = 45;
+      c_pfpSize = 145;
+      c_pfpLeft = 727;
+      c_pfpTop = 778;
+      break;
+    case 2:
+      pfpSize = 154;
+      pfpLeft = 173;
+      pfpTop = 276;
+      c_pfpSize = 154;
+      c_pfpLeft = 787;
+      c_pfpTop = 102;
+      break;
+    case 3:
+      pfpSize = 130;
+      pfpLeft = 375;
+      pfpTop = 683;
+      c_pfpSize = 105;
+      c_pfpLeft = 449;
+      c_pfpTop = 148;
+      break;
+    case 4:
+      pfpSize = 92;
+      pfpLeft = 452;
+      pfpTop = 231;
+      c_pfpSize = 85;
+      c_pfpLeft = 475;
+      c_pfpTop = 640;
+      break;
+    case 5:
+      pfpSize = 137;
+      pfpLeft = 372;
+      pfpTop = 287;
+      c_pfpSize = 144;
+      c_pfpLeft = 418;
+      c_pfpTop = 692;
+      break;
+  }
+
+  const [pfpImage, c_pfpImage] = await Promise.all([
+    sharp(Buffer.from(await fetch(pfp_url).then((res) => res.arrayBuffer())))
+      .resize(pfpSize, pfpSize)
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="${pfpSize}" height="${pfpSize}"><circle cx="${
+              pfpSize / 2
+            }" cy="${pfpSize / 2}" r="${pfpSize / 2}" fill="white" /></svg>`,
+          ),
+          blend: 'dest-in',
+        },
+      ])
+      .png()
+      .toBuffer(),
+    sharp(Buffer.from(await fetch(c_pfp_url).then((res) => res.arrayBuffer())))
+      .resize(c_pfpSize, c_pfpSize)
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="${c_pfpSize}" height="${c_pfpSize}"><circle cx="${
+              c_pfpSize / 2
+            }" cy="${c_pfpSize / 2}" r="${
+              c_pfpSize / 2
+            }" fill="white" /></svg>`,
+          ),
+          blend: 'dest-in',
+        },
+      ])
+      .png()
+      .toBuffer(),
+  ]);
+
+  const finalImage = await container
+    .composite([
+      { input: pfpImage, left: pfpLeft, top: pfpTop },
+      { input: c_pfpImage, left: c_pfpLeft, top: c_pfpTop },
+    ])
+    .toBuffer();
+
+  return finalImage;
 };

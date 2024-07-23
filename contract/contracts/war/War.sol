@@ -34,6 +34,12 @@ contract War is
 
     mapping(bytes8 => address) public requestedChallengers;
 
+    mapping(uint256 => uint256[]) public playerCards;
+
+    mapping(bytes8 => uint256) public numOfCards;
+
+    mapping(bytes8 => uint256) public sumOfCards;
+
     modifier onlyDealer() {
         require(
             dealerAddress == msg.sender,
@@ -87,6 +93,35 @@ contract War is
         _;
     }
 
+    modifier validCards(
+        bytes8 gameId,
+        uint256[] memory cards,
+        PlayerSide side
+    ) {
+        require(cards.length == numOfCards[gameId], 'War: invalid card length');
+
+        if (cards.length != 1) {
+            uint256 sum = 0;
+            uint256 numOfJokers = 0;
+            for (uint256 i = 0; i < cards.length; i++) {
+                if (cards[i] == 14) {
+                    numOfJokers++;
+                    continue;
+                }
+                sum += cards[i];
+            }
+            require(numOfJokers < 2, 'War: Joker can be used only once');
+            require(
+                (sum == sumOfCards[gameId] && side == PlayerSide.Maker) ||
+                    (sum <= sumOfCards[gameId] &&
+                        side == PlayerSide.Challenger),
+                'War: invalid card sum'
+            );
+        }
+
+        _;
+    }
+
     function initialize(
         address _initialOwner,
         address _dealerAddress,
@@ -100,54 +135,68 @@ contract War is
     }
 
     function makeGame(
-        address currency,
-        uint256 betAmount,
-        bool isNativeToken,
-        bytes memory signature,
-        address requestChallenger
+        address _currency,
+        uint256 _betAmount,
+        bool _isNativeToken,
+        bytes memory _signature,
+        uint256 _numOfCards,
+        uint256 _sumOfCards,
+        address _requestChallenger
     ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
-        require(signatures[signature] == false, 'War: signature already used');
+        require(signatures[_signature] == false, 'War: signature already used');
 
         require(
-            isNativeToken ? msg.value == betAmount : true,
+            _numOfCards == 1 || _numOfCards == 3 || _numOfCards == 5,
+            'War: only 1, 3, 5 cards are allowed'
+        );
+
+        require(
+            _numOfCards == 1 || (_sumOfCards >= 14 && _sumOfCards <= 25),
+            'War: sum should be b/w 14-25 for multi-cards'
+        );
+
+        require(
+            _isNativeToken ? msg.value == _betAmount : true,
             'War: invalid bet amount'
         );
 
-        signatures[signature] = true;
+        signatures[_signature] = true;
 
         bytes8 gameId = bytes8(
-            keccak256(abi.encodePacked(msg.sender, block.timestamp, signature))
+            keccak256(abi.encodePacked(msg.sender, block.timestamp, _signature))
         );
 
         games[gameId] = Game({
             maker: msg.sender,
             challenger: address(0),
             winner: address(0),
-            dealerSignature: signature,
+            dealerSignature: _signature,
             makerCard: 0,
             challengerCard: 0,
             createdAt: uint64(block.timestamp)
         });
+        numOfCards[gameId] = _numOfCards;
+        sumOfCards[gameId] = _sumOfCards;
 
-        if (requestChallenger != address(0)) {
-            requestedChallengers[gameId] = requestChallenger;
-            emit GameRequested(gameId, msg.sender, requestChallenger);
+        if (_requestChallenger != address(0)) {
+            requestedChallengers[gameId] = _requestChallenger;
+            emit GameRequested(gameId, msg.sender, _requestChallenger);
         }
 
-        warPool.deposit{value: isNativeToken ? betAmount : 0}(
+        warPool.deposit{value: _isNativeToken ? _betAmount : 0}(
             gameId,
             msg.sender,
-            currency,
-            isNativeToken,
-            betAmount
+            _currency,
+            _isNativeToken,
+            _betAmount
         );
 
-        emit GameMade(gameId, msg.sender, signature);
+        emit GameMade(gameId, msg.sender, _signature);
     }
 
     function challengeGame(
         bytes8 gameId,
-        uint256 cardTokenId
+        uint256[] memory challengerCards
     )
         external
         payable
@@ -156,6 +205,7 @@ contract War is
         onlyInvitationHolder
         onlyCreatedGame(gameId)
         onlyOpenOrRequestedGame(gameId, msg.sender)
+        validCards(gameId, challengerCards, PlayerSide.Challenger)
     {
         Game storage game = games[gameId];
         require(game.maker != msg.sender, 'War: cannot challenge own game');
@@ -180,7 +230,13 @@ contract War is
         );
 
         game.challenger = msg.sender;
-        game.challengerCard = cardTokenId;
+
+        _sortCard(challengerCards, 0, int256(challengerCards.length - 1));
+        uint256 challengerCardsIdentifier = uint256(
+            keccak256(abi.encodePacked(gameId, PlayerSide.Challenger))
+        );
+        playerCards[challengerCardsIdentifier] = challengerCards;
+        game.challengerCard = challengerCardsIdentifier;
 
         warPool.deposit{value: isNativeToken ? msg.value : 0}(
             gameId,
@@ -195,31 +251,47 @@ contract War is
 
     function revealCard(
         bytes8 gameId,
-        uint256 makerCard,
+        uint256[] memory makerCards,
         uint256 nonce
-    ) external whenNotPaused nonReentrant onlyChallengedGame(gameId) {
+    )
+        external
+        whenNotPaused
+        nonReentrant
+        onlyChallengedGame(gameId)
+        validCards(gameId, makerCards, PlayerSide.Maker)
+    {
         Game storage game = games[gameId];
         require(game.maker != address(0), 'War: game not found');
 
+        _sortCard(makerCards, 0, int256(makerCards.length - 1));
+        bytes32 makerCardsString = keccak256(abi.encodePacked(makerCards));
         require(
             SignatureVerifier.verify(
                 dealerAddress,
-                makerCard,
+                makerCardsString,
                 nonce,
                 game.dealerSignature
             ),
             'War: invalid signature'
         );
 
-        bool makerHasCard = _hasCard(game.maker, makerCard);
-        bool challengerHasCard = _hasCard(game.challenger, game.challengerCard);
+        uint256[] memory challengerCards = playerCards[game.challengerCard];
+
+        bool makerHasCard = _hasCards(game.maker, makerCards);
+
+        bool challengerHasCard = _hasCards(game.challenger, challengerCards);
 
         address winner;
         address loser;
         uint256 rewardRateTop;
 
+        uint256 makerCardsIdentifier = uint256(
+            keccak256(abi.encodePacked(gameId, PlayerSide.Maker))
+        );
+
         if (!makerHasCard && !challengerHasCard) {
-            game.makerCard = makerCard;
+            game.makerCard = makerCardsIdentifier;
+            playerCards[makerCardsIdentifier] = makerCards;
             warPool.withdrawByAdmin(gameId);
             return;
         }
@@ -234,18 +306,15 @@ contract War is
             rewardRateTop = 100000;
         } else {
             winner = _getWinner(
-                makerCard,
-                game.challengerCard,
+                makerCards,
+                challengerCards,
                 game.maker,
                 game.challenger
             );
 
             if (winner != address(0)) {
                 loser = winner == game.maker ? game.challenger : game.maker;
-                uint256 loserCard = winner == game.maker
-                    ? game.challengerCard
-                    : makerCard;
-                rewardRateTop = calcRewardRateTop(loserCard);
+                rewardRateTop = calcRewardRateTop(0);
             } else {
                 loser = address(0);
                 rewardRateTop = 0;
@@ -253,21 +322,35 @@ contract War is
         }
 
         game.winner = winner;
-        game.makerCard = makerCard;
+        game.makerCard = makerCardsIdentifier;
+        playerCards[makerCardsIdentifier] = makerCards;
+
+        uint256[] memory burnBatchAmount = new uint256[](makerCards.length);
+        for (uint256 i = 0; i < makerCards.length; i++) {
+            burnBatchAmount[i] = 1;
+        }
 
         if (winner == address(0)) {
             warPool.returnToBoth(gameId);
-            card.burn(game.maker, makerCard, 1);
-            card.burn(game.challenger, game.challengerCard, 1);
+            card.burnBatch(game.maker, makerCards, burnBatchAmount);
+            card.burnBatch(game.challenger, challengerCards, burnBatchAmount);
         } else {
             warPool.payoutForWinner(gameId, rewardRateTop, winner, loser);
             if (!makerHasCard) {
-                card.burn(game.challenger, game.challengerCard, 1);
+                card.burnBatch(
+                    game.challenger,
+                    challengerCards,
+                    burnBatchAmount
+                );
             } else if (!challengerHasCard) {
-                card.burn(game.maker, makerCard, 1);
+                card.burnBatch(game.maker, makerCards, burnBatchAmount);
             } else {
-                card.burn(game.maker, makerCard, 1);
-                card.burn(game.challenger, game.challengerCard, 1);
+                card.burnBatch(game.maker, makerCards, burnBatchAmount);
+                card.burnBatch(
+                    game.challenger,
+                    challengerCards,
+                    burnBatchAmount
+                );
             }
         }
 
@@ -282,27 +365,6 @@ contract War is
         warPool.returnToMaker(gameId);
 
         emit GameExpired(gameId, game.maker);
-    }
-
-    function setGame(
-        bytes8 _gameId,
-        address _maker,
-        address _challenger,
-        address _winner,
-        uint256 _makerCard,
-        uint256 _challengerCard,
-        bytes memory _dealerSignature,
-        uint64 _createdAt
-    ) public whenNotPaused nonReentrant onlyOwner {
-        games[_gameId] = Game({
-            maker: _maker,
-            challenger: _challenger,
-            winner: _winner,
-            makerCard: _makerCard,
-            challengerCard: _challengerCard,
-            dealerSignature: _dealerSignature,
-            createdAt: _createdAt
-        });
     }
 
     function gameStatus(bytes8 gameId) public view returns (GameStatus status) {
@@ -331,65 +393,89 @@ contract War is
     function calcRewardRateTop(
         uint256 looserCard
     ) public pure returns (uint256) {
-        if (looserCard == 1) {
-            return 1095;
-        } else if (looserCard == 2) {
-            return 9529;
-        } else if (looserCard == 3) {
-            return 19058;
-        } else if (looserCard == 4) {
-            return 9529;
-        } else if (looserCard == 5) {
-            return 38116;
-        } else if (looserCard == 6) {
-            return 47645;
-        } else if (looserCard == 7) {
-            return 57174;
-        } else if (looserCard == 8) {
-            return 66703;
-        } else if (looserCard == 9) {
-            return 76232;
-        } else if (looserCard == 10) {
-            return 85761;
-        } else if (looserCard == 11) {
-            return 90625;
-        } else if (looserCard == 12) {
-            return 94792;
-        } else if (looserCard == 13) {
-            return 98958;
-        } else if (looserCard == 14) {
-            return 91212;
-        } else {
-            return 0;
-        }
+        return 100000;
     }
 
     function _getWinner(
-        uint256 makerCard,
-        uint256 challengerCard,
+        uint256[] memory makerCards,
+        uint256[] memory challengerCards,
         address makerAddress,
         address challengerAddress
     ) internal pure returns (address) {
-        if (makerCard == 14 && challengerCard == 1) {
+        bool makerHas14 = makerCards[0] == 14;
+        bool challengerHas14 = challengerCards[0] == 14;
+
+        bool makerHas1 = makerCards[makerCards.length - 1] == 1;
+        bool challengerHas1 = challengerCards[challengerCards.length - 1] == 1;
+
+        if (makerHas14 && challengerHas14 && makerHas1 && challengerHas1) {
+            return address(0);
+        } else if (makerHas14 && challengerHas1) {
             return challengerAddress;
-        } else if (makerCard == 1 && challengerCard == 14) {
+        } else if (makerHas1 && challengerHas14) {
             return makerAddress;
-        } else if (makerCard > challengerCard) {
+        }
+
+        uint8 makerScore = 0;
+        uint8 challengerScore = 0;
+
+        for (uint256 i = 0; i < makerCards.length; i++) {
+            uint256 makerCard = makerCards[i];
+            uint256 challengerCard = challengerCards[i];
+            if (makerCard > challengerCard) {
+                makerScore += 1;
+                continue;
+            } else if (makerCard < challengerCard) {
+                challengerScore += 1;
+                continue;
+            }
+        }
+
+        if (makerScore > challengerScore) {
             return makerAddress;
-        } else if (makerCard < challengerCard) {
+        } else if (makerScore < challengerScore) {
             return challengerAddress;
         } else {
             return address(0);
         }
     }
 
-    function _hasCard(
+    function _hasCards(
         address owner,
-        uint256 tokenId
+        uint256[] memory tokenIds
     ) internal view returns (bool) {
-        uint256 balance = card.balanceOf(owner, tokenId);
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            uint256 balance = card.balanceOf(owner, tokenIds[i]);
+            if (balance == 0) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        return balance > 0;
+    function _sortCard(
+        uint256[] memory _arr,
+        int256 left,
+        int256 right
+    ) internal pure {
+        int256 i = left;
+        int256 j = right;
+        if (i == j) return;
+        uint256 pivot = _arr[uint256(left + (right - left) / 2)];
+        while (i <= j) {
+            while (_arr[uint256(i)] > pivot) i++;
+            while (pivot > _arr[uint256(j)]) j--;
+            if (i <= j) {
+                (_arr[uint256(i)], _arr[uint256(j)]) = (
+                    _arr[uint256(j)],
+                    _arr[uint256(i)]
+                );
+                i++;
+                j--;
+            }
+        }
+        if (left < j) _sortCard(_arr, left, j);
+        if (i < right) _sortCard(_arr, i, right);
     }
 
     function setDealerAddress(address _dealerAddress) external onlyOwner {

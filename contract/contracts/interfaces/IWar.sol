@@ -11,6 +11,11 @@ interface IWar {
         Expired
     }
 
+    enum PlayerSide {
+        Maker,
+        Challenger
+    }
+
     struct Game {
         address maker;
         address challenger;

@@ -49,6 +49,14 @@ contract Card is ICard, ERC1155URIStorageUpgradeable, OwnableUpgradeable {
         _burn(account, tokenId, amount);
     }
 
+    function burnBatch(
+        address account,
+        uint256[] memory tokenIds,
+        uint256[] memory amounts
+    ) public onlyBurnerOrSelf(account) {
+        _burnBatch(account, tokenIds, amounts);
+    }
+
     function setMinter(address minter, bool enabled) public onlyOwner {
         minters[minter] = enabled;
     }

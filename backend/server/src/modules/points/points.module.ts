@@ -7,15 +7,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountEntity } from 'src/entities/account.entity';
 import { TotalEntity } from 'src/entities/total.entity';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
+import {
+  CACHE_MANAGER,
+  CacheInterceptor,
+  CacheModule,
+} from '@nestjs/cache-manager';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([AccountEntity, TotalEntity, HeatScoreEntity]),
-    NeynarModule,
-    ViemModule,
+    CacheModule.register(),
   ],
   controllers: [PointsController],
-  providers: [PointsService],
+  providers: [
+    PointsService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
+  ],
   exports: [PointsService],
 })
 export class PointsModule {}

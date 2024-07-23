@@ -9,13 +9,11 @@ import {
 import { JSDOM } from 'jsdom';
 
 // TODO - replace url after cast
-const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0xfb9874ec';
+const ROOT_CAST_URL = 'https://warpcast.com/cardgamemaster/0x65ce75a9';
 
 // TODO シェア文言を変える
 const SHARE_INTENT = 'https://warpcast.com/~/compose?text=';
-const SHARE_TEXT = encodeURI(
-  "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
-);
+const SHARE_TEXT = encodeURI('I want YOU for /card');
 const SHARE_EMBEDS = '&embeds[]=';
 
 const app = new Frog({
@@ -114,7 +112,7 @@ app.frame(framePath + '/share/:hash', async (c) => {
   // TODO browserLocationとボタンの文言を変える
   return c.res({
     image: `/api/image/${encodedImageUrl}`,
-    browserLocation: `https://warpcast.com/cardgamemaster/0xfb9874ec`,
+    browserLocation: `https://warpcast.com/cardgamemaster/0x65ce75a9`,
     intents: [
       <Button.Link key="create" href={ROOT_CAST_URL}>
         Create My Joker
@@ -213,8 +211,7 @@ app.castAction(
   {
     name,
     icon: 'image',
-    description:
-      "In celebration of July 4th at /card, we've made a Cardian recruitment poster, featuring Degen Sam!",
+    description: 'Make a Cardian recruitment poster Cast Action!',
   },
 );
 

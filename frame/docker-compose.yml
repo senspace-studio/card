@@ -12,3 +12,18 @@ services:
       - .:/usr/src/app
       - /usr/src/app/node_modules
     command: npm run serve
+  db_frame:
+    image: mysql:latest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: card_frame
+      MYSQL_USER: myuser
+      MYSQL_PASSWORD: mypassword
+      MYSQL_TCP_PORT: 3307
+    volumes:
+      - ./.tmp/mysql-data:/var/lib/mysql
+    networks:
+      - basic
+    ports:
+      - 3307:3307

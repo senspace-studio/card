@@ -12,6 +12,7 @@ const main = async () => {
   const gashaContract = await deployGashaContract(
     adminAddress,
     await gashaItemERC1155Contract.getAddress(),
+    adminAddress,
     0,
   );
 
@@ -37,7 +38,8 @@ const main = async () => {
         await tx.wait();
         break;
     }
-    tx = await gashaContract.activateSeriesItem(index + 1);
+    await new Promise((r) => setTimeout(r, 1000));
+    tx = await gashaContract.activateSeriesItem(index);
     await tx.wait();
   }
 

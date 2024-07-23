@@ -45,9 +45,6 @@ export class CronService {
     private readonly streamSmartAccountRepository: Repository<StreamSmartAccountEntity>,
   ) {}
 
-  @Cron('*/10 * * * * *')
-  async test() {}
-
   @Cron(STREAM_SCORING_CRON_EXPRESSION)
   async updateScore() {
     if (!RUN_CRON) {

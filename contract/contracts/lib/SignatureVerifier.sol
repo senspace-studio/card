@@ -5,10 +5,10 @@ import 'hardhat/console.sol';
 
 abstract contract SignatureVerifier {
     function getMessageHash(
-        uint256 _tokenId,
+        bytes32 _tokenIds,
         uint256 _nonce
     ) public pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_tokenId, _nonce));
+        return keccak256(abi.encodePacked(_tokenIds, _nonce));
     }
 
     function getEthSignedMessageHash(
@@ -25,11 +25,11 @@ abstract contract SignatureVerifier {
 
     function verify(
         address _signer,
-        uint256 _tokenId,
+        bytes32 _tokenIds,
         uint256 _nonce,
         bytes memory signature
     ) public pure returns (bool) {
-        bytes32 messageHash = getMessageHash(_tokenId, _nonce);
+        bytes32 messageHash = getMessageHash(_tokenIds, _nonce);
         bytes32 ethSignedMessageHash = getEthSignedMessageHash(messageHash);
 
         return recoverSigner(ethSignedMessageHash, signature) == _signer;

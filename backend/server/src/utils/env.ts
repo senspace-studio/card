@@ -61,3 +61,5 @@ export const STREAM_CFAV1_ADDRESS =
 export const ACCOUNT_FACTORY_ADDRESS =
   process.env.ACCOUNT_FACTORY_ADDRESS ||
   '0x95c7a8A25f0E5267Ae18261f433C1D9Cf2E9e9B4';
+
+export const NODE_ENV = process.env.NODE_ENV || 'development';

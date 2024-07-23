@@ -1,12 +1,4 @@
 import mysql from 'mysql2/promise';
-import { Client } from 'ssh2';
-
-const sshConfig = {
-  host: process.env.SSH_HOST,
-  port: Number(process.env.SSH_PORT) || 22,
-  username: process.env.SSH_USER,
-  privateKey: process.env.SSH_KEY,
-};
 
 const dbConfig = {
   host: process.env.DB_HOST as string,
@@ -17,49 +9,11 @@ const dbConfig = {
 };
 
 const connectToDatabase = async () => {
-  const sshClient = new Client();
-
   if (dbConfig.host === undefined) {
     throw new Error('DB_HOST or DB_PORT is not defined');
   }
 
-  if (['production', 'staging'].includes(process.env.NODE_ENV!)) {
-    return mysql.createConnection(dbConfig);
-  } else {
-    return new Promise<mysql.Connection>(async (resolve, reject) => {
-      sshClient
-        .on('ready', async () => {
-          sshClient.forwardOut(
-            '127.0.0.1', // ローカルアドレス
-            0, // ローカルポート
-            dbConfig.host, // リモートのMySQLサーバーのホスト
-            dbConfig.port, // リモートのMySQLサーバーのポート
-            async (err, stream) => {
-              if (err) {
-                console.log(err);
-                reject(err);
-                return;
-              }
-
-              try {
-                const connection = await mysql.createConnection({
-                  ...dbConfig,
-                  stream,
-                });
-                resolve(connection);
-              } catch (error) {
-                reject(error);
-              }
-            },
-          );
-        })
-        .connect(sshConfig);
-
-      sshClient.on('error', (err) => {
-        reject(err);
-      });
-    });
-  }
+  return mysql.createConnection(dbConfig);
 };
 
 export const getGameInfoByGameId = async (id: string) => {
