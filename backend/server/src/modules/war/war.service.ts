@@ -426,8 +426,10 @@ export class WarService {
     if (1 < tokenIdList.filter((e) => e === 14).length) {
       throw new Error('invalid joker amount');
     }
+
     const sumOfCard = tokenIdList.reduce((a, b) => a + (b === 14 ? 0 : b), 0);
-    if (sumOfCard < 14 || 25 < sumOfCard) {
+
+    if (1 < tokenIdList.length && (sumOfCard < 14 || 25 < sumOfCard)) {
       throw new Error('invalid card sum');
     }
     const { balanceOfAll, ids } = await this.getCardBalanceOf(
