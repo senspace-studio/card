@@ -1536,6 +1536,31 @@ export const WAR_ABI = [
         name: 'challenger',
         type: 'address',
       },
+    ],
+    name: 'GameRequested',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'bytes8',
+        name: 'gameId',
+        type: 'bytes8',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'maker',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'challenger',
+        type: 'address',
+      },
       {
         indexed: false,
         internalType: 'address',
@@ -1696,9 +1721,9 @@ export const WAR_ABI = [
         type: 'bytes8',
       },
       {
-        internalType: 'uint256',
-        name: 'cardTokenId',
-        type: 'uint256',
+        internalType: 'uint256[]',
+        name: 'challengerCards',
+        type: 'uint256[]',
       },
     ],
     name: 'challengeGame',
@@ -1822,9 +1847,9 @@ export const WAR_ABI = [
   {
     inputs: [
       {
-        internalType: 'uint256',
-        name: '_tokenId',
-        type: 'uint256',
+        internalType: 'bytes32',
+        name: '_tokenIds',
+        type: 'bytes32',
       },
       {
         internalType: 'uint256',
@@ -1883,33 +1908,62 @@ export const WAR_ABI = [
     inputs: [
       {
         internalType: 'address',
-        name: 'currency',
+        name: '_currency',
         type: 'address',
       },
       {
         internalType: 'uint256',
-        name: 'betAmount',
+        name: '_betAmount',
         type: 'uint256',
       },
       {
         internalType: 'bool',
-        name: 'isNativeToken',
+        name: '_isNativeToken',
         type: 'bool',
       },
       {
         internalType: 'bytes',
-        name: 'signature',
+        name: '_signature',
         type: 'bytes',
       },
       {
+        internalType: 'uint256',
+        name: '_numOfCards',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '_sumOfCards',
+        type: 'uint256',
+      },
+      {
         internalType: 'address',
-        name: 'requestChallenger',
+        name: '_requestChallenger',
         type: 'address',
       },
     ],
     name: 'makeGame',
     outputs: [],
     stateMutability: 'payable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes8',
+        name: '',
+        type: 'bytes8',
+      },
+    ],
+    name: 'numOfCards',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
     type: 'function',
   },
   {
@@ -1933,6 +1987,30 @@ export const WAR_ABI = [
         internalType: 'bool',
         name: '',
         type: 'bool',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    name: 'playerCards',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',
@@ -1996,9 +2074,9 @@ export const WAR_ABI = [
         type: 'bytes8',
       },
       {
-        internalType: 'uint256',
-        name: 'makerCard',
-        type: 'uint256',
+        internalType: 'uint256[]',
+        name: 'makerCards',
+        type: 'uint256[]',
       },
       {
         internalType: 'uint256',
@@ -2033,54 +2111,6 @@ export const WAR_ABI = [
       },
     ],
     name: 'setDealerAddress',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'bytes8',
-        name: '_gameId',
-        type: 'bytes8',
-      },
-      {
-        internalType: 'address',
-        name: '_maker',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_challenger',
-        type: 'address',
-      },
-      {
-        internalType: 'address',
-        name: '_winner',
-        type: 'address',
-      },
-      {
-        internalType: 'uint256',
-        name: '_makerCard',
-        type: 'uint256',
-      },
-      {
-        internalType: 'uint256',
-        name: '_challengerCard',
-        type: 'uint256',
-      },
-      {
-        internalType: 'bytes',
-        name: '_dealerSignature',
-        type: 'bytes',
-      },
-      {
-        internalType: 'uint64',
-        name: '_createdAt',
-        type: 'uint64',
-      },
-    ],
-    name: 'setGame',
     outputs: [],
     stateMutability: 'nonpayable',
     type: 'function',
@@ -2141,6 +2171,25 @@ export const WAR_ABI = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'bytes8',
+        name: '',
+        type: 'bytes8',
+      },
+    ],
+    name: 'sumOfCards',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
     inputs: [],
     name: 'togglePause',
     outputs: [],
@@ -2168,9 +2217,9 @@ export const WAR_ABI = [
         type: 'address',
       },
       {
-        internalType: 'uint256',
-        name: '_tokenId',
-        type: 'uint256',
+        internalType: 'bytes32',
+        name: '_tokenIds',
+        type: 'bytes32',
       },
       {
         internalType: 'uint256',
