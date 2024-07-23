@@ -72,7 +72,6 @@ enum Result {
 }
 
 export const warApp = new Frog<{ State: State }>({
-  title: '',
   initialState: {
     quantities: [],
     address: '',
