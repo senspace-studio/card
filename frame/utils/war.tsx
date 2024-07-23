@@ -1,9 +1,9 @@
 import { FrameContext, Button } from 'frog';
 import { BlankInput } from 'hono/types';
-import { WarState } from '../api/war';
-import { getFarcasterUserInfo } from '../lib/neynar';
-import { BASE_URL } from '../constant/config';
-import { checkInvitation } from '../lib/contract';
+import { WarState } from '../api/war.js';
+import { getFarcasterUserInfo } from '../lib/neynar.js';
+import { BASE_URL } from '../constant/config.js';
+import { checkInvitation } from '../lib/contract.js';
 
 export const isJokerKilling = (
   cards: number | number[],
@@ -21,7 +21,10 @@ export const isJokerKilling = (
       )
     );
   } else {
-    return (cards === 14 && c_cards === 1) || (cards === 1 && c_cards === 14);
+    return (
+      (Number(cards) === 14 && Number(c_cards) === 1) ||
+      (Number(cards) === 1 && Number(c_cards) === 14)
+    );
   }
 };
 
