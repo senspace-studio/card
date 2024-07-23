@@ -340,10 +340,10 @@ warApp.frame('/preview', async (c) => {
       return curr !== 14 ? acc + curr : acc;
     }, 0);
 
-    if (sum > 25) {
+    if (sum < 14 || sum > 25) {
       return c.error({
         message:
-          'The sum of card values (excluding Jokers) must not exceed 25.',
+          'The sum of card values (excluding Jokers) must be between 14 and 25.',
       });
     }
   }
@@ -441,7 +441,10 @@ warApp.transaction('/duel-letter', async (c) => {
 
   const targetAddress = c_address || zeroAddress;
   const numOfCards = card.length;
-  const sumOfCards = card.reduce((total, card) => total + card, 0);
+  const sumOfCards = card.reduce(
+    (sum, card) => (Number(card) !== 14 ? sum + Number(card) : sum),
+    0,
+  );
 
   const args: readonly [
     `0x${string}`,
@@ -1045,17 +1048,17 @@ warApp.frame('/duel', async (c) => {
     });
   }
 
-  // 入力値が3,5個のいずれかなら合計値が25以下であることをチェック
+  // 入力値が3,5個のいずれかなら合計値が14-25であることをチェック
   if (convertedArray.length === 3 || convertedArray.length === 5) {
     const sum = convertedArray.reduce((acc, curr) => {
       // 14（ジョーカー）は合計に含めない
       return curr !== 14 ? acc + curr : acc;
     }, 0);
 
-    if (sum > 25) {
+    if (sum < 14 || sum > 25) {
       return c.error({
         message:
-          'The sum of card values (excluding Jokers) must not exceed 25.',
+          'The sum of card values (excluding Jokers) must be between 14 and 25.',
       });
     }
   }
@@ -1225,22 +1228,16 @@ warApp.frame('/result/:gameId', async (c) => {
       return c.error({ message: 'Please wait …' });
     }
 
-    if (numOfCards === 1) {
-      // 1枚のカードの場合
-      card = Number(makerCardIdentifier);
-      c_card = Number(challengerCardIdentifier);
-    } else {
-      const makerCards: number[] = [];
-      const challengerCards: number[] = [];
+    const makerCards: number[] = [];
+    const challengerCards: number[] = [];
 
-      for (let i = 0; i < numOfCards; i++) {
-        const [makerCard, challengerCard] = await Promise.all([
-          warContract.read.playerCards([makerCardIdentifier, BigInt(i)]),
-          warContract.read.playerCards([challengerCardIdentifier, BigInt(i)]),
-        ]);
-        makerCards.push(Number(makerCard));
-        challengerCards.push(Number(challengerCard));
-      }
+    for (let i = 0; i < numOfCards; i++) {
+      const [makerCard, challengerCard] = await Promise.all([
+        warContract.read.playerCards([makerCardIdentifier, BigInt(i)]),
+        warContract.read.playerCards([challengerCardIdentifier, BigInt(i)]),
+      ]);
+      makerCards.push(Number(makerCard));
+      challengerCards.push(Number(challengerCard));
 
       card = makerCards;
       c_card = challengerCards;
@@ -1251,24 +1248,13 @@ warApp.frame('/result/:gameId', async (c) => {
 
   let resultStatus: Result;
 
-  if (numOfCards === 1) {
-    // 1枚のカードの場合
+  if (winner === zeroAddress) {
+    resultStatus = Result.Draw;
+  } else {
     resultStatus =
-      card === c_card
-        ? Result.Draw
-        : winner.toLowerCase() === c_address.toLowerCase()
+      winner.toLowerCase() === c_address.toLowerCase()
         ? Result.Win
         : Result.Lose;
-  } else {
-    // 複数枚のカードの場合
-    if (winner === zeroAddress) {
-      resultStatus = Result.Draw;
-    } else {
-      resultStatus =
-        winner.toLowerCase() === c_address.toLowerCase()
-          ? Result.Win
-          : Result.Lose;
-    }
   }
 
   const resultParams = JSON.stringify({
@@ -1845,31 +1831,52 @@ warApp.hono.get('/image/expired/:params', async (c) => {
   return c.newResponse(png, 200, { 'Content-Type': 'image/png' });
 });
 
+const extractFirstNumber = (value: string | number | number[]): number => {
+  if (
+    typeof value === 'string' &&
+    value.startsWith('[') &&
+    value.endsWith(']')
+  ) {
+    // 文字列が配列の形式の場合、パースして最初の要素を取り出す
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? Number(parsed[0]) : Number(value);
+  }
+  if (Array.isArray(value)) {
+    // すでに配列の場合、最初の要素を返す
+    return Number(value[0]);
+  }
+  // それ以外の場合は、そのまま数値に変換して返す
+  return Number(value);
+};
 warApp.hono.get('/image/result/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
 
   const {
     userName,
     pfp_url,
-    card,
     wager,
     c_userName,
     c_pfp_url,
-    c_card,
     result,
     numOfCards,
   } = params;
 
+  let { card, c_card } = params;
+
   let png;
   if (numOfCards === 1) {
+    // card と c_card が配列の場合、最初の要素を取り出す
+    const singleCard = extractFirstNumber(card);
+    const singleCCard = extractFirstNumber(c_card);
+
     png = await generateResultImage(
       userName,
       pfp_url,
-      card,
+      singleCard,
       wager,
       c_userName,
       c_pfp_url,
-      c_card,
+      singleCCard,
       result,
     );
   } else {
