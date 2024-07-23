@@ -99,8 +99,8 @@ warApp.frame('/', async (c) => {
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/make-duel">Make Game</Button>,
-      <Button action="/challenge/random">Challenge</Button>,
+      <Button action="/select-game-mode">Make Game</Button>,
+      <Button action="/challenge/select-game-mode">Challenge</Button>,
       <Button action="/tools">Tools</Button>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
     ],
@@ -620,11 +620,30 @@ warApp.frame('/error/address', (c) => {
   });
 });
 
-warApp.frame('/challenge/random', async (c) => {
+warApp.frame('/challenge/select-game-mode', async (c) => {
+  return c.res({
+    title,
+    image: '/images/war/select_game_mode.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/challenge/random/1">1 card</Button>,
+      <Button action="/challenge/random/3">3 cards</Button>,
+      <Button action="/challenge/random/5">5 cards</Button>,
+      <Button action="/">Back</Button>,
+    ],
+  });
+});
+
+warApp.frame('/challenge/random/:numOfCards', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  const { frameData } = c;
+  const { frameData, req } = c;
+
+  const numOfCards = req.param('numOfCards');
+  if (!['1', '3', '5'].includes(numOfCards))
+    return c.error({ message: 'Invalid params' });
+
   const fid = frameData?.fid;
   const { verifiedAddresses } = c.previousState.userName
     ? c.previousState
@@ -657,7 +676,7 @@ warApp.frame('/challenge/random', async (c) => {
   let retryCount = 0;
   while (!gameId && retryCount < 3) {
     const response = await fetch(
-      `${BACKEND_URL!}/war/getRandomChallengableGame?exept_maker=${address}`,
+      `${BACKEND_URL!}/war/getRandomChallengableGame?exept_maker=${address}&hand_length=${numOfCards}`,
       {
         method: 'GET',
         headers: {
@@ -2261,7 +2280,7 @@ const generateMultiShareImage = async (
       left: topUserLeft + topPfpSize + 20,
       top: topUserTop,
     },
-    { input: sumOfCardsImage, left: 652, top: 168 },
+    { input: sumOfCardsImage, left: 592, top: 168 },
   ];
 
   // direct match
@@ -3151,8 +3170,16 @@ const generateJokerKillingImage = async (
 
   const finalImage = await container
     .composite([
-      { input: pfpImage, left: pfpLeft, top: pfpTop },
-      { input: c_pfpImage, left: c_pfpLeft, top: c_pfpTop },
+      {
+        input: jokerKilling === 'Win' ? c_pfpImage : pfpImage,
+        left: pfpLeft,
+        top: pfpTop,
+      },
+      {
+        input: jokerKilling === 'Win' ? pfpImage : c_pfpImage,
+        left: c_pfpLeft,
+        top: c_pfpTop,
+      },
     ])
     .toBuffer();
 

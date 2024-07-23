@@ -41,7 +41,7 @@ app.frame('/top', (c) => {
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/war/select-game-mode">Make Game</Button>,
-      <Button action="/challenge/random">Challenge</Button>,
+      <Button action="/war/challenge/select-game-mode">Challenge</Button>,
       <Button action="/stack">Rewards</Button>,
       <Button action="/menu">Menu</Button>,
     ],
