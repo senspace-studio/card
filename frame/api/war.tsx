@@ -99,7 +99,8 @@ warApp.frame('/', async (c) => {
     image: '/images/war/title.png',
     imageAspectRatio: '1:1',
     intents: [
-      <Button action="/make-duel">Make Game</Button>,
+      // <Button action="/make-duel">Make Game</Button>,
+      <Button action="/select-game-mode">Make Game</Button>,
       <Button action="/challenge/random">Challenge</Button>,
       <Button action="/tools">Tools</Button>,
       <Button action={`${BASE_URL}/top`}>＜ Back</Button>,
@@ -1044,6 +1045,13 @@ warApp.frame('/duel', async (c) => {
           'The sum of card values (excluding Jokers) must be between 14 and 25.',
       });
     }
+
+    // sumOfCards以下であるかどうかもチェック
+    if (sumOfCards && sum > sumOfCards) {
+      return c.error({
+        message: `The sum of card values (excluding Jokers) must not exceed ${sumOfCards}.`,
+      });
+    }
   }
 
   const cardArray = convertedArray.sort((a, b) => b - a);
@@ -1832,7 +1840,6 @@ const extractFirstNumber = (value: string | number | number[]): number => {
   // それ以外の場合は、そのまま数値に変換して返す
   return Number(value);
 };
-
 warApp.hono.get('/image/result/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
 
@@ -2408,7 +2415,7 @@ const calculateCardPositions = (handSize: number, top: number) => {
   const cardWidth = 100;
   const spacing = 23; // カード間のスペース
   const totalWidth = handSize * cardWidth + (handSize - 1) * spacing;
-  const startLeft = (1000 - totalWidth) / 2; // キャンバスの中央に配置
+  const startLeft = Math.floor((1000 - totalWidth) / 2); // キャンバスの中央に配置
 
   return Array.from({ length: handSize }, (_, index) => ({
     left: startLeft + index * (cardWidth + spacing),
@@ -2920,8 +2927,9 @@ const generateMultiResultImage = async (
   const totalCardsHeight =
     (CARD_SIZE + CARD_SPACING) * numOfCards - CARD_SPACING;
   const verticalOffset = numOfCards === 5 ? -50 : 0;
-  const cardsVerticalCenter =
-    (IMAGE_SIZE - totalCardsHeight) / 2 + verticalOffset;
+  const cardsVerticalCenter = Math.floor(
+    (IMAGE_SIZE - totalCardsHeight) / 2 + verticalOffset,
+  );
 
   const COMPONENT_VERTICAL_ADJUST = 10; // この値を調整して、下げる量を制御します
   const componentTop =
@@ -2979,7 +2987,9 @@ const generateMultiResultImage = async (
     .toBuffer();
   const resultTextMetadata = await sharp(resultText).metadata();
 
-  const textLeft = (IMAGE_SIZE - (resultTextMetadata.width ?? 0)) / 2;
+  const textLeft = Math.floor(
+    (IMAGE_SIZE - (resultTextMetadata.width ?? 0)) / 2,
+  );
   const textTop = 700;
 
   // 合成操作の定義
