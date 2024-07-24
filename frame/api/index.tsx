@@ -54,13 +54,13 @@ app.frame('/menu', (c) => {
 
   return c.res({
     title,
-    image: '/images/menu.png',
+    image: '/images/menu-20240724.png',
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/draw">Draw🃏</Button>,
       <Button action="/war">Battle⚔️</Button>,
-      <Button action="https://invitation.thecard.fun/api">Invite📨</Button>,
       <Button action="/tools">Tools⛏</Button>,
+      <Button action="/top">Back</Button>,
     ],
   });
 });
@@ -74,7 +74,7 @@ app.frame('/tools', (c) => {
       <Button.AddCastAction action="https://card-scouter.vercel.app/api/card-scouter">
         Scouter
       </Button.AddCastAction>,
-      <Button.AddCastAction action="/war/lets-play">
+      <Button.AddCastAction action="/war/vs-match">
         Let's Play
       </Button.AddCastAction>,
       <Button action="/menu">Back</Button>,

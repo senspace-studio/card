@@ -116,7 +116,7 @@ warApp.frame('/tools', (c) => {
       <Button.AddCastAction action="https://card-scouter.vercel.app/api/card-scouter">
         Scouter
       </Button.AddCastAction>,
-      <Button.AddCastAction action="/lets-play">
+      <Button.AddCastAction action="/vs-match">
         Let's Play
       </Button.AddCastAction>,
       <Button action="/">Back</Button>,
@@ -1616,6 +1616,7 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
   // 4. Expired
 
   let png;
+  let cacheControl = true;
 
   if (numOfCards === 1) {
     if (status.toString() == '1') {
@@ -1629,8 +1630,10 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
       );
     } else if (status.toString() == '2' || status.toString() == '3') {
       png = await generatePlayedSimpleImage();
+      cacheControl = false;
     } else {
       png = await generateExpiredSimpleImage();
+      cacheControl = false;
     }
   } else {
     if (status.toString() == '1') {
@@ -1646,15 +1649,23 @@ warApp.hono.get('/image/challenge/:params', async (c) => {
       );
     } else if (status.toString() == '2' || status.toString() == '3') {
       png = await generatePlayedSimpleImage();
+      cacheControl = false;
     } else {
       png = await generateExpiredSimpleImage();
+      cacheControl = false;
     }
   }
 
-  const response = c.newResponse(png, 200, {
-    'Content-Type': 'image/png',
-    'Cache-Control': 'max-age=300',
-  });
+  const response = c.newResponse(
+    png,
+    200,
+    cacheControl
+      ? {
+          'Content-Type': 'image/png',
+          'Cache-Control': 'max-age=300',
+        }
+      : { 'Content-Type': 'image/png' },
+  );
   return response;
 });
 
