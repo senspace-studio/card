@@ -291,7 +291,7 @@ export class PointsService {
   }
 
   private resultMultiplier(winner: string, player: string) {
-    return winner === zeroAddress ? 0.3 : winner === player ? 3 : 0.3;
+    return winner === zeroAddress ? 1 : winner === player ? 3 : 0.3;
   }
 
   private decayMultiplier(baseUnixtime: number, date: number) {
