@@ -22,6 +22,7 @@ import {
   STREAM_SCORING_CRON_EXPRESSION,
 } from 'src/utils/env';
 import { readContract } from 'src/lib/thirdweb-engine/read-contract';
+import { WarService } from '../war/war.service';
 const cronParser: typeof parser = require('cron-parser');
 
 @Controller('points')
@@ -29,6 +30,7 @@ export class PointsController {
   private readonly logger = new Logger(PointsController.name);
   constructor(
     private readonly pointsService: PointsService,
+    private readonly warService: WarService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -84,9 +86,9 @@ export class PointsController {
     }
   }
 
-  @CacheKey('realtime_total_reward')
+  @CacheKey('realtime_total_rewards')
   @CacheTTL(300000)
-  @Get('/realtime-total-reward')
+  @Get('/realtime-total-rewards')
   async getRealtimeTotalReward() {
     this.logger.log(this.getRealtimeTotalReward.name);
 
@@ -96,11 +98,11 @@ export class PointsController {
       .prev()
       .toDate();
 
-    const numOfTodayGame = await this.pointsService.getGameLogs(
+    const numOfTodaySpentCards = await this.warService.numOfSpentCards(
       currentCronDate.getTime() / 1000,
       baseDate.subtract(10, 'seconds').unix(),
     );
-    const totalRewardsAmount = numOfTodayGame.length * 190 * 0.9;
+    const totalRewardsAmount = numOfTodaySpentCards * 190 * 0.9;
 
     return { totalRewardsAmount };
   }
@@ -118,11 +120,11 @@ export class PointsController {
       .toDate();
     const startDate = dayjs(currentCronDate).subtract(2, 'day');
 
-    const numOfTodayGame = await this.pointsService.getGameLogs(
+    const numOfTodaySpentCards = await this.warService.numOfSpentCards(
       currentCronDate.getTime() / 1000,
       baseDate.subtract(10, 'seconds').unix(),
     );
-    const totalRewardsAmount = numOfTodayGame.length * 190 * 0.9;
+    const totalRewardsAmount = numOfTodaySpentCards * 190 * 0.9;
 
     const stackData = await this.pointsService.calcTotalScore(
       baseDate,

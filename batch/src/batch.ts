@@ -8,6 +8,7 @@ import {
   WAR_CONTRACT_ADDRESS,
 } from './config';
 import { S_VIP_ADDRESSES } from './constants/vip';
+import { chunk } from 'lodash';
 
 export const degenClient = createPublicClient({
   chain: { ...degen, fees: { baseFeeMultiplier: 1.25 } } as Chain,
@@ -165,4 +166,41 @@ export const getInvivationTransferLogs = async (
     );
 
   return logs as TransferEventLog[];
+};
+
+export const getNumOfSpentCards = async (
+  startDateUnix: number,
+  endDateUnix: number,
+) => {
+  const gameLogs = await getGameRevealedLogs(startDateUnix, endDateUnix);
+
+  let spentCards = 0;
+
+  const chunkedGameLogs = chunk(gameLogs, 10);
+  for (let index = 0; index < chunkedGameLogs.length; index++) {
+    const chunkedGameLog = chunkedGameLogs[index];
+    const cardsList = await Promise.all(
+      chunkedGameLog.map(async (gameLog) => {
+        const { data } = await tweClient.GET(
+          '/contract/{chain}/{contractAddress}/read',
+          {
+            params: {
+              path: {
+                chain: 'degen-chain',
+                contractAddress: WAR_CONTRACT_ADDRESS,
+              },
+              query: {
+                functionName: 'numOfCards',
+                args: gameLog.data.gameId,
+              },
+            },
+          },
+        );
+        return Number(data?.result);
+      }),
+    );
+    spentCards += cardsList.reduce((a, b) => a + b, 0);
+  }
+
+  return spentCards;
 };

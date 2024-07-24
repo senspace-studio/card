@@ -13,15 +13,23 @@ import {
   CacheModule,
 } from '@nestjs/cache-manager';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { WarService } from '../war/war.service';
+import { WarEntity } from 'src/entities/war.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([AccountEntity, TotalEntity, HeatScoreEntity]),
+    TypeOrmModule.forFeature([
+      AccountEntity,
+      TotalEntity,
+      HeatScoreEntity,
+      WarEntity,
+    ]),
     CacheModule.register(),
   ],
   controllers: [PointsController],
   providers: [
     PointsService,
+    WarService,
     {
       provide: APP_INTERCEPTOR,
       useClass: CacheInterceptor,

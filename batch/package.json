@@ -13,12 +13,14 @@
     "axios": "^1.7.2",
     "dayjs": "^1.11.11",
     "dotenv": "^16.4.5",
+    "lodash": "^4.17.21",
     "openapi-fetch": "^0.10.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.2",
     "viem": "^2.16.2"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.7",
     "@types/node": "^20.14.9"
   }
 }
