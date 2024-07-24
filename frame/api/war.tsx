@@ -1374,7 +1374,7 @@ warApp.castAction(
 
     return c.res({
       type: 'frame',
-      path: `/make-direct-duel/${castHash}`,
+      path: `/select-game-mode/${castHash}`,
     });
   },
   {
