@@ -141,8 +141,9 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  const { frameData } = c;
+  const { frameData, req } = c;
   const fid = frameData?.fid;
+  const game_mode = req.param('game_mode');
 
   await initLocalState(c);
 
@@ -188,7 +189,7 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address })),
+      encodeURIComponent(JSON.stringify({ quantities, address, game_mode })),
     imageAspectRatio: '1:1',
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
@@ -972,7 +973,14 @@ warApp.frame('/choose/:params', async (c) => {
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address })),
+      encodeURIComponent(
+        JSON.stringify({
+          quantities,
+          address,
+          game_mode: numOfCards,
+          sumOfCards: sumOfCards,
+        }),
+      ),
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
@@ -1740,11 +1748,16 @@ const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
 };
 
 warApp.hono.get('/image/score/:quantities', async (c) => {
-  const { quantities, address } = JSON.parse(
+  const { quantities, address, game_mode, sumOfCards } = JSON.parse(
     decodeURIComponent(c.req.param('quantities')),
   );
 
-  const finalImage = await generateOwnCard(quantities, address);
+  const finalImage = await generateOwnCard(
+    quantities,
+    address,
+    game_mode,
+    sumOfCards,
+  );
   return c.newResponse(finalImage, 200, {
     'Content-Type': 'image/png',
   });
@@ -1914,11 +1927,15 @@ warApp.hono.get('/image/result/:params', async (c) => {
 ////////////////////////////////////////
 // Image Generate Functions
 // /////////////////////////////////////
-const generateOwnCard = async (quantities: number[], address: string) => {
-  const baseImage = sharp('./public/images/war/pick_card.png').resize(
-    1000,
-    1000,
-  );
+const generateOwnCard = async (
+  quantities: number[],
+  address: string,
+  game_mode?: string,
+  sumOfCards?: number,
+) => {
+  const baseImage = sharp(
+    `./public/images/war/pick_${game_mode || ''}card.png`,
+  ).resize(1000, 1000);
 
   const cardWidth = 144;
   const cardHeight = 211;
@@ -1966,26 +1983,47 @@ const generateOwnCard = async (quantities: number[], address: string) => {
     })
     .flat();
 
-  const addressImage = await sharp({
-    text: {
-      text: `<span foreground="white" letter_spacing="1000">${
-        address.slice(0, 6) + '...' + address.slice(-4)
-      }</span>`,
-      font: 'Bigelow Rules',
-      fontfile: './public/fonts/BigelowRules-Regular.ttf',
-      rgba: true,
-      width: 550,
-      height: 40,
-      align: 'left',
-    },
-  })
-    .png()
-    .toBuffer();
+  const [addressImage, sumOfCardsImage] = await Promise.all([
+    sharp({
+      text: {
+        text: `<span foreground="white" letter_spacing="1000">${
+          address.slice(0, 6) + '...' + address.slice(-4)
+        }</span>`,
+        font: 'Bigelow Rules',
+        fontfile: './public/fonts/BigelowRules-Regular.ttf',
+        rgba: true,
+        width: 550,
+        height: 40,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="white" letter_spacing="1000">Sum of cards must be ${sumOfCards} or less</span>`,
+        font: 'Bigelow Rules',
+        fontfile: './public/fonts/BigelowRules-Regular.ttf',
+        rgba: true,
+        width: 550,
+        height: 44,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+  ]);
 
   const finalImage = await baseImage
     .composite([
       ...overlayComponents,
-      { input: addressImage, top: 50, left: 700 },
+      sumOfCards && game_mode !== '1'
+        ? {
+            input: sumOfCardsImage,
+            top: 50,
+            left: 460,
+          }
+        : { input: addressImage, top: 50, left: 700 },
     ])
     .png()
     .toBuffer();
