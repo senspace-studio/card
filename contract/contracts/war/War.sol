@@ -142,7 +142,7 @@ contract War is
         uint256 _numOfCards,
         uint256 _sumOfCards,
         address _requestChallenger
-    ) external payable whenNotPaused nonReentrant onlyInvitationHolder {
+    ) external payable whenNotPaused nonReentrant {
         require(signatures[_signature] == false, 'War: signature already used');
 
         require(
@@ -202,7 +202,6 @@ contract War is
         payable
         whenNotPaused
         nonReentrant
-        onlyInvitationHolder
         onlyCreatedGame(gameId)
         onlyOpenOrRequestedGame(gameId, msg.sender)
         validCards(gameId, challengerCards, PlayerSide.Challenger)

@@ -2136,7 +2136,9 @@ const generateOwnCard = async (
       .toBuffer(),
     sharp({
       text: {
-        text: `<span foreground="white" letter_spacing="1000">Sum of cards must be ${sumOfCards} or less</span>`,
+        text: `<span foreground="white" letter_spacing="1000">Sum of cards must be ${
+          sumOfCards || 25
+        } or less</span>`,
         font: 'Bigelow Rules',
         fontfile: './public/fonts/BigelowRules-Regular.ttf',
         rgba: true,
@@ -2152,7 +2154,7 @@ const generateOwnCard = async (
   const finalImage = await baseImage
     .composite([
       ...overlayComponents,
-      sumOfCards && numOfCards !== 1
+      numOfCards !== 1
         ? {
             input: sumOfCardsImage,
             top: 50,

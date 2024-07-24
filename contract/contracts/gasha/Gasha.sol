@@ -60,7 +60,7 @@ contract Gasha is IGasha, OwnableUpgradeable, PausableUpgradeable {
 
     function spin(
         uint256 quantity
-    ) external payable isAvailableTime whenNotPaused onlyInvitationHolder {
+    ) external payable isAvailableTime whenNotPaused {
         require(quantity > 0 && quantity < 1000, 'Gasha: quantity is invalid');
         require(msg.value >= unitPrice * quantity, 'Gasha: insufficient funds');
 
