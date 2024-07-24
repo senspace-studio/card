@@ -311,7 +311,7 @@ warApp.frame('/preview', async (c) => {
   const jokerCount = convertedArray.filter((card) => card === 14).length;
   if (jokerCount > 1) {
     return c.error({
-      message: 'You can only use one Joker (14) per hand. Please try again.',
+      message: "You can't play two Jokers in a single game. Try again.",
     });
   }
 
@@ -1099,7 +1099,7 @@ warApp.frame('/duel', async (c) => {
     const jokerCount = convertedArray.filter((card) => card === 14).length;
     if (jokerCount > 1) {
       return c.error({
-        message: 'You can only use one Joker (14) per hand. Please try again.',
+        message: "You can't play two Jokers in a single game. Try again.",
       });
     }
     // sumOfCards以下であるかどうかもチェック
