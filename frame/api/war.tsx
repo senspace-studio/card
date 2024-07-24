@@ -141,9 +141,9 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  const { frameData, req } = c;
+  const numOfCards = c.req.param('game_mode');
+  const { frameData } = c;
   const fid = frameData?.fid;
-  const game_mode = req.param('game_mode');
 
   await initLocalState(c);
 
@@ -183,17 +183,19 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
     prevState.pfp_url = pfp_url;
     prevState.hasInvitation = hasNFT;
     prevState.verifiedAddresses = verifiedAddresses;
+    prevState.numOfCards = Number(numOfCards);
   });
 
   return c.res({
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address, game_mode })),
+      encodeURIComponent(JSON.stringify({ quantities, address, numOfCards })),
     imageAspectRatio: '1:1',
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/preview">Set</Button>,
+      <Button action={`${BASE_URL}/draw`}>Draw</Button>,
     ],
   });
 });
@@ -266,7 +268,8 @@ warApp.frame('/preview', async (c) => {
     return c.error({ message: 'Under maintenance, please try again later.' });
 
   const { inputText } = c;
-  const { userName, pfp_url, card, quantities, address } = c.previousState;
+  const { userName, pfp_url, card, quantities, address, numOfCards } =
+    c.previousState;
 
   // bet機能をリリースする時は/bet frameで行うためこの辺はスキップ
 
@@ -281,14 +284,34 @@ warApp.frame('/preview', async (c) => {
 
   const allInputsValid = convertedArray.every((value) => value !== -1);
   if (!allInputsValid) {
-    return c.error({ message: 'Invalid Input Number.' });
+    return c.error({
+      message:
+        'You misentered something. Try again and make sure numbers are separated by commas.',
+    });
   }
 
-  // 入力数が1,3,5のいずれかをチェック
-  const isValidCardCount = [1, 3, 5].includes(convertedArray.length);
-  if (!isValidCardCount) {
+  // カード枚数が一致しているかチェック
+  if (numOfCards && numOfCards > 0) {
+    if (convertedArray.length !== numOfCards)
+      return c.error({
+        message: `Please play ${numOfCards} cards.Try Again.`,
+      });
+  } else {
+    // 入力数が1,3,5のいずれかをチェック
+
+    const isValidCardCount = [1, 3, 5].includes(convertedArray.length);
+    if (!isValidCardCount) {
+      return c.error({
+        message: 'Invalid number of cards. Please enter 1, 3, or 5 cards.',
+      });
+    }
+  }
+
+  // Jokerの数をチェック
+  const jokerCount = convertedArray.filter((card) => card === 14).length;
+  if (jokerCount > 1) {
     return c.error({
-      message: 'Invalid number of cards. Please enter 1, 3, or 5 cards.',
+      message: "You can't play two Jokers in a single game. Try again.",
     });
   }
 
@@ -327,7 +350,7 @@ warApp.frame('/preview', async (c) => {
     if (sum < 14 || sum > 25) {
       return c.error({
         message:
-          'The sum of card values (excluding Jokers) must be between 14 and 25.',
+          'Please play a sum total between 14-25 (Exclude Joker). Try Again.',
       });
     }
   }
@@ -866,18 +889,21 @@ warApp.frame('/choose', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  const { quantities, c_address } = c.previousState;
+  const { quantities, c_address, numOfCards } = c.previousState;
 
   return c.res({
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address: c_address })),
+      encodeURIComponent(
+        JSON.stringify({ quantities, address: c_address, numOfCards }),
+      ),
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/duel">Set</Button>,
+      <Button action={`${BASE_URL}/draw`}>Draw</Button>,
     ],
   });
 });
@@ -977,8 +1003,8 @@ warApp.frame('/choose/:params', async (c) => {
         JSON.stringify({
           quantities,
           address,
-          game_mode: numOfCards,
-          sumOfCards: sumOfCards,
+          numOfCards,
+          sumOfCards,
         }),
       ),
     imageAspectRatio: '1:1',
@@ -986,9 +1012,10 @@ warApp.frame('/choose/:params', async (c) => {
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/duel">Set</Button>,
-      totalBalance === 0 && (
-        <Button action={BASE_URL + '/draw'}>Draw Card</Button>
-      ),
+      // totalBalance === 0 && (
+      //   <Button action={BASE_URL + '/draw'}>Draw Card</Button>
+      // ),
+      <Button action={`${BASE_URL}/draw`}>Draw</Button>,
     ],
   });
 });
@@ -1023,14 +1050,17 @@ warApp.frame('/duel', async (c) => {
 
   const allInputsValid = convertedArray.every((value) => value !== -1);
   if (!allInputsValid) {
-    return c.error({ message: 'Invalid Input Number.' });
+    return c.error({
+      message:
+        'You misentered something. Try again and make sure numbers are separated by commas.',
+    });
   }
 
   // 入力数がゲームに対応しているかチェック
   const isValidCardCount = numOfCards === convertedArray.length;
   if (!isValidCardCount) {
     return c.error({
-      message: `Invalid number of cards. Please enter ${numOfCards} cards.`,
+      message: `Please play ${numOfCards} cards.Try Again.`,
     });
   }
 
@@ -1068,14 +1098,21 @@ warApp.frame('/duel', async (c) => {
     if (sum < 14 || sum > 25) {
       return c.error({
         message:
-          'The sum of card values (excluding Jokers) must be between 14 and 25.',
+          'Please play a sum total between 14-25 (Exclude Joker).Try Again.',
       });
     }
 
+    // Jokerの数をチェック
+    const jokerCount = convertedArray.filter((card) => card === 14).length;
+    if (jokerCount > 1) {
+      return c.error({
+        message: "You can't play two Jokers in a single game. Try again.",
+      });
+    }
     // sumOfCards以下であるかどうかもチェック
     if (sumOfCards && sum > sumOfCards) {
       return c.error({
-        message: `The sum of card values (excluding Jokers) must not exceed ${sumOfCards}.`,
+        message: `You entered a higher total than your opponent (Exclude Joker). Check your opponent's sum total and try again.`,
       });
     }
   }
@@ -1193,7 +1230,6 @@ warApp.frame('/result/:gameId', async (c) => {
 
   const gameId = c.req.param('gameId') as `0x${string}`;
   const recentCard = c.previousState.c_card;
-
   let gameInfo;
   let contractResult;
 
@@ -1206,6 +1242,7 @@ warApp.frame('/result/:gameId', async (c) => {
   } else {
     gameInfo = await getGameInfoByGameId(gameId);
   }
+
   if (!gameInfo) {
     const params = encodeURIComponent(
       JSON.stringify({
@@ -1231,6 +1268,9 @@ warApp.frame('/result/:gameId', async (c) => {
     winner,
     numOfCards,
   } = gameInfo;
+
+  card = ensureNumberArray(card, numOfCards);
+  c_card = ensureNumberArray(c_card, numOfCards);
 
   if (!winner || winner === zeroAddress) {
     if (!contractResult) {
@@ -1327,7 +1367,7 @@ warApp.frame('/addAction', (c) => {
 });
 
 warApp.castAction(
-  '/lets-play',
+  '/vs-match',
   async (c) => {
     const { actionData } = c;
     const castHash = actionData?.castId.hash;
@@ -1343,6 +1383,62 @@ warApp.castAction(
     description: 'Select a friend to play against!',
   },
 );
+
+warApp.frame('/select-game-mode/:castHash', async (c) => {
+  const castHash = c.req.param('castHash');
+
+  const {
+    pfp_url: c_pfp_url,
+    userName: c_userName,
+    verifiedAddresses: c_verifiedAddresses,
+  } = await getFarcasterUserInfoByCastHash(castHash);
+
+  const c_address = c_verifiedAddresses[0];
+  const c_hasInvitation = await checkInvitation(c_address);
+
+  const { frameData } = c;
+  const fid = frameData?.fid;
+  const { pfp_url, userName, verifiedAddresses } = c.previousState.userName
+    ? c.previousState
+    : await getFarcasterUserInfo(fid);
+
+  if (
+    !verifiedAddresses ||
+    verifiedAddresses.length === 0 ||
+    !c_verifiedAddresses ||
+    c_verifiedAddresses.length === 0
+  ) {
+    return c.res({
+      title,
+      image: '/images/verify.png',
+      imageAspectRatio: '1:1',
+      intents: [<Button action="/">Back</Button>],
+    });
+  }
+
+  const address = verifiedAddresses[0] as `0x${string}`;
+
+  if (address.toLowerCase() === c_address.toLowerCase()) {
+    return c.error({ message: 'You cannot battle yourself' });
+  }
+
+  c.deriveState((prevState) => {
+    prevState.c_address = c_address;
+    prevState.c_userName = c_userName;
+    prevState.c_pfp_url = c_pfp_url;
+  });
+
+  return c.res({
+    title,
+    image: '/images/war/select_game_mode.png',
+    imageAspectRatio: '1:1',
+    intents: [
+      <Button action="/make-duel/1">1 card</Button>,
+      <Button action="/make-duel/3">3 cards</Button>,
+      <Button action="/make-duel/5">5 cards</Button>,
+    ],
+  });
+});
 
 warApp.frame('/make-direct-duel/:castHash', async (c) => {
   if (IS_MAINTENANCE)
@@ -1421,6 +1517,7 @@ warApp.frame('/make-direct-duel/:castHash', async (c) => {
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
       <Button action="/preview">Set</Button>,
+      <Button action={`${BASE_URL}/draw`}>Draw</Button>,
     ],
   });
 });
@@ -1737,6 +1834,36 @@ const getSignature = async (c: any): Promise<string> => {
     return '';
   }
 };
+const ensureNumberArray = (arr: unknown, length: number): number[] => {
+  let parsedArr: unknown;
+  if (typeof arr === 'string') {
+    try {
+      parsedArr = JSON.parse(arr);
+      console.log('Parsed array:', parsedArr);
+    } catch (error) {
+      console.error('Failed to parse input string:', error);
+      return Array(length).fill(0);
+    }
+  } else {
+    parsedArr = arr;
+  }
+
+  if (!Array.isArray(parsedArr)) {
+    return Array(length).fill(0);
+  }
+
+  if (parsedArr.length === 0) {
+    return Array(length).fill(0);
+  }
+
+  const result = parsedArr.map((item, index) => {
+    const num = Number(item);
+    return isNaN(num) ? 0 : num;
+  });
+
+  const finalResult = result.slice(0, length);
+  return finalResult;
+};
 
 const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
   if (inputText === undefined || inputText === '') {
@@ -1748,15 +1875,15 @@ const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
 };
 
 warApp.hono.get('/image/score/:quantities', async (c) => {
-  const { quantities, address, game_mode, sumOfCards } = JSON.parse(
+  const { quantities, address, numOfCards, sumOfCards } = JSON.parse(
     decodeURIComponent(c.req.param('quantities')),
   );
 
   const finalImage = await generateOwnCard(
     quantities,
     address,
-    game_mode,
-    sumOfCards,
+    Number(numOfCards),
+    Number(sumOfCards),
   );
   return c.newResponse(finalImage, 200, {
     'Content-Type': 'image/png',
@@ -1873,7 +2000,6 @@ const extractFirstNumber = (value: string | number | number[]): number => {
 };
 warApp.hono.get('/image/result/:params', async (c) => {
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
-
   const {
     userName,
     pfp_url,
@@ -1883,14 +2009,12 @@ warApp.hono.get('/image/result/:params', async (c) => {
     result,
     numOfCards,
   } = params;
-
   let { card, c_card } = params;
 
   let png;
 
   const jokerKilling = isJokerKilling(card, c_card);
-
-  if (jokerKilling) {
+  if (jokerKilling && result !== Result.Draw) {
     png = await generateJokerKillingImage(pfp_url, c_pfp_url, result);
   } else if (numOfCards === 1) {
     const singleCard = extractFirstNumber(card);
@@ -1930,11 +2054,11 @@ warApp.hono.get('/image/result/:params', async (c) => {
 const generateOwnCard = async (
   quantities: number[],
   address: string,
-  game_mode?: string,
+  numOfCards?: number,
   sumOfCards?: number,
 ) => {
   const baseImage = sharp(
-    `./public/images/war/pick_${game_mode || ''}card.png`,
+    `./public/images/war/pick_${numOfCards || ''}card.png`,
   ).resize(1000, 1000);
 
   const cardWidth = 144;
@@ -2017,7 +2141,7 @@ const generateOwnCard = async (
   const finalImage = await baseImage
     .composite([
       ...overlayComponents,
-      sumOfCards && game_mode !== '1'
+      sumOfCards && numOfCards !== 1
         ? {
             input: sumOfCardsImage,
             top: 50,
