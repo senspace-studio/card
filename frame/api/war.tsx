@@ -190,7 +190,7 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address })),
+      encodeURIComponent(JSON.stringify({ quantities, address, numOfCards })),
     imageAspectRatio: '1:1',
     intents: [
       <TextInput placeholder="1,2....11,12,13 or J" />,
@@ -889,13 +889,15 @@ warApp.frame('/choose', async (c) => {
   if (IS_MAINTENANCE)
     return c.error({ message: 'Under maintenance, please try again later.' });
 
-  const { quantities, c_address } = c.previousState;
+  const { quantities, c_address, numOfCards } = c.previousState;
 
   return c.res({
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address: c_address })),
+      encodeURIComponent(
+        JSON.stringify({ quantities, address: c_address, numOfCards }),
+      ),
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
@@ -997,7 +999,7 @@ warApp.frame('/choose/:params', async (c) => {
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address })),
+      encodeURIComponent(JSON.stringify({ quantities, address, numOfCards })),
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
@@ -1866,11 +1868,15 @@ const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
 };
 
 warApp.hono.get('/image/score/:quantities', async (c) => {
-  const { quantities, address } = JSON.parse(
+  const { quantities, address, numOfCards } = JSON.parse(
     decodeURIComponent(c.req.param('quantities')),
   );
 
-  const finalImage = await generateOwnCard(quantities, address);
+  const finalImage = await generateOwnCard(
+    quantities,
+    address,
+    Number(numOfCards),
+  );
   return c.newResponse(finalImage, 200, {
     'Content-Type': 'image/png',
   });
@@ -2037,11 +2043,21 @@ warApp.hono.get('/image/result/:params', async (c) => {
 ////////////////////////////////////////
 // Image Generate Functions
 // /////////////////////////////////////
-const generateOwnCard = async (quantities: number[], address: string) => {
-  const baseImage = sharp('./public/images/war/pick_card.png').resize(
-    1000,
-    1000,
-  );
+const generateOwnCard = async (
+  quantities: number[],
+  address: string,
+  numOfCards?: number,
+) => {
+  let baseImagePath = './public/images/war/pick_card.png';
+  if (numOfCards) {
+    if (numOfCards === 1) baseImagePath = './public/images/war/pick_1card.png';
+    if (numOfCards === 3) baseImagePath = './public/images/war/pick_3card.png';
+    if (numOfCards === 5) {
+      baseImagePath = './public/images/war/pick_5card.png';
+    }
+  }
+
+  const baseImage = sharp(baseImagePath).resize(1000, 1000);
 
   const cardWidth = 144;
   const cardHeight = 211;
