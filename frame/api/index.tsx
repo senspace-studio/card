@@ -84,7 +84,7 @@ app.frame('/tools', (c) => {
 
 app.hono.get('/image/top', async (c) => {
   const container = sharp('./public/images/top.png');
-  const response = await fetch(`${BACKEND_URL}/points/realtime-total-reward`);
+  const response = await fetch(`${BACKEND_URL}/points/realtime-total-rewards`);
   const { totalRewardsAmount } = await response.json();
   const totalRewardsAmountStr = totalRewardsAmount.toLocaleString();
 

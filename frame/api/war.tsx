@@ -999,7 +999,14 @@ warApp.frame('/choose/:params', async (c) => {
     title,
     image:
       '/war/image/score/' +
-      encodeURIComponent(JSON.stringify({ quantities, address, numOfCards })),
+      encodeURIComponent(
+        JSON.stringify({
+          quantities,
+          address,
+          numOfCards,
+          sumOfCards,
+        }),
+      ),
     imageAspectRatio: '1:1',
     action: '/choose',
     intents: [
@@ -1868,7 +1875,7 @@ const safeIsNaN = async (inputText: string | undefined): Promise<boolean> => {
 };
 
 warApp.hono.get('/image/score/:quantities', async (c) => {
-  const { quantities, address, numOfCards } = JSON.parse(
+  const { quantities, address, numOfCards, sumOfCards } = JSON.parse(
     decodeURIComponent(c.req.param('quantities')),
   );
 
@@ -1876,6 +1883,7 @@ warApp.hono.get('/image/score/:quantities', async (c) => {
     quantities,
     address,
     Number(numOfCards),
+    Number(sumOfCards),
   );
   return c.newResponse(finalImage, 200, {
     'Content-Type': 'image/png',
@@ -2047,17 +2055,11 @@ const generateOwnCard = async (
   quantities: number[],
   address: string,
   numOfCards?: number,
+  sumOfCards?: number,
 ) => {
-  let baseImagePath = './public/images/war/pick_card.png';
-  if (numOfCards) {
-    if (numOfCards === 1) baseImagePath = './public/images/war/pick_1card.png';
-    if (numOfCards === 3) baseImagePath = './public/images/war/pick_3card.png';
-    if (numOfCards === 5) {
-      baseImagePath = './public/images/war/pick_5card.png';
-    }
-  }
-
-  const baseImage = sharp(baseImagePath).resize(1000, 1000);
+  const baseImage = sharp(
+    `./public/images/war/pick_${numOfCards || ''}card.png`,
+  ).resize(1000, 1000);
 
   const cardWidth = 144;
   const cardHeight = 211;
@@ -2105,26 +2107,47 @@ const generateOwnCard = async (
     })
     .flat();
 
-  const addressImage = await sharp({
-    text: {
-      text: `<span foreground="white" letter_spacing="1000">${
-        address.slice(0, 6) + '...' + address.slice(-4)
-      }</span>`,
-      font: 'Bigelow Rules',
-      fontfile: './public/fonts/BigelowRules-Regular.ttf',
-      rgba: true,
-      width: 550,
-      height: 40,
-      align: 'left',
-    },
-  })
-    .png()
-    .toBuffer();
+  const [addressImage, sumOfCardsImage] = await Promise.all([
+    sharp({
+      text: {
+        text: `<span foreground="white" letter_spacing="1000">${
+          address.slice(0, 6) + '...' + address.slice(-4)
+        }</span>`,
+        font: 'Bigelow Rules',
+        fontfile: './public/fonts/BigelowRules-Regular.ttf',
+        rgba: true,
+        width: 550,
+        height: 40,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+    sharp({
+      text: {
+        text: `<span foreground="white" letter_spacing="1000">Sum of cards must be ${sumOfCards} or less</span>`,
+        font: 'Bigelow Rules',
+        fontfile: './public/fonts/BigelowRules-Regular.ttf',
+        rgba: true,
+        width: 550,
+        height: 44,
+        align: 'left',
+      },
+    })
+      .png()
+      .toBuffer(),
+  ]);
 
   const finalImage = await baseImage
     .composite([
       ...overlayComponents,
-      { input: addressImage, top: 50, left: 700 },
+      sumOfCards && numOfCards !== 1
+        ? {
+            input: sumOfCardsImage,
+            top: 50,
+            left: 460,
+          }
+        : { input: addressImage, top: 50, left: 700 },
     ])
     .png()
     .toBuffer();
