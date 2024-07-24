@@ -14,6 +14,8 @@ import {
 import { Between, MoreThan, IsNull, Repository, Not } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 import tweClient from 'src/lib/thirdweb-engine';
+import { PointsService } from '../points/points.service';
+import { chunk } from 'lodash';
 
 export enum GAME_STATUS {
   // データが存在しない
@@ -48,6 +50,7 @@ export class WarService {
   constructor(
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
+    private readonly pointsService: PointsService,
   ) {}
 
   getGameStatus(game: WarEntity) {
@@ -496,5 +499,30 @@ export class WarService {
     );
 
     return data.result.length;
+  };
+
+  numOfSpentCards = async (startDateUnix: number, endDateUnix: number) => {
+    const gameLogs = await this.pointsService.getGameLogs(
+      startDateUnix,
+      endDateUnix,
+    );
+
+    let spentCards = 0;
+
+    const chunkedGameLogs = chunk(gameLogs, 10);
+    for (let index = 0; index < chunkedGameLogs.length; index++) {
+      const chunkedGameLog = chunkedGameLogs[index];
+      const cardsList = Promise.all(
+        chunkedGameLog.map(async (gameLog) => {
+          const numOfCards = await this.pointsService.numOfCards(
+            gameLog.gameId,
+          );
+          return numOfCards;
+        }),
+      );
+      spentCards += (await cardsList).reduce((a, b) => a + b, 0);
+    }
+
+    return spentCards;
   };
 }
