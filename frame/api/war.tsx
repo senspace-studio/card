@@ -334,7 +334,7 @@ warApp.frame('/preview', async (c) => {
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [
-        <Button action="/make-duel">Back</Button>,
+        <Button action={`/make-duel/${numOfCards}`}>Back</Button>,
         <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
@@ -349,8 +349,7 @@ warApp.frame('/preview', async (c) => {
 
     if (sum < 14 || sum > 25) {
       return c.error({
-        message:
-          'Please play a sum total between 14-25 (Exclude Joker). Try Again.',
+        message: 'Please play a sum total between 14-25 (Joker=0). Try Again.',
       });
     }
   }
@@ -370,7 +369,7 @@ warApp.frame('/preview', async (c) => {
       title,
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
-      intents: [<Button action="/make-duel">Back</Button>],
+      intents: [<Button action={`/make-duel/${numOfCards}`}>Back</Button>],
     });
   }
 
@@ -958,7 +957,7 @@ warApp.frame('/choose/:params', async (c) => {
       imageAspectRatio: '1:1',
       action: '/',
       intents: [
-        <Button action="/make-duel">Start</Button>,
+        <Button action="/select-game-mode">Start</Button>,
         <Button action="/challenge/random">Matches</Button>,
         <Button.Link href="https://paragraph.xyz/@houseofcardians/rules-house-of-cardians#h-battle">
           Rules
@@ -1082,7 +1081,7 @@ warApp.frame('/duel', async (c) => {
       image: `/war/image/error/${params}`,
       imageAspectRatio: '1:1',
       intents: [
-        <Button action="/make-duel">Back</Button>,
+        <Button action={`/make-duel/${numOfCards}`}>Back</Button>,
         <Button action={`${BASE_URL}/draw`}>Draw</Button>,
       ],
     });
@@ -1097,8 +1096,7 @@ warApp.frame('/duel', async (c) => {
 
     if (sum < 14 || sum > 25) {
       return c.error({
-        message:
-          'Please play a sum total between 14-25 (Exclude Joker).Try Again.',
+        message: 'Please play a sum total between 14-25 (Joker=0).Try Again.',
       });
     }
 
@@ -1112,7 +1110,7 @@ warApp.frame('/duel', async (c) => {
     // sumOfCards以下であるかどうかもチェック
     if (sumOfCards && sum > sumOfCards) {
       return c.error({
-        message: `You entered a higher total than your opponent (Exclude Joker). Check your opponent's sum total and try again.`,
+        message: `You entered a higher total than your opponent (Joker=0). Check your opponent's sum total and try again.`,
       });
     }
   }
@@ -2461,7 +2459,7 @@ const generateMultiShareImage = async (
       left: topUserLeft + topPfpSize + 20,
       top: topUserTop,
     },
-    { input: sumOfCardsImage, left: 592, top: 168 },
+    { input: sumOfCardsImage, left: 560, top: 168 },
   ];
 
   // direct match
