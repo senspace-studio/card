@@ -14,6 +14,8 @@ import {
 import { Between, MoreThan, IsNull, Repository, Not } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 import tweClient from 'src/lib/thirdweb-engine';
+import { PointsService } from '../points/points.service';
+import { chunk } from 'lodash';
 
 export enum GAME_STATUS {
   // データが存在しない
@@ -48,6 +50,7 @@ export class WarService {
   constructor(
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
+    private readonly pointsService: PointsService,
   ) {}
 
   getGameStatus(game: WarEntity) {
@@ -100,13 +103,16 @@ export class WarService {
     return { balanceOfAll: res, ids };
   }
 
-  async hasCard(owner: string, tokenId: number) {
+  async hasCard(owner: string, tokenId: number, amount: number) {
     this.logger.log(this.hasCard.name, JSON.stringify({ owner, tokenId }));
     const { balanceOfAll } = await this.getCardBalanceOf(owner as Address);
-    return 0n < balanceOfAll[tokenId - 1];
+    return BigInt(amount) <= balanceOfAll[tokenId - 1];
   }
 
-  async getAllReservedGames(orderBy: 'ASC' | 'DESC' = 'ASC') {
+  async getAllReservedGames(
+    orderBy: 'ASC' | 'DESC' = 'ASC',
+    hand_length: string,
+  ) {
     this.logger.log(this.getAllReservedGames.name, JSON.stringify({ orderBy }));
     const now = new Date();
     const games = await this.warRepositry.find({
@@ -118,11 +124,21 @@ export class WarService {
       order: { created: orderBy },
     });
     // this.logger.debug(JSON.stringify(games));
-    const reservedGamnes = games.filter(
+    let reservedGamnes = games.filter(
       (e) =>
         this.getGameStatus(e) === GAME_STATUS.MADE ||
         this.getGameStatus(e) === GAME_STATUS.MADE_CASTED,
     );
+    if (
+      !Number.isNaN(Number(hand_length)) &&
+      [1, 3, 5].includes(Number(hand_length))
+    ) {
+      reservedGamnes = reservedGamnes.filter((game) => {
+        const cards = game.maker_token_id.split(',');
+        return cards.length === Number(hand_length);
+      });
+    }
+
     // this.logger.debug(JSON.stringify(reservedGamnes));
     return reservedGamnes;
   }
@@ -154,9 +170,11 @@ export class WarService {
     this.logger.log(this.getAllReservedCards.name, JSON.stringify({ maker }));
     const games = await this.getAllReservedGamesByMaker(maker);
     const numOfCards: number[] = [...new Array(14)].fill(0);
-
     for (const game of games) {
-      numOfCards[Number(game.maker_token_id) - 1]++;
+      const tokenIdList = game.maker_token_id.split(',').map((e) => Number(e));
+      for (const tokenId of tokenIdList) {
+        numOfCards[tokenId - 1]++;
+      }
     }
     return numOfCards;
   }
@@ -164,13 +182,14 @@ export class WarService {
   async getRandomChallengableGame(params: {
     maker?: string;
     exept_maker?: string;
+    hand_length?: string;
   }) {
     this.logger.log(
       this.getRandomChallengableGame.name,
       JSON.stringify(params),
     );
     const now = new Date();
-    const games = await this.warRepositry.find({
+    let games = await this.warRepositry.find({
       where: {
         game_id: Not(IsNull()),
         challenger: IsNull(),
@@ -183,6 +202,15 @@ export class WarService {
         ),
       },
     });
+    if (
+      !Number.isNaN(Number(params.hand_length)) &&
+      [1, 3, 5].includes(Number(params.hand_length))
+    ) {
+      games = games.filter((game) => {
+        const cards = game.maker_token_id.split(',');
+        return cards.length === Number(params.hand_length);
+      });
+    }
     const index = Math.floor(Math.random() * games.length);
     return games[index];
   }
@@ -200,17 +228,23 @@ export class WarService {
     return await this.warRepositry.findOne({ where: { game_id: gameId } });
   }
 
-  async createNewGame(maker: string, tokenId: bigint, seed: bigint) {
+  async createNewGame(maker: string, tokenIdList: bigint[], seed: bigint) {
     this.logger.log(
       this.createNewGame.name,
       JSON.stringify({
         maker,
-        tokenId: Number(tokenId),
+        tokenId: tokenIdList.map((e) => Number(e)),
         seed: Number(seed),
       }),
     );
+    const makerCardHash = keccak256(
+      encodePacked(
+        tokenIdList.map(() => 'uint256'),
+        tokenIdList,
+      ),
+    );
     const messageHash = keccak256(
-      encodePacked(['uint256', 'uint256'], [tokenId, seed]),
+      encodePacked(['bytes32', 'uint256'], [makerCardHash, seed]),
     ) as `0x${string}`;
     this.logger.debug(JSON.stringify({ messageHash }));
     const signature = await dealar.signMessage({
@@ -234,7 +268,7 @@ export class WarService {
     await this.warRepositry.save({
       seed: seed.toString(),
       maker,
-      maker_token_id: tokenId.toString(),
+      maker_token_id: tokenIdList.map((e) => e.toString()).join(','),
       signature: signature,
       created: new Date().getTime().toString(),
     });
@@ -388,6 +422,49 @@ export class WarService {
     }
   };
 
+  async sign(tokenIdList: number[], maker: string) {
+    if (![1, 3, 5].includes(tokenIdList.length)) {
+      throw new Error(`invalid hand length ${tokenIdList.length}`);
+    }
+    if (1 < tokenIdList.filter((e) => e === 14).length) {
+      throw new Error('invalid joker amount');
+    }
+
+    const sumOfCard = tokenIdList.reduce((a, b) => a + (b === 14 ? 0 : b), 0);
+
+    if (1 < tokenIdList.length && (sumOfCard < 14 || 25 < sumOfCard)) {
+      throw new Error('invalid card sum');
+    }
+    const { balanceOfAll, ids } = await this.getCardBalanceOf(
+      maker as `0x${string}`,
+    );
+    for (let i = 0; i < ids.length; i++) {
+      const id = Number(ids[i]);
+      const balance = Number(balanceOfAll[i]);
+      const amount = tokenIdList.filter((e) => e === id).length;
+      if (amount && balance < amount) {
+        throw new Error(
+          `Insufficient balance (tokenid=${id}, balance=${balance}, amount=${amount})`,
+        );
+      }
+    }
+    for (let i = 0; i < 100; i++) {
+      try {
+        const seed = Math.floor(Math.random() * 1000000000000);
+        const signature = await this.createNewGame(
+          maker,
+          tokenIdList.map((e) => BigInt(e)),
+          BigInt(seed),
+        );
+        return signature;
+      } catch (error) {
+        if (error.message !== 'signature already used') {
+          throw new Error('Internal server error');
+        }
+      }
+    }
+  }
+
   numOfGames = async (startDateUnix: number, endDateUnix: number) => {
     const {
       result: { blockNumber: fromBlock_game },
@@ -422,5 +499,30 @@ export class WarService {
     );
 
     return data.result.length;
+  };
+
+  numOfSpentCards = async (startDateUnix: number, endDateUnix: number) => {
+    const gameLogs = await this.pointsService.getGameLogs(
+      startDateUnix,
+      endDateUnix,
+    );
+
+    let spentCards = 0;
+
+    const chunkedGameLogs = chunk(gameLogs, 10);
+    for (let index = 0; index < chunkedGameLogs.length; index++) {
+      const chunkedGameLog = chunkedGameLogs[index];
+      const cardsList = Promise.all(
+        chunkedGameLog.map(async (gameLog) => {
+          const numOfCards = await this.pointsService.numOfCards(
+            gameLog.gameId,
+          );
+          return numOfCards;
+        }),
+      );
+      spentCards += (await cardsList).reduce((a, b) => a + b, 0);
+    }
+
+    return spentCards;
   };
 }

@@ -11,9 +11,10 @@ import {
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import tweClient from 'src/lib/thirdweb-engine';
-import { ViemService } from '../viem/viem.service';
 import { S_VIP_ADDRESSES } from 'src/constants/Invitation';
 import parser from 'cron-parser';
+import { readContract } from 'src/lib/thirdweb-engine/read-contract';
+import { chunk } from 'lodash';
 const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
@@ -23,7 +24,6 @@ export class PointsService {
   constructor(
     @InjectRepository(HeatScoreEntity)
     private readonly heatscoreRepository: Repository<HeatScoreEntity>,
-    private readonly viemService: ViemService,
   ) {}
 
   async getScores() {
@@ -213,7 +213,7 @@ export class PointsService {
   }
 
   // 対戦スコアの算出
-  calcWarScore(baseUnixtime: number, gameLogs: GameRevealedEventLog[]) {
+  async calcWarScore(baseUnixtime: number, gameLogs: GameRevealedEventLog[]) {
     const uniquePlayers = new Set<string>();
     gameLogs.forEach((eventLog) => {
       if (eventLog.maker !== zeroAddress)
@@ -231,22 +231,39 @@ export class PointsService {
           eventLog.challenger.toLowerCase() === player,
       );
 
-      const playerBaseScore = playerEvents.reduce((acc, eventLog) => {
-        const resultMultiplier = this.resultMultiplier(
-          eventLog.winner.toLowerCase(),
-          player,
-        );
-        const roleMultiplier = this.roleMultiplier(
-          eventLog.winner.toLowerCase(),
-          player,
-        );
-        const decayMultiplier = this.decayMultiplier(
-          baseUnixtime,
-          eventLog.date,
-        );
+      let playerBaseScore = 0;
 
-        return acc + resultMultiplier * roleMultiplier * decayMultiplier;
-      }, 0);
+      const chunkedPlayerEvents = chunk(playerEvents, 10);
+
+      for (let i = 0; i < chunkedPlayerEvents.length; i++) {
+        i > 0 && (await new Promise((resolve) => setTimeout(resolve, 1000)));
+        const playerEventItem = chunkedPlayerEvents[i];
+        const results = await Promise.all(
+          playerEventItem.map(async (eventLog) => {
+            const resultMultiplier = this.resultMultiplier(
+              eventLog.winner.toLowerCase(),
+              player,
+            );
+            const roleMultiplier = this.roleMultiplier(
+              eventLog.winner.toLowerCase(),
+              player,
+            );
+            const decayMultiplier = this.decayMultiplier(
+              baseUnixtime,
+              eventLog.date,
+            );
+            const numOfCardMultiplier = await this.numOfCards(eventLog.gameId);
+
+            return (
+              resultMultiplier *
+              roleMultiplier *
+              decayMultiplier *
+              numOfCardMultiplier
+            );
+          }),
+        );
+        playerBaseScore += results.reduce((acc, score) => acc + score, 0);
+      }
 
       const totalMatches = playerEvents.length;
       const matchCountMultiplier = this.matchCountMultiplier(totalMatches);
@@ -274,12 +291,19 @@ export class PointsService {
   }
 
   private resultMultiplier(winner: string, player: string) {
-    return winner === zeroAddress ? 0.3 : winner === player ? 3 : 0.3;
+    return winner === zeroAddress ? 1 : winner === player ? 3 : 0.3;
   }
 
   private decayMultiplier(baseUnixtime: number, date: number) {
     const daysElapsed = Math.floor((baseUnixtime - date) / 86400);
     return Math.max(0, 1 - 0.25 * (daysElapsed - 1));
+  }
+
+  async numOfCards(gameId: string) {
+    const {
+      data: { result },
+    } = await readContract(WAR_CONTRACT_ADDRESS, 'numOfCards', gameId);
+    return Number(result);
   }
 
   private matchCountMultiplier(totalMatches: number) {
@@ -390,15 +414,15 @@ export class PointsService {
     return Array.from(totalScore.entries());
   }
 
-  async calcTotalScore(baseDate: dayjs.Dayjs) {
-    const startDate_game = baseDate.subtract(3, 'days');
+  async calcTotalScore(baseDate: dayjs.Dayjs, startDate?: dayjs.Dayjs) {
+    const startDate_game = startDate || baseDate.subtract(3, 'days');
 
     const gameRevealedlogs = await this.getGameLogs(
       startDate_game.unix(),
       baseDate.unix(),
     );
 
-    const warScore = this.calcWarScore(baseDate.unix(), gameRevealedlogs);
+    const warScore = await this.calcWarScore(baseDate.unix(), gameRevealedlogs);
 
     const startDate_invite =
       baseDate.diff('2024-06-19', 'days') < 14

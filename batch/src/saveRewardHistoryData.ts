@@ -7,7 +7,7 @@ import {
 } from './type';
 import { Address, getContract } from 'viem';
 import { getFileFromS3 } from './utils/s3';
-import { degenClient, getGameRevealedLogs } from './batch';
+import { degenClient, getGameRevealedLogs, getNumOfSpentCards } from './batch';
 import { uploadS3 } from './utils/s3';
 import StackVariablesABI from './abi/StackVariables.json';
 import { sendErrorNotification } from './utils/ifttt';
@@ -44,17 +44,17 @@ export const handler = async (event: EventBridgeInput) => {
       return;
     }
 
-    const [calcuratedScores, battleLogs] = await Promise.all([
+    const [calcuratedScores, numOfSpentCards] = await Promise.all([
       fetch(
         `${API_ENDPOINT}/points/calcurate-score?end_date_unix=${endDate * 1e3}`,
       ).then((res) => res.json() as unknown as Promise<[Address, number][]>),
-      getGameRevealedLogs(beforedate, startDate),
+      getNumOfSpentCards(beforedate, startDate),
     ]);
 
     const totalStack = calcuratedScores
       .map((e) => e[1])
       .reduce((a, b) => a + b);
-    const maxRewardAmount = battleLogs.length * MAX_REWARD_AMOUNT_RATIO;
+    const maxRewardAmount = numOfSpentCards * MAX_REWARD_AMOUNT_RATIO;
 
     const contract = getContract({
       address: STACK_VARIABLES_CONTRACT_ADDRESS as Address,

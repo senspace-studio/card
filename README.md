@@ -29,10 +29,10 @@
 
 | Name               | Address                                    | Notes                |
 | ------------------ | ------------------------------------------ | -------------------- |
-| Gasha.sol          | 0xa1924401b8A8935A41391004252e2Fb5EFDDA81A | Draw card randomly   |
-| Card.sol           | 0x4a90ba54c4bB76fA744691e953A337470296A500 | Card NFT (ERC1155)   |
-| War.sol            | 0xedCB16F9abA99F564B02c8f37a138317583D11a8 | War game contract    |
-| WarPool.sol        | 0x852420a580e171c00127C7692D0822E64B39FB43 | War bet pool         |
+| Gasha.sol          | 0xfE82Bfe298168C42d6D7c37012cAA60bFd7FC8A2 | Draw card randomly   |
+| Card.sol           | 0x8f4418946F29fDafb852E17A88408d7658Fe9b77 | Card NFT (ERC1155)   |
+| War.sol            | 0xd1e341B13A66F0a0ae4aa7ABC1dd218Fe1Cc120C | War game contract    |
+| WarPool.sol        | 0x2a8d852A05BD9a1ca6F29f2943BEF7773797357F | War bet pool         |
 | StackVariables.sol | 0x7a0838b90A77F31307653163C12418f8Bb0f56B4 | Variables management |
 
 ### External

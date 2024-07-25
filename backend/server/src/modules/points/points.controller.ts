@@ -1,16 +1,37 @@
-import { Controller, Get, Param, Query, Logger } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  Logger,
+  UseInterceptors,
+  Inject,
+} from '@nestjs/common';
+import {
+  CACHE_MANAGER,
+  CacheInterceptor,
+  CacheKey,
+  CacheTTL,
+} from '@nestjs/cache-manager';
 import { PointsService } from './points.service';
-import { NeynarService } from 'src/modules/neynar/neynar.service';
-import { ViemService } from 'src/modules/viem/viem.service';
 import * as dayjs from 'dayjs';
+import { Cache } from 'cache-manager';
+import parser from 'cron-parser';
+import {
+  STACK_VARIABLES_ADDRESS,
+  STREAM_SCORING_CRON_EXPRESSION,
+} from 'src/utils/env';
+import { readContract } from 'src/lib/thirdweb-engine/read-contract';
+import { WarService } from '../war/war.service';
+const cronParser: typeof parser = require('cron-parser');
 
 @Controller('points')
 export class PointsController {
   private readonly logger = new Logger(PointsController.name);
   constructor(
     private readonly pointsService: PointsService,
-    private readonly neynarService: NeynarService,
-    private readonly viemService: ViemService,
+    private readonly warService: WarService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   // クエリパラメータでページ、ソートの指定ができるように
@@ -63,6 +84,54 @@ export class PointsController {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  @CacheKey('realtime_total_rewards')
+  @CacheTTL(300000)
+  @Get('/realtime-total-rewards')
+  async getRealtimeTotalReward() {
+    this.logger.log(this.getRealtimeTotalReward.name);
+
+    const baseDate = dayjs();
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+
+    const numOfTodaySpentCards = await this.warService.numOfSpentCards(
+      currentCronDate.getTime() / 1000,
+      baseDate.subtract(10, 'seconds').unix(),
+    );
+    const totalRewardsAmount = numOfTodaySpentCards * 190 * 0.9;
+
+    return { totalRewardsAmount };
+  }
+
+  @CacheKey('realtime_stackData')
+  @CacheTTL(60000)
+  @Get('/realtime-stack-data')
+  async getRealtimeStackData() {
+    this.logger.log(this.getRealtimeStackData.name);
+
+    const baseDate = dayjs();
+    const currentCronDate = cronParser
+      .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
+      .prev()
+      .toDate();
+    const startDate = dayjs(currentCronDate).subtract(2, 'day');
+
+    const numOfTodaySpentCards = await this.warService.numOfSpentCards(
+      currentCronDate.getTime() / 1000,
+      baseDate.subtract(10, 'seconds').unix(),
+    );
+    const totalRewardsAmount = numOfTodaySpentCards * 190 * 0.9;
+
+    const stackData = await this.pointsService.calcTotalScore(
+      baseDate,
+      startDate,
+    );
+
+    return { stackData, totalRewardsAmount };
   }
 
   @Get('/:address')

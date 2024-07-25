@@ -45,9 +45,6 @@ export class CronService {
     private readonly streamSmartAccountRepository: Repository<StreamSmartAccountEntity>,
   ) {}
 
-  @Cron('*/10 * * * * *')
-  async test() {}
-
   @Cron(STREAM_SCORING_CRON_EXPRESSION)
   async updateScore() {
     if (!RUN_CRON) {
@@ -80,7 +77,7 @@ export class CronService {
 
       const endOfLastDay = dayjs(scoredDate);
       const startOfLastDay = endOfLastDay.subtract(1, 'day');
-      const numOfWar = await this.warService.numOfGames(
+      const numOfSpentCards = await this.warService.numOfSpentCards(
         startOfLastDay.unix(),
         endOfLastDay.unix(),
       );
@@ -101,12 +98,12 @@ export class CronService {
         Number(bonusMultilrierTop.result) /
         Number(bonusMultilrierBottom.result);
 
-      const h = numOfWar * 190 * bonusMultiplier;
+      const h = numOfSpentCards * 190 * bonusMultiplier;
       const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
       const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
       const y = h * (1 - Math.exp(-k * x));
 
-      this.logger.log('numOfWar:', numOfWar);
+      this.logger.log('numOfSpentCards:', numOfSpentCards);
       this.logger.log('bonusMultiplierTop:', bonusMultilrierTop.result);
       this.logger.log('bonusMultiplierBottom:', bonusMultilrierBottom.result);
       this.logger.log('difficultyTop:', difficultyTop.result);
