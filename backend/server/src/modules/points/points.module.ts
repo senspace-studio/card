@@ -15,6 +15,8 @@ import {
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { WarService } from '../war/war.service';
 import { WarEntity } from 'src/entities/war.entity';
+import { ViemService } from '../viem/viem.service';
+import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 
 @Module({
   imports: [
@@ -23,12 +25,14 @@ import { WarEntity } from 'src/entities/war.entity';
       TotalEntity,
       HeatScoreEntity,
       WarEntity,
+      StreamSmartAccountEntity,
     ]),
     CacheModule.register(),
   ],
   controllers: [PointsController],
   providers: [
     PointsService,
+    ViemService,
     WarService,
     {
       provide: APP_INTERCEPTOR,

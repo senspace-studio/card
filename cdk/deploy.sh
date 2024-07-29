@@ -34,7 +34,7 @@ if [ "$DEPLOY_TARGET" = "frame" ]; then
 # Backend deploy
 elif [ "$DEPLOY_TARGET" = "backend" ]; then
     echo "Starting Backend deployment..."
-    docker build -t card-backend:latest -f ../backend/Dockerfile ../backend
+    docker build -t card-backend:latest -f ../backend/Dockerfile.test ../backend
     docker tag card-backend:latest $ECR_BASE/$BACKEND_IMAGE
     docker push $ECR_BASE/$BACKEND_IMAGE
     echo "Backend deployment to $ENVIRONMENT completed."

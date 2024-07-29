@@ -14,8 +14,10 @@ import {
 import { Between, MoreThan, IsNull, Repository, Not } from 'typeorm';
 import { ERC1155ABI } from 'src/constants/ERC1155';
 import tweClient from 'src/lib/thirdweb-engine';
-import { PointsService } from '../points/points.service';
 import { chunk } from 'lodash';
+import * as dayjs from 'dayjs';
+import { GameRevealedEventLog } from 'src/types/point';
+import { readContract } from 'src/lib/thirdweb-engine/read-contract';
 
 export enum GAME_STATUS {
   // データが存在しない
@@ -50,7 +52,6 @@ export class WarService {
   constructor(
     @InjectRepository(WarEntity)
     private readonly warRepositry: Repository<WarEntity>,
-    private readonly pointsService: PointsService,
   ) {}
 
   getGameStatus(game: WarEntity) {
@@ -502,10 +503,7 @@ export class WarService {
   };
 
   numOfSpentCards = async (startDateUnix: number, endDateUnix: number) => {
-    const gameLogs = await this.pointsService.getGameLogs(
-      startDateUnix,
-      endDateUnix,
-    );
+    const gameLogs = await this.getGameLogs(startDateUnix, endDateUnix);
 
     let spentCards = 0;
 
@@ -514,9 +512,7 @@ export class WarService {
       const chunkedGameLog = chunkedGameLogs[index];
       const cardsList = Promise.all(
         chunkedGameLog.map(async (gameLog) => {
-          const numOfCards = await this.pointsService.numOfCards(
-            gameLog.gameId,
-          );
+          const numOfCards = await this.numOfCards(gameLog.gameId);
           return numOfCards;
         }),
       );
@@ -525,4 +521,108 @@ export class WarService {
 
     return spentCards;
   };
+
+  async getGameLogs(startDateUnix: number, endDateUnix: number) {
+    const {
+      result: { blockNumber: fromBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${startDateUnix}&closest=after`,
+      )
+    ).json();
+    const {
+      result: { blockNumber: toBlock_game },
+    } = await (
+      await fetch(
+        `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${endDateUnix}&closest=after`,
+      )
+    ).json();
+
+    let { data: gameData } = (await tweClient.POST(
+      '/contract/{chain}/{contractAddress}/events/get',
+      {
+        params: {
+          path: {
+            chain: 'degen-chain',
+            contractAddress: WAR_CONTRACT_ADDRESS,
+          },
+        },
+        body: {
+          eventName: 'GameRevealed',
+          fromBlock: fromBlock_game,
+          toBlock: toBlock_game,
+        } as never,
+      },
+    )) as any;
+
+    const blockRangeOfDays = await this.getBlockRangeOfDays(
+      startDateUnix,
+      endDateUnix,
+    );
+
+    const gameRevealedlogs = await Promise.all(
+      gameData.result.map(async (r) => {
+        const date = blockRangeOfDays.find(
+          (b) =>
+            b.startBlockNumber <= r.transaction.blockNumber &&
+            b.endBlockNumber >= r.transaction.blockNumber,
+        )?.date;
+        return { ...r.data, date };
+      }) as GameRevealedEventLog[],
+    );
+
+    return gameRevealedlogs;
+  }
+
+  private async getBlockRangeOfDays(
+    startDateUnix: number,
+    endDateUnix: number,
+  ) {
+    const dateList: number[] = [];
+    // startDateUnixからendDateUnixまでの日付（YYYY/MM/DD）のユニークリストを作成取得
+    for (let i = startDateUnix; i <= endDateUnix; i += 86400) {
+      dateList.push(
+        dayjs(i * 1000)
+          .startOf('day')
+          .unix(),
+      );
+    }
+    // 各日付のブロック番号を取得
+    const blockNumberByDays: {
+      date: number;
+      startBlockNumber: number;
+      endBlockNumber;
+    }[] = [];
+    await Promise.all(
+      dateList.map(async (date) => {
+        const {
+          result: { blockNumber: startBlockNumber },
+        } = await (
+          await fetch(
+            `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${date}&closest=after`,
+          )
+        ).json();
+
+        const now = Math.ceil(new Date().getTime() / 1000) - 60;
+        const endOfDate = date + 86399 < now ? date + 86399 : now;
+        const {
+          result: { blockNumber: endBlockNumber },
+        } = await (
+          await fetch(
+            `https://explorer.degen.tips/api?module=block&action=getblocknobytime&timestamp=${endOfDate}&closest=after`,
+          )
+        ).json();
+        blockNumberByDays.push({ date, startBlockNumber, endBlockNumber });
+      }),
+    );
+
+    return blockNumberByDays;
+  }
+
+  async numOfCards(gameId: string) {
+    const {
+      data: { result },
+    } = await readContract(WAR_CONTRACT_ADDRESS, 'numOfCards', gameId);
+    return Number(result);
+  }
 }

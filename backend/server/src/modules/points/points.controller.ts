@@ -134,6 +134,24 @@ export class PointsController {
     return { stackData, totalRewardsAmount };
   }
 
+  @Get('/set-schedule')
+  async setSchedule(
+    @Query('scored_data') scoredDate: number,
+    @Query('start_date_flow') startDate_flow: number,
+    @Query('end_date_flow') endDate_flow: number,
+  ) {
+    this.logger.log('set schedule');
+    if (!STACK_VARIABLES_ADDRESS) {
+      throw new Error('STACK_VARIABLES_ADDRESS is not set');
+    }
+
+    await this.pointsService.setSchedule(
+      scoredDate,
+      startDate_flow,
+      endDate_flow,
+    );
+  }
+
   @Get('/:address')
   async getPointByAddress(@Param('address') address: string) {
     this.logger.log(this.getPointByAddress.name);

@@ -3,32 +3,24 @@ import { PointsService } from '../points/points.service';
 import { ViemService } from '../viem/viem.service';
 import { Cron } from '@nestjs/schedule';
 import {
-  ACCOUNT_FACTORY_ADDRESS,
   RUN_CRON,
-  STACK_VARIABLES_ADDRESS,
   STREAM_BACKEND_WALLET,
-  STREAM_CFAV1_ADDRESS,
   STREAM_END_SCHEDULE_CRON_EXPRESSION,
   STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
-  STREAM_HOST_ADDRESS,
-  STREAM_INTERVAL_MINUTES,
   STREAM_SCORING_CRON_EXPRESSION,
   STREAM_SET_SCHEDULE_CRON_EXPRESSION,
   SUPER_TOKEN,
   VESTING_SCHEDULE_ADDRESS,
 } from 'src/utils/env';
-import tweClient, { tweClientPure } from 'src/lib/thirdweb-engine';
+import tweClient from 'src/lib/thirdweb-engine';
 import * as dayjs from 'dayjs';
-import { bytesToHex, maxUint256, parseUnits } from 'viem';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
-import { randomBytes } from 'tweetnacl';
 import parser from 'cron-parser';
 import { chunk } from 'lodash';
 import { WarService } from '../war/war.service';
-import { readContract } from 'src/lib/thirdweb-engine/read-contract';
 const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
@@ -37,8 +29,6 @@ export class CronService {
 
   constructor(
     private readonly pointsService: PointsService,
-    private readonly viemService: ViemService,
-    private readonly warService: WarService,
     @InjectRepository(HeatScoreEntity)
     private readonly heatScoreRepository: Repository<HeatScoreEntity>,
     @InjectRepository(StreamSmartAccountEntity)
@@ -63,104 +53,19 @@ export class CronService {
     }
     this.logger.log('Running set schedule');
 
-    try {
-      const scoredDate = cronParser
+    const scoredDate =
+      cronParser
         .parseExpression(STREAM_SCORING_CRON_EXPRESSION)
         .prev()
-        .toDate();
-      console.log('SetSchedule target scoreDate: ', scoredDate);
-      const scores = await this.heatScoreRepository.find({
-        where: { date: scoredDate },
-      });
+        .getTime() / 1000;
 
-      if (scores.length === 0) return;
+    const executeCron = cronParser.parseExpression(
+      STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+    );
+    const startDate_flow = executeCron.next().getTime() / 1000;
+    const endDate_flow = executeCron.next().getTime() / 1000 - 1;
 
-      const endOfLastDay = dayjs(scoredDate);
-      const startOfLastDay = endOfLastDay.subtract(1, 'day');
-      const numOfSpentCards = await this.warService.numOfSpentCards(
-        startOfLastDay.unix(),
-        endOfLastDay.unix(),
-      );
-
-      const [
-        { data: bonusMultilrierTop },
-        { data: bonusMultilrierBottom },
-        { data: difficultyTop },
-        { data: difficultyBottom },
-      ] = await Promise.all([
-        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierTop', ''),
-        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierBottom', ''),
-        readContract(STACK_VARIABLES_ADDRESS, 'difficultyTop', ''),
-        readContract(STACK_VARIABLES_ADDRESS, 'difficultyBottom', ''),
-      ]);
-
-      const bonusMultiplier =
-        Number(bonusMultilrierTop.result) /
-        Number(bonusMultilrierBottom.result);
-
-      const h = numOfSpentCards * 190 * bonusMultiplier;
-      const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
-      const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
-      const y = h * (1 - Math.exp(-k * x));
-
-      this.logger.log('numOfSpentCards:', numOfSpentCards);
-      this.logger.log('bonusMultiplierTop:', bonusMultilrierTop.result);
-      this.logger.log('bonusMultiplierBottom:', bonusMultilrierBottom.result);
-      this.logger.log('difficultyTop:', difficultyTop.result);
-      this.logger.log('difficultyBottom:', difficultyBottom.result);
-      this.logger.log('k:', k);
-      this.logger.log('x:', x);
-      this.logger.log('h:', h);
-      this.logger.log('y:', y);
-
-      const totalScoreArrayWithRatio = scores.map(({ address, score }) => {
-        return {
-          address,
-          ratio: score / x,
-        };
-      });
-
-      const flowRates = totalScoreArrayWithRatio.map(({ address, ratio }) => {
-        return {
-          address,
-          amount: ((y * Number(ratio)) / (24 * 60 * 60)).toFixed(18),
-        };
-      });
-
-      const executeCron = cronParser.parseExpression(
-        STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
-      );
-      const startDate_flow = executeCron.next().getTime() / 1000;
-      const endDate_flow = executeCron.next().getTime() / 1000 - 1;
-      console.log('Stream start and end:', startDate_flow, endDate_flow);
-      console.log(y);
-      const smartAccountAddress = await this.createSmartAccount_SendDegenX(
-        (y * 1.2).toFixed(18),
-        startDate_flow,
-        endDate_flow,
-      );
-
-      await this.authorizeFlowOperatorWithFullControl(smartAccountAddress);
-
-      this.logger.log('Scheduling Addresses: ', flowRates.length);
-      const flowRatesChunks = chunk(flowRates, 10);
-      for (const flowRatesChunk of flowRatesChunks) {
-        await Promise.all(
-          flowRatesChunk.map((flowRate) =>
-            this.createVestingSchedule(
-              smartAccountAddress,
-              flowRate.address,
-              Number(parseUnits(flowRate.amount, 18)),
-              startDate_flow,
-              endDate_flow,
-            ),
-          ),
-        );
-        await new Promise((resolve) => setTimeout(resolve, 15000));
-      }
-    } catch (error) {
-      this.logger.error(error);
-    }
+    this.pointsService.setSchedule(scoredDate, startDate_flow, endDate_flow);
   }
 
   @Cron(STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION)
@@ -320,146 +225,6 @@ export class CronService {
     };
   }
 
-  private async createSmartAccount_SendDegenX(
-    amount: string,
-    startDate: number,
-    endDate: number,
-  ) {
-    try {
-      const createAccount = await tweClient.POST(
-        '/contract/{chain}/{contractAddress}/account-factory/create-account',
-        {
-          params: this.writeContractParams(ACCOUNT_FACTORY_ADDRESS),
-          body: {
-            adminAddress: STREAM_BACKEND_WALLET,
-            extraData: bytesToHex(randomBytes(32)),
-          },
-        },
-      );
-
-      if (createAccount.error) throw createAccount.error;
-
-      while (true) {
-        const { status } = await this.transactionQueueStatus(
-          createAccount.data.result.queueId,
-        );
-        if (status === 'mined') {
-          break;
-        } else if (status === 'errored') {
-          throw new Error('transaction failed');
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-
-      // exchange degenX
-      const exchangeSuperToken = await tweClient.POST(
-        '/backend-wallet/{chain}/send-transaction',
-        {
-          params: this.writeContractParams(SUPER_TOKEN),
-          body: {
-            toAddress: SUPER_TOKEN,
-            data: `0x7687d19b000000000000000000000000${createAccount.data.result.deployedAddress.slice(2)}`,
-            value: parseUnits(amount, 18).toString(),
-          },
-        },
-      );
-
-      if (exchangeSuperToken.error) throw exchangeSuperToken.error;
-
-      const approveSuperToken = await tweClient.POST(
-        '/contract/{chain}/{contractAddress}/write',
-        {
-          params: this.writeContractParams(
-            SUPER_TOKEN,
-            createAccount.data.result.deployedAddress,
-          ),
-          body: {
-            functionName: 'approve',
-            args: [VESTING_SCHEDULE_ADDRESS, maxUint256.toString()],
-          },
-        },
-      );
-
-      if (approveSuperToken.error) throw approveSuperToken.error;
-
-      // save to db
-      await this.streamSmartAccountRepository.save({
-        address: createAccount.data.result.deployedAddress,
-        stream_start: startDate,
-        stream_end: endDate,
-      });
-
-      return createAccount.data.result.deployedAddress;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  private async authorizeFlowOperatorWithFullControl(
-    smartAccountAddress: string,
-  ) {
-    try {
-      const cfaV1CallData =
-        this.viemService.getCallData_cfaV1_authorizeFlowOperatorWithFullControl();
-
-      const { error } = await tweClient.POST(
-        '/contract/{chain}/{contractAddress}/write',
-        {
-          params: this.writeContractParams(
-            STREAM_HOST_ADDRESS,
-            smartAccountAddress,
-          ),
-          body: {
-            functionName: 'callAgreement',
-            args: [STREAM_CFAV1_ADDRESS, cfaV1CallData, '0x'],
-          },
-        },
-      );
-
-      if (error) throw error;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  private async createVestingSchedule(
-    smartAccountAddress: string,
-    receiver: string,
-    flowRate: number,
-    startDate: number,
-    endDate: number,
-  ) {
-    try {
-      this.logger.log('Schedule for:' + receiver, flowRate, startDate, endDate);
-      const res = await tweClient.POST(
-        '/contract/{chain}/{contractAddress}/write',
-        {
-          params: this.writeContractParams(
-            VESTING_SCHEDULE_ADDRESS,
-            smartAccountAddress,
-          ),
-          body: {
-            functionName: 'createVestingSchedule',
-            args: [
-              SUPER_TOKEN,
-              receiver,
-              startDate,
-              0,
-              flowRate.toString(),
-              0,
-              endDate,
-              '0x',
-            ],
-          },
-        },
-      );
-      if (res.error) this.logger.error(res.error);
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
-  }
-
   private async executeCliffAndFlow(
     receiver: string,
     smartAccountAddress: string,
@@ -540,19 +305,6 @@ export class CronService {
       );
 
       if (error) throw error;
-    } catch (error) {
-      this.logger.error(error);
-      throw error;
-    }
-  }
-
-  private async transactionQueueStatus(queueId: string) {
-    try {
-      const { data } = await tweClientPure.get(
-        `/transaction/status/${queueId}`,
-      );
-
-      return data.result;
     } catch (error) {
       this.logger.error(error);
       throw error;

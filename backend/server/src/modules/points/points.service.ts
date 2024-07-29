@@ -1,20 +1,32 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { zeroAddress } from 'viem';
+import { bytesToHex, maxUint256, parseUnits, zeroAddress } from 'viem';
 import { GameRevealedEventLog, TransferEventLog } from 'src/types/point';
 import * as dayjs from 'dayjs';
 import { HeatScoreEntity } from 'src/entities/heatscore.entity';
 import {
+  ACCOUNT_FACTORY_ADDRESS,
   INVITATION_CONTRACT_ADDRESS,
+  STACK_VARIABLES_ADDRESS,
+  STREAM_BACKEND_WALLET,
+  STREAM_CFAV1_ADDRESS,
+  STREAM_EXECUTE_SCHEDULE_CRON_EXPRESSION,
+  STREAM_HOST_ADDRESS,
   STREAM_SCORING_CRON_EXPRESSION,
+  SUPER_TOKEN,
+  VESTING_SCHEDULE_ADDRESS,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
-import tweClient from 'src/lib/thirdweb-engine';
+import tweClient, { tweClientPure } from 'src/lib/thirdweb-engine';
 import { S_VIP_ADDRESSES } from 'src/constants/Invitation';
 import parser from 'cron-parser';
 import { readContract } from 'src/lib/thirdweb-engine/read-contract';
 import { chunk } from 'lodash';
+import { WarService } from '../war/war.service';
+import { randomBytes } from 'tweetnacl';
+import { ViemService } from '../viem/viem.service';
+import { StreamSmartAccountEntity } from 'src/entities/stream_smartaccount';
 const cronParser: typeof parser = require('cron-parser');
 
 @Injectable()
@@ -24,6 +36,10 @@ export class PointsService {
   constructor(
     @InjectRepository(HeatScoreEntity)
     private readonly heatscoreRepository: Repository<HeatScoreEntity>,
+    @InjectRepository(StreamSmartAccountEntity)
+    private readonly smartAccountRepository: Repository<StreamSmartAccountEntity>,
+    private readonly viemService: ViemService,
+    private readonly warService: WarService,
   ) {}
 
   async getScores() {
@@ -315,10 +331,10 @@ export class PointsService {
   }
 
   private diversityMultiplier(uniqueOpponents: number) {
-    if (uniqueOpponents < 5) {
+    if (uniqueOpponents < 2) {
       return 1;
     } else if (uniqueOpponents <= 50) {
-      return 1 + (uniqueOpponents - 5) * (4 / 45);
+      return 1 + (uniqueOpponents - 1) * (4 / 45);
     } else {
       return 5;
     }
@@ -517,5 +533,275 @@ export class PointsService {
     );
 
     return blockNumberByDays;
+  }
+
+  async setSchedule(
+    scoredDate: number,
+    startDate_flow: number,
+    endDate_flow: number,
+  ) {
+    try {
+      console.log('SetSchedule target scoreDate: ', scoredDate);
+      const scores = await this.heatscoreRepository.find({
+        where: { date: new Date(scoredDate * 1000) },
+      });
+
+      if (scores.length === 0) return;
+
+      const endOfLastDay = dayjs(scoredDate * 1000);
+      const startOfLastDay = endOfLastDay.subtract(1, 'day');
+      const numOfSpentCards = await this.warService.numOfSpentCards(
+        startOfLastDay.unix(),
+        endOfLastDay.unix(),
+      );
+
+      const [
+        { data: bonusMultilrierTop },
+        { data: bonusMultilrierBottom },
+        { data: difficultyTop },
+        { data: difficultyBottom },
+      ] = await Promise.all([
+        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierTop', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'bonusMultiprierBottom', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'difficultyTop', ''),
+        readContract(STACK_VARIABLES_ADDRESS, 'difficultyBottom', ''),
+      ]);
+
+      const bonusMultiplier =
+        Number(bonusMultilrierTop.result) /
+        Number(bonusMultilrierBottom.result);
+
+      const h = numOfSpentCards * 190 * bonusMultiplier;
+      const x = scores.reduce((sum, score) => sum + Number(score.score), 0);
+      const k = Number(difficultyTop.result) / Number(difficultyBottom.result);
+      const y = h * (1 - Math.exp(-k * x));
+
+      this.logger.log('numOfSpentCards:', numOfSpentCards);
+      this.logger.log('bonusMultiplierTop:', bonusMultilrierTop.result);
+      this.logger.log('bonusMultiplierBottom:', bonusMultilrierBottom.result);
+      this.logger.log('difficultyTop:', difficultyTop.result);
+      this.logger.log('difficultyBottom:', difficultyBottom.result);
+      this.logger.log('k:', k);
+      this.logger.log('x:', x);
+      this.logger.log('h:', h);
+      this.logger.log('y:', y);
+
+      const totalScoreArrayWithRatio = scores.map(({ address, score }) => {
+        return {
+          address,
+          ratio: score / x,
+        };
+      });
+
+      const flowRates = totalScoreArrayWithRatio.map(({ address, ratio }) => {
+        return {
+          address,
+          amount: (
+            (y * Number(ratio)) /
+            (endDate_flow - startDate_flow)
+          ).toFixed(18),
+        };
+      });
+
+      console.log('Stream start and end:', startDate_flow, endDate_flow);
+      console.log(y);
+      const smartAccountAddress = await this.createSmartAccount_SendDegenX(
+        (y * 1.2).toFixed(18),
+        startDate_flow,
+        endDate_flow,
+      );
+
+      await this.authorizeFlowOperatorWithFullControl(smartAccountAddress);
+
+      this.logger.log('Scheduling Addresses: ', flowRates.length);
+      const flowRatesChunks = chunk(flowRates, 10);
+      for (const flowRatesChunk of flowRatesChunks) {
+        await Promise.all(
+          flowRatesChunk.map((flowRate) =>
+            this.createVestingSchedule(
+              smartAccountAddress,
+              flowRate.address,
+              Number(parseUnits(flowRate.amount, 18)),
+              startDate_flow,
+              endDate_flow,
+            ),
+          ),
+        );
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      }
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  private writeContractParams(
+    contractAddress: string,
+    smartAccountAddress?: string,
+  ) {
+    return {
+      path: {
+        chain: 'degen-chain',
+        contractAddress,
+      },
+      header: {
+        'x-backend-wallet-address': STREAM_BACKEND_WALLET,
+        ...(smartAccountAddress && {
+          'x-account-address': smartAccountAddress,
+        }),
+      },
+    };
+  }
+
+  private async createSmartAccount_SendDegenX(
+    amount: string,
+    startDate: number,
+    endDate: number,
+  ) {
+    try {
+      const createAccount = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/account-factory/create-account',
+        {
+          params: this.writeContractParams(ACCOUNT_FACTORY_ADDRESS),
+          body: {
+            adminAddress: STREAM_BACKEND_WALLET,
+            extraData: bytesToHex(randomBytes(32)),
+          },
+        },
+      );
+
+      if (createAccount.error) throw createAccount.error;
+
+      while (true) {
+        const { status } = await this.transactionQueueStatus(
+          createAccount.data.result.queueId,
+        );
+        if (status === 'mined') {
+          break;
+        } else if (status === 'errored') {
+          throw new Error('transaction failed');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+
+      // exchange degenX
+      const exchangeSuperToken = await tweClient.POST(
+        '/backend-wallet/{chain}/send-transaction',
+        {
+          params: this.writeContractParams(SUPER_TOKEN),
+          body: {
+            toAddress: SUPER_TOKEN,
+            data: `0x7687d19b000000000000000000000000${createAccount.data.result.deployedAddress.slice(2)}`,
+            value: parseUnits(amount, 18).toString(),
+          },
+        },
+      );
+
+      if (exchangeSuperToken.error) throw exchangeSuperToken.error;
+
+      const approveSuperToken = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            SUPER_TOKEN,
+            createAccount.data.result.deployedAddress,
+          ),
+          body: {
+            functionName: 'approve',
+            args: [VESTING_SCHEDULE_ADDRESS, maxUint256.toString()],
+          },
+        },
+      );
+
+      if (approveSuperToken.error) throw approveSuperToken.error;
+
+      // save to db
+      await this.smartAccountRepository.save({
+        address: createAccount.data.result.deployedAddress,
+        stream_start: startDate,
+        stream_end: endDate,
+      });
+
+      return createAccount.data.result.deployedAddress;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async transactionQueueStatus(queueId: string) {
+    try {
+      const { data } = await tweClientPure.get(
+        `/transaction/status/${queueId}`,
+      );
+
+      return data.result;
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
+  }
+
+  private async authorizeFlowOperatorWithFullControl(
+    smartAccountAddress: string,
+  ) {
+    try {
+      const cfaV1CallData =
+        this.viemService.getCallData_cfaV1_authorizeFlowOperatorWithFullControl();
+
+      const { error } = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            STREAM_HOST_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'callAgreement',
+            args: [STREAM_CFAV1_ADDRESS, cfaV1CallData, '0x'],
+          },
+        },
+      );
+
+      if (error) throw error;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private async createVestingSchedule(
+    smartAccountAddress: string,
+    receiver: string,
+    flowRate: number,
+    startDate: number,
+    endDate: number,
+  ) {
+    try {
+      this.logger.log('Schedule for:' + receiver, flowRate, startDate, endDate);
+      const res = await tweClient.POST(
+        '/contract/{chain}/{contractAddress}/write',
+        {
+          params: this.writeContractParams(
+            VESTING_SCHEDULE_ADDRESS,
+            smartAccountAddress,
+          ),
+          body: {
+            functionName: 'createVestingSchedule',
+            args: [
+              SUPER_TOKEN,
+              receiver,
+              startDate,
+              0,
+              flowRate.toString(),
+              0,
+              endDate,
+              '0x',
+            ],
+          },
+        },
+      );
+      if (res.error) this.logger.error(res.error);
+    } catch (error) {
+      this.logger.error(error);
+      throw error;
+    }
   }
 }
