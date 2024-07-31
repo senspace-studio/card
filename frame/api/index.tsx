@@ -10,6 +10,7 @@ import { BACKEND_URL, IS_MAINTENANCE } from '../constant/config.js';
 import sharp from 'sharp';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
+import { warTournamentApp } from './war-tournament.js';
 
 dayjs.extend(utc);
 
@@ -194,6 +195,7 @@ app.hono.get('/image/top', async (c) => {
 app.route('/teaser', teaserApp);
 app.route('/draw', drawApp);
 app.route('/war', warApp);
+app.route('/war-tournament', warTournamentApp);
 app.route('/stack', stackApp);
 
 if (process.env.NODE_ENV !== 'production') {

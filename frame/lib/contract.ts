@@ -14,6 +14,10 @@ import {
   WAR_POOL_CONTRACT_ADDRESS,
   INVITATION_NFT_CONTRACT_ADDRESS,
   THIRDWEB_RPC_URL,
+  TOURNAMENT_INVITATION_NFT_CONTRACT_ADDRESS,
+  CARD_TOURNAMENT_CONTRACT_ADDRESS,
+  WAR_TOURNAMENT_CONTRACT_ADDRESS,
+  WAR_POOL_TOURNAMENT_CONTRACT_ADDRESS,
 } from '../constant/config.js';
 
 export const publicClient = createPublicClient({
@@ -33,9 +37,21 @@ export const cardContract = getContract({
   client: publicClient,
 });
 
+export const tournamentCardContract = getContract({
+  abi: CARD_ABI,
+  address: CARD_TOURNAMENT_CONTRACT_ADDRESS,
+  client: publicClient,
+});
+
 export const warContract = getContract({
   abi: WAR_ABI,
   address: WAR_CONTRACT_ADDRESS,
+  client: publicClient,
+});
+
+export const tournamentWarContract = getContract({
+  abi: WAR_ABI,
+  address: WAR_TOURNAMENT_CONTRACT_ADDRESS,
   client: publicClient,
 });
 
@@ -45,9 +61,21 @@ export const warPoolContract = getContract({
   client: publicClient,
 });
 
+export const tournamentWarPoolContract = getContract({
+  abi: WAR_POOL_ABI,
+  address: WAR_POOL_TOURNAMENT_CONTRACT_ADDRESS,
+  client: publicClient,
+});
+
 export const inivtationNFTContracrt = getContract({
   abi: INVITATION_NFT_ABI,
   address: INVITATION_NFT_CONTRACT_ADDRESS,
+  client: publicClient,
+});
+
+export const tournamentInivtationNFTContracrt = getContract({
+  abi: INVITATION_NFT_ABI,
+  address: TOURNAMENT_INVITATION_NFT_CONTRACT_ADDRESS,
   client: publicClient,
 });
 
@@ -57,4 +85,9 @@ export const checkInvitation = async (address: `0x${string}`) => {
   // const balance = await inivtationNFTContracrt.read.balanceOf([address]);
   // return Number(balance) > 0;
   return true;
+};
+
+export const checkTournamentInvitation = async (address: `0x${string}`) => {
+  const balance = await inivtationNFTContracrt.read.balanceOf([address]);
+  return Number(balance) > 0;
 };

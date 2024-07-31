@@ -1428,12 +1428,15 @@ warApp.frame('/select-game-mode/:castHash', async (c) => {
 
   return c.res({
     title,
-    image: '/images/war/select_game_mode.png',
+    image: '/images/war-tournament/select_game_mode.png',
     imageAspectRatio: '1:1',
     intents: [
       <Button action="/make-duel/1">1 card</Button>,
       <Button action="/make-duel/3">3 cards</Button>,
       <Button action="/make-duel/5">5 cards</Button>,
+      <Button action={`${BASE_URL}/war-tournament/make-duel/5`}>
+        Tournament
+      </Button>,
     ],
   });
 });

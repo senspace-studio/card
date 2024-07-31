@@ -126,4 +126,19 @@ export class WarController {
       .sort((a, b) => b - a);
     return await this.warService.sign(tokenIdList, maker);
   }
+
+  @Post('/sign-tournament')
+  async signTournament(@Body('messageBytes') messageBytes: string) {
+    this.logger.log(this.signTournament.name, { messageBytes });
+    const result = await this.neynarService.validateRequest(messageBytes);
+    if (!result.valid) {
+      throw new Error('invalid message');
+    }
+    const maker = result.action.interactor.verified_addresses.eth_addresses[0];
+    const cardInputList = result.action.input.text.split(',');
+    const tokenIdList = cardInputList
+      .map((cardInput) => this.warService.convertCardValue(cardInput))
+      .sort((a, b) => b - a);
+    return await this.warService.signTournament(tokenIdList, maker);
+  }
 }

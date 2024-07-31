@@ -35,6 +35,9 @@ export class WarEntity {
   @Column({ nullable: true })
   cast_hash_revealed: string;
 
+  @Column({ default: false })
+  is_tournament: boolean;
+
   // @CreateDateColumn({
   //   name: 'created',
   //   type: 'timestamp',
