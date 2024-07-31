@@ -12,6 +12,15 @@
 | WarPool.sol        | 0x9841F4d7e7A731de0a6E8DE767A0809d9958ae6C | War bet pool         |
 | StackVariables.sol | 0xED6580AC5A2bD603c872b28D361983428d90caA9 | Variables management |
 
+#### For Tournament
+
+| Name           | Address                                    | Notes              |
+| -------------- | ------------------------------------------ | ------------------ |
+| Card.sol       | 0xA94dc842675E208Dc4551E4a596b9473DCcf869E | Card NFT (ERC1155) |
+| War.sol        | 0x6eE1278b4D92ee7e0620f502cE323EBf95ef560e | War game contract  |
+| WarPool.sol    | 0x3914e5f85090fcbEeBEEE42405F63E70E7F4670b | War bet pool       |
+| Invitation NFT | 0x506988d90f9FeE74b9eDC009E8CFBAc918F541dd |                    |
+
 ### External
 
 | Name                 | Address                                    | Notes      |
@@ -34,6 +43,15 @@
 | War.sol            | 0xd1e341B13A66F0a0ae4aa7ABC1dd218Fe1Cc120C | War game contract    |
 | WarPool.sol        | 0x2a8d852A05BD9a1ca6F29f2943BEF7773797357F | War bet pool         |
 | StackVariables.sol | 0x7a0838b90A77F31307653163C12418f8Bb0f56B4 | Variables management |
+
+#### For Tournament
+
+| Name           | Address                                    | Notes              |
+| -------------- | ------------------------------------------ | ------------------ |
+| Card.sol       | 0x1aA6f215aE32c9F3FD245Ae5371FA76C9B7A1B22 | Card NFT (ERC1155) |
+| War.sol        | 0xDD95194E87410D1d274Faf8aE6FabA552855F9AE | War game contract  |
+| WarPool.sol    | 0x0D5e1774F8D047F8943d3f906B4320b5996E0df2 | War bet pool       |
+| Invitation NFT | 0xa798635854B8D612F540C506D78155e0830A7CBA |                    |
 
 ### External
 

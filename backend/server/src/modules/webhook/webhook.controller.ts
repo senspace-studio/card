@@ -16,6 +16,7 @@ import {
   FRAME_BASE_URL,
   INVITATION_CONTRACT_ADDRESS,
   WAR_CONTRACT_ADDRESS,
+  WAR_TOURNAMENT_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import * as crypto from 'node:crypto';
 import { zeroAddress } from 'viem';
@@ -300,6 +301,186 @@ export class WebhookController {
               game.cast_hash_made && {
                 replyTo: game.cast_hash_made,
                 embeds: [{ url: `${FRAME_BASE_URL}/war` }],
+              },
+            );
+
+            await this.warService.onGameRevealed(gameId.value, res.hash);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      } else if (
+        body.data.contractAddress.toLowerCase() ===
+        WAR_TOURNAMENT_CONTRACT_ADDRESS.toLowerCase()
+      ) {
+        switch (body.data.eventName) {
+          case 'GameMade': {
+            this.logger.log('GameMade');
+            const { maker, signature, gameId } = body.data
+              .decodedLog as GameMadeEvent;
+            // gameIdとsignatureを紐づける
+            await this.warService.onGameMade(gameId.value, signature.value);
+
+            let botMessageText = '';
+
+            const {
+              data: { result: address },
+            } = await readContract(
+              WAR_TOURNAMENT_CONTRACT_ADDRESS,
+              'requestedChallengers',
+              gameId.value,
+            );
+
+            if (address === zeroAddress) {
+              botMessageText += `Nice, ${await getNeynarUserName(maker.value)}! You've created a game!\nI will let you know once you've matched.`;
+            } else {
+              botMessageText += `${await getNeynarUserName(maker.value)} has challenged ${await getNeynarUserName(address as string)} to a battle!\nComplete the battle below!`;
+            }
+
+            const frameURL = `${FRAME_BASE_URL}/war-tournament/challenge/${gameId.value}`;
+
+            const res = await this.neynarService.publishCast(botMessageText, {
+              embeds: [{ url: frameURL }],
+            });
+
+            try {
+              await this.neynarService.lookupCast(res.hash);
+            } catch (error) {
+              this.logger.error(error);
+            }
+
+            await this.warService.onGameMadeCasted(gameId.value, res.hash);
+            break;
+          }
+          case 'GameChallenged': {
+            this.logger.log('GameChallenged');
+            const { challenger, gameId } = body.data
+              .decodedLog as GameChallengedEvent;
+            const game = await this.warService.getWarGameByGameId(gameId.value);
+            await this.warService.onGameChallenged(
+              gameId.value,
+              challenger.value,
+            );
+            // revealトランザクションをEngine経由で実行
+            // bytes8 gameId,
+            // uint256[] makerCards,
+            // uint256 nonce
+            await sendTransaction(
+              WAR_TOURNAMENT_CONTRACT_ADDRESS,
+              'revealCard',
+              [gameId.value, game.maker_token_id.split(','), game.seed],
+            );
+            const botMessageText = `You've matched with ${await getNeynarUserName(challenger.value)}!\nGame results coming momentarily...`;
+            const res = await this.neynarService.publishCast(
+              botMessageText,
+              game.cast_hash_made && {
+                replyTo: game.cast_hash_made,
+              },
+            );
+
+            await this.warService.onGameChallengedCasted(
+              gameId.value,
+              res.hash,
+            );
+            break;
+          }
+          case 'GameRevealed': {
+            this.logger.log('GameRevealed');
+            // ゲーム結果を取得
+            const { gameId, maker, challenger, winner } = body.data
+              .decodedLog as GameRevealedEvent;
+            //
+            const game = await this.warService.getWarGameByGameId(gameId.value);
+            const makerCards = game.maker_token_id
+              .split(',')
+              .map((e) => Number(e));
+            const { data: contractGameData } = await readContract(
+              WAR_TOURNAMENT_CONTRACT_ADDRESS,
+              'games',
+              gameId.value,
+            );
+            const challengerCardId = contractGameData.result[4]?.hex;
+            const challemgerCards = await Promise.all(
+              [...new Array(makerCards.length)].map((_, i) =>
+                readContract(
+                  WAR_TOURNAMENT_CONTRACT_ADDRESS,
+                  'playerCards',
+                  `${challengerCardId},${i}`,
+                ).then((res) => Number(res.data.result)),
+              ),
+            );
+
+            let botMessageText = '';
+            if (winner.value === zeroAddress) {
+              // 引き分けの場合
+              // イベントのwinnerがzeroAddressかつ、makerとchallenger両方がzeroAddressでないもの
+              if (makerCards.length === 1) {
+                botMessageText += `It’s a draw! ${await getNeynarUserName(maker.value)} and ${await getNeynarUserName(challenger.value)} both played a ${makerCards[0]}`;
+              } else {
+                // ToDo: check message
+                botMessageText += `It’s a draw! `;
+                botMessageText += `${await getNeynarUserName(maker.value)}'s ${makerCards.map((e) => (e === 14 ? 'Joker' : e)).join(',')} and `;
+                botMessageText += `${await getNeynarUserName(challenger.value)}'s ${challemgerCards.map((e) => (e === 14 ? 'Joker' : e)).join(',')}`;
+              }
+            } else if (
+              winner.value === challenger.value ||
+              winner.value === maker.value
+            ) {
+              if (
+                winner.value === challenger.value &&
+                maker.value === zeroAddress
+              ) {
+                // Makerが棄権の場合（賭けたカードを持ってない場合）
+                // イベントのwinnerがchallengerのアドレスで、makerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+                botMessageText += `${await getNeynarUserName(challenger.value)}`;
+                botMessageText += '\n';
+                botMessageText += 'Opponent hold the game and you won!';
+              } else if (
+                winner.value === maker.value &&
+                challenger.value === zeroAddress
+              ) {
+                // Challengerが棄権の場合（賭けたカードを持ってない場合）
+                // イベントのwinnerがmakerのアドレスで、challengerがzeroAddressの場合。棄権した場合イベントにはzeroAddressが入るようにしました。
+                botMessageText += `${await getNeynarUserName(maker.value)}`;
+                botMessageText += '\n';
+                botMessageText += 'Opponent hold the game and you won!';
+              } else if (winner.value === maker.value || winner.value) {
+                // 勝敗が付いた場合
+                let winnerCard = '';
+                let loserCard = '';
+                const winnerAddress = winner.value;
+                const loserAddress =
+                  winner.value === maker.value ? challenger.value : maker.value;
+
+                // ToDo: check message
+                if (winner.value.toLowerCase() === maker.value.toLowerCase()) {
+                  winnerCard = makerCards
+                    .map((e) => (e === 14 ? 'Joker' : e))
+                    .join(',');
+                  loserCard = challemgerCards
+                    .map((e) => (e === 14 ? 'Joker' : e))
+                    .join(',');
+                } else {
+                  winnerCard = challemgerCards
+                    .map((e) => (e === 14 ? 'Joker' : e))
+                    .join(',');
+                  loserCard = makerCards
+                    .map((e) => (e === 14 ? 'Joker' : e))
+                    .join(',');
+                }
+                botMessageText += `${await getNeynarUserName(winnerAddress)} has won with ${1 === makerCards.length ? 'a ' : ''}${winnerCard} vs. ${await getNeynarUserName(loserAddress)}'s ${loserCard}!`;
+              }
+            } else {
+              throw new Error('unexpected error');
+            }
+            // GameChallengedと同様にgameIdからcastのhashをとってきて、リプライとして投稿
+            // const game = await this.warService.getWarGameByGameId(gameId.value);
+            const res = await this.neynarService.publishCast(
+              botMessageText,
+              game.cast_hash_made && {
+                replyTo: game.cast_hash_made,
               },
             );
 

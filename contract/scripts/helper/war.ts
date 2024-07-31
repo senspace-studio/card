@@ -1,16 +1,23 @@
 import { ethers, upgrades } from 'hardhat';
-import { War, WarPool } from '../../typechain-types';
+import { War, WarPool, WarTournament } from '../../typechain-types';
 
 export const deployWarAllContracts = async (
   initialOwnerAddress: string,
   dealerAddress: string,
   expirationTime: number,
+  tournament: boolean = false,
 ) => {
-  const warContract = await deployWarContract(
-    initialOwnerAddress,
-    dealerAddress,
-    expirationTime,
-  );
+  const warContract = tournament
+    ? await deployWarTournamentContract(
+        initialOwnerAddress,
+        dealerAddress,
+        expirationTime,
+      )
+    : await deployWarContract(
+        initialOwnerAddress,
+        dealerAddress,
+        expirationTime,
+      );
   const warPoolContract = await deployWarPoolContract(initialOwnerAddress);
 
   let tx = await warContract.setWarPoolAddress(
@@ -37,6 +44,26 @@ export const deployWarContract = async (
       initializer: 'initialize',
     },
   )) as any as War;
+
+  await war.waitForDeployment();
+
+  return war;
+};
+
+export const deployWarTournamentContract = async (
+  initialOwnerAddress: string,
+  dealerAddress: string,
+  expirationTime: number,
+) => {
+  const warFactory = await ethers.getContractFactory('WarTournament');
+
+  const war = (await upgrades.deployProxy(
+    warFactory,
+    [initialOwnerAddress, dealerAddress, expirationTime],
+    {
+      initializer: 'initialize',
+    },
+  )) as any as WarTournament;
 
   await war.waitForDeployment();
 

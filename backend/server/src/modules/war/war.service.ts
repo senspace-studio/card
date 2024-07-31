@@ -9,6 +9,7 @@ import {
   BLOCKCHAIN_API,
   DEALER_PRIVATE_KEY,
   ERC1155_ADDRESS,
+  ERC1155_TOURNAMENT_ADDRESS,
   WAR_CONTRACT_ADDRESS,
 } from 'src/utils/env';
 import { Between, MoreThan, IsNull, Repository, Not } from 'typeorm';
@@ -104,6 +105,23 @@ export class WarService {
     return { balanceOfAll: res, ids };
   }
 
+  async getTournamentCardBalanceOf(owner: Address) {
+    this.logger.log(this.getCardBalanceOf.name, JSON.stringify({ owner }));
+    const numOfToken = 14;
+    const ids = Array(numOfToken)
+      .fill('')
+      .map((_, i) => BigInt(i + 1));
+
+    const res = await client.readContract({
+      address: ERC1155_TOURNAMENT_ADDRESS as Address,
+      abi: ERC1155ABI,
+      functionName: 'balanceOfBatch',
+      args: [Array(numOfToken).fill(owner), ids],
+    });
+
+    return { balanceOfAll: res, ids };
+  }
+
   async hasCard(owner: string, tokenId: number, amount: number) {
     this.logger.log(this.hasCard.name, JSON.stringify({ owner, tokenId }));
     const { balanceOfAll } = await this.getCardBalanceOf(owner as Address);
@@ -118,6 +136,7 @@ export class WarService {
     const now = new Date();
     const games = await this.warRepositry.find({
       where: {
+        is_tournament: false,
         created: MoreThan(
           new Date(now.getTime() - 24 * 60 * 60 * 1e3).getTime().toString(),
         ),
@@ -153,7 +172,7 @@ export class WarService {
       JSON.stringify({ maker, orderBy }),
     );
     const games = await this.warRepositry.find({
-      where: { maker },
+      where: { maker, is_tournament: false },
       order: { created: orderBy },
     });
     const reservedGamnes = games.filter(
@@ -196,6 +215,7 @@ export class WarService {
         challenger: IsNull(),
         ...(params.maker && { maker: params.maker }),
         ...(params.exept_maker && { maker: Not(params.exept_maker) }),
+        is_tournament: false,
         // 1時間以上経過24時間は経過してない
         created: Between(
           new Date(now.getTime() - 24 * 60 * 60 * 1e3).getTime().toString(),
@@ -229,7 +249,12 @@ export class WarService {
     return await this.warRepositry.findOne({ where: { game_id: gameId } });
   }
 
-  async createNewGame(maker: string, tokenIdList: bigint[], seed: bigint) {
+  async createNewGame(
+    maker: string,
+    tokenIdList: bigint[],
+    seed: bigint,
+    is_tournament = false,
+  ) {
     this.logger.log(
       this.createNewGame.name,
       JSON.stringify({
@@ -271,6 +296,7 @@ export class WarService {
       maker,
       maker_token_id: tokenIdList.map((e) => e.toString()).join(','),
       signature: signature,
+      is_tournament,
       created: new Date().getTime().toString(),
     });
     return signature;
@@ -456,6 +482,50 @@ export class WarService {
           maker,
           tokenIdList.map((e) => BigInt(e)),
           BigInt(seed),
+        );
+        return signature;
+      } catch (error) {
+        if (error.message !== 'signature already used') {
+          throw new Error('Internal server error');
+        }
+      }
+    }
+  }
+
+  async signTournament(tokenIdList: number[], maker: string) {
+    if (![5].includes(tokenIdList.length)) {
+      throw new Error(`invalid hand length ${tokenIdList.length}`);
+    }
+    if (1 < tokenIdList.filter((e) => e === 14).length) {
+      throw new Error('invalid joker amount');
+    }
+
+    const sumOfCard = tokenIdList.reduce((a, b) => a + (b === 14 ? 0 : b), 0);
+
+    if (sumOfCard < 14 || 25 < sumOfCard) {
+      throw new Error('invalid card sum');
+    }
+    const { balanceOfAll, ids } = await this.getTournamentCardBalanceOf(
+      maker as `0x${string}`,
+    );
+    for (let i = 0; i < ids.length; i++) {
+      const id = Number(ids[i]);
+      const balance = Number(balanceOfAll[i]);
+      const amount = tokenIdList.filter((e) => e === id).length;
+      if (amount && balance < amount) {
+        throw new Error(
+          `Insufficient balance (tokenid=${id}, balance=${balance}, amount=${amount})`,
+        );
+      }
+    }
+    for (let i = 0; i < 100; i++) {
+      try {
+        const seed = Math.floor(Math.random() * 1000000000000);
+        const signature = await this.createNewGame(
+          maker,
+          tokenIdList.map((e) => BigInt(e)),
+          BigInt(seed),
+          true,
         );
         return signature;
       } catch (error) {

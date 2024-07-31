@@ -8,6 +8,8 @@ export const NEYNER_API_KEY =
 export const BLOCKCHAIN_API =
   process.env.BLOCKCHAIN_API || 'http://localhost:8545';
 export const ERC1155_ADDRESS = process.env.ERC1155_ADDRESS || '0x';
+export const ERC1155_TOURNAMENT_ADDRESS =
+  process.env.ERC1155_TOURNAMENT_ADDRESS || '0x';
 export const GASHA_ADDRESS = process.env.GASHA_ADDRESS || '';
 export const RUN_CRON = process.env.RUN_CRON === 'true';
 export const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:3001';
@@ -19,6 +21,8 @@ export const THIRDWEB_ENGINE_ENDPOINT =
 export const THIRDWEB_ENGINE_ACCESS_TOKEN =
   process.env.THIRDWEB_ENGINE_ACCESS_TOKEN || '';
 export const WAR_CONTRACT_ADDRESS = process.env.WAR_CONTRACT_ADDRESS || '';
+export const WAR_TOURNAMENT_CONTRACT_ADDRESS =
+  process.env.WAR_TOURNAMENT_CONTRACT_ADDRESS || '';
 export const DEALER_PRIVATE_KEY = process.env.DEALER_PRIVATE_KEY || '';
 export const ENGINE_WALLET_ADDRESS = process.env.ENGINE_WALLET_ADDRESS || '';
 export const ENGINE_WEBHOOK_SECRET = process.env.ENGINE_WEBHOOK_SECRET || '';

@@ -23,14 +23,26 @@ export const THIRDWEB_RPC_URL = 'https://666666666.rpc.thirdweb.com';
 export const CARD_CONTRACT_ADDRESS =
   (process.env.CARD_CONTRACT_ADDRESS as `0x${string}`) || '0x';
 
+export const CARD_TOURNAMENT_CONTRACT_ADDRESS =
+  (process.env.CARD_TOURNAMENT_CONTRACT_ADDRESS as `0x${string}`) || '0x';
+
 export const WAR_CONTRACT_ADDRESS = process.env
   .WAR_CONTRACT_ADDRESS as `0x${string}`;
+
+export const WAR_TOURNAMENT_CONTRACT_ADDRESS = process.env
+  .WAR_TOURNAMENT_CONTRACT_ADDRESS as `0x${string}`;
 
 export const WAR_POOL_CONTRACT_ADDRESS = process.env
   .WAR_POOL_CONTRACT_ADDRESS as `0x${string}`;
 
+export const WAR_POOL_TOURNAMENT_CONTRACT_ADDRESS = process.env
+  .WAR_POOL_TOURNAMENT_CONTRACT_ADDRESS as `0x${string}`;
+
 export const INVITATION_NFT_CONTRACT_ADDRESS = process.env
   .INVITATION_NFT_CONTRACT_ADDRESS as `0x${string}`;
+
+export const TOURNAMENT_INVITATION_NFT_CONTRACT_ADDRESS = process.env
+  .TOURNAMENT_INVITATION_NFT_CONTRACT_ADDRESS as `0x${string}`;
 
 export const NEYNAR_API_KEY = process.env.NEYNAR_API_KEY as string;
 
