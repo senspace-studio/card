@@ -90,7 +90,9 @@ export const warApp = new Frog<{ State: WarState }>({
 
 warApp.frame('/', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   await initLocalState(c);
 
@@ -139,7 +141,9 @@ warApp.frame('/select-game-mode', async (c) => {
 
 warApp.frame('/make-duel/:game_mode', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const numOfCards = c.req.param('game_mode');
   const { frameData } = c;
@@ -265,7 +269,9 @@ warApp.frame('/make-duel/:game_mode', async (c) => {
 // });
 warApp.frame('/preview', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { inputText } = c;
   const { userName, pfp_url, card, quantities, address, numOfCards } =
@@ -487,7 +493,9 @@ warApp.transaction('/duel-letter', async (c) => {
 
 warApp.frame('/find', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const transactionId = c.transactionId;
   const { userName, pfp_url, card, wager, address } = c.previousState;
@@ -633,7 +641,9 @@ const generateErrorImage = async (
 
 warApp.frame('/error/address', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     title,
@@ -659,7 +669,9 @@ warApp.frame('/challenge/select-game-mode', async (c) => {
 
 warApp.frame('/challenge/random/:numOfCards', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { frameData, req } = c;
 
@@ -726,7 +738,9 @@ warApp.frame('/challenge/random/:numOfCards', async (c) => {
 
 warApp.frame('/challenge/:gameId', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const gameId = c.req.param('gameId') as `0x${string}`;
   return await challengeFrame(c, gameId);
@@ -743,7 +757,9 @@ const challengeFrame = async (
   gameId: `0x${string}`,
 ) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   let gameInfo = await getGameInfoByGameId(gameId);
 
@@ -886,7 +902,9 @@ const challengeFrame = async (
 
 warApp.frame('/choose', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { quantities, c_address, numOfCards } = c.previousState;
 
@@ -909,7 +927,9 @@ warApp.frame('/choose', async (c) => {
 
 warApp.frame('/choose/:params', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, wager, gameId, numOfCards, sumOfCards } = params;
@@ -1021,7 +1041,9 @@ warApp.frame('/choose/:params', async (c) => {
 
 warApp.frame('/duel', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { inputText } = c;
   const {
@@ -1179,7 +1201,9 @@ warApp.transaction('/challengeGame', async (c) => {
 
 warApp.frame('/loading', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   if (c.transactionId === undefined) return c.error({ message: 'No txId' });
   const transactionReceipt = await publicClient.getTransactionReceipt({
@@ -1224,7 +1248,9 @@ warApp.frame('/loading', async (c) => {
 
 warApp.frame('/result/:gameId', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const gameId = c.req.param('gameId') as `0x${string}`;
   const recentCard = c.previousState.c_card;
@@ -1352,7 +1378,9 @@ warApp.frame('/result/:gameId', async (c) => {
 
 warApp.frame('/addAction', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     // TODO
@@ -1435,7 +1463,7 @@ warApp.frame('/select-game-mode/:castHash', async (c) => {
       <Button action="/make-duel/3">3 cards</Button>,
       <Button action="/make-duel/5">5 cards</Button>,
       <Button action={`${BASE_URL}/war-tournament/make-duel/5`}>
-        Tournament
+        Tourney
       </Button>,
     ],
   });
@@ -1443,7 +1471,9 @@ warApp.frame('/select-game-mode/:castHash', async (c) => {
 
 warApp.frame('/make-direct-duel/:castHash', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const castHash = c.req.param('castHash');
   // const params = JSON.parse(decodeURIComponent(c.req.param('params')));

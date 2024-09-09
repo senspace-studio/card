@@ -36,7 +36,9 @@ export const stackApp = new Frog<{ State: State }>({
 
 stackApp.frame('/', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
@@ -117,7 +119,9 @@ stackApp.frame('/', async (c) => {
 
 stackApp.frame('/stats', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { fid } = c.frameData!;
   let { verifiedAddress } = c.previousState;
@@ -276,7 +280,9 @@ stackApp.frame('/stats', async (c) => {
 
 stackApp.frame('/stats/:fid', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const fid = c.req.param('fid');
 
@@ -400,7 +406,9 @@ stackApp.frame('/stats/:fid', async (c) => {
 
 stackApp.frame('/leaderboard', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { username, verifiedAddress } = c.previousState;
 
@@ -421,7 +429,9 @@ stackApp.frame('/leaderboard', async (c) => {
 
 stackApp.frame('/leaderboard-battle', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { username, verifiedAddress } = c.previousState;
 
@@ -442,7 +452,9 @@ stackApp.frame('/leaderboard-battle', async (c) => {
 
 stackApp.frame('/leaderboard-invitation', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { username, verifiedAddress } = c.previousState;
 

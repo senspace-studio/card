@@ -46,7 +46,9 @@ export const drawApp = new Frog<{ State: State }>({
 
 drawApp.frame('/', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   if (c.frameData?.fid) {
     const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
@@ -94,7 +96,9 @@ drawApp.frame('/', async (c) => {
 
 drawApp.frame('/input', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const numOfMint = Number(c.inputText);
 
@@ -172,7 +176,9 @@ drawApp.frame('/input', async (c) => {
 
 drawApp.frame('/score', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const transactionId = c.transactionId || c.previousState.transactionId;
 
@@ -240,7 +246,9 @@ drawApp.frame('/score', async (c) => {
 
 drawApp.frame('/card/:id', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { ids, quantities } = c.previousState;
   const id = Number(c.req.param('id'));
@@ -279,7 +287,9 @@ drawApp.frame('/card/:id', (c) => {
 
 drawApp.frame('/score/:transactionId', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const transactionId = c.req.param('transactionId');
 
@@ -337,7 +347,9 @@ drawApp.frame('/score/:transactionId', async (c) => {
 
 drawApp.frame('/mycards', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const verifiedAddresses =
     c.previousState.verifiedAddresses.length > 0

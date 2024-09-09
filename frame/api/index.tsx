@@ -34,7 +34,9 @@ app.frame('/', (c) => {
 
 app.frame('/top', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     title,
@@ -51,7 +53,9 @@ app.frame('/top', (c) => {
 
 app.frame('/menu', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     title,

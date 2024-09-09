@@ -90,7 +90,9 @@ export const warTournamentApp = new Frog<{ State: WarState }>({
 
 warTournamentApp.frame('/make-duel/:game_mode', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const numOfCards = c.req.param('game_mode');
   const { frameData } = c;
@@ -156,7 +158,9 @@ warTournamentApp.frame('/make-duel/:game_mode', async (c) => {
 
 warTournamentApp.frame('/preview', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { inputText } = c;
   const { userName, pfp_url, card, quantities, address, numOfCards } =
@@ -357,7 +361,9 @@ warTournamentApp.transaction('/duel-letter', async (c) => {
 
 warTournamentApp.frame('/find', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const transactionId = c.transactionId;
   const { userName, pfp_url, card, wager, address } = c.previousState;
@@ -505,7 +511,9 @@ const generateErrorImage = async (
 
 warTournamentApp.frame('/error/address', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     title,
@@ -517,7 +525,9 @@ warTournamentApp.frame('/error/address', (c) => {
 
 warTournamentApp.frame('/challenge/:gameId', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const gameId = c.req.param('gameId') as `0x${string}`;
   return await challengeFrame(c, gameId);
@@ -534,7 +544,9 @@ const challengeFrame = async (
   gameId: `0x${string}`,
 ) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   let gameInfo = await getGameInfoByGameId(gameId);
 
@@ -689,7 +701,9 @@ const challengeFrame = async (
 
 warTournamentApp.frame('/choose', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { quantities, c_address, numOfCards } = c.previousState;
 
@@ -711,7 +725,9 @@ warTournamentApp.frame('/choose', async (c) => {
 
 warTournamentApp.frame('/choose/:params', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const params = JSON.parse(decodeURIComponent(c.req.param('params')));
   const { userName, pfp_url, wager, gameId, numOfCards, sumOfCards } = params;
@@ -821,7 +837,9 @@ warTournamentApp.frame('/choose/:params', async (c) => {
 
 warTournamentApp.frame('/duel', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { inputText } = c;
   const {
@@ -979,7 +997,9 @@ warTournamentApp.transaction('/challengeGame', async (c) => {
 
 warTournamentApp.frame('/loading', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   if (c.transactionId === undefined) return c.error({ message: 'No txId' });
   const transactionReceipt = await publicClient.getTransactionReceipt({
@@ -1024,7 +1044,9 @@ warTournamentApp.frame('/loading', async (c) => {
 
 warTournamentApp.frame('/result/:gameId', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const gameId = c.req.param('gameId') as `0x${string}`;
   const recentCard = c.previousState.c_card;
@@ -1158,7 +1180,9 @@ warTournamentApp.frame('/result/:gameId', async (c) => {
 
 warTournamentApp.frame('/make-direct-duel/:castHash', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const numOfCards = 5;
 

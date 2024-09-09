@@ -13,7 +13,9 @@ export const teaserApp = new Frog({
 
 teaserApp.frame('/', (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   return c.res({
     image: '/images/teaser/title.png',
@@ -24,7 +26,9 @@ teaserApp.frame('/', (c) => {
 
 teaserApp.frame('/invitation', async (c) => {
   if (IS_MAINTENANCE)
-    return c.error({ message: 'Under maintenance, please try again later.' });
+    return c.error({
+      message: 'We closed House of Cardians. Thank you for playing. ',
+    });
 
   const { verifiedAddresses } = await getFarcasterUserInfo(c.frameData?.fid);
   const address = verifiedAddresses[0];
